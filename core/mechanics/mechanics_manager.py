@@ -5,13 +5,13 @@ Coordinates card deck, calculations, and character state.
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 
+import logging
 from core.database.db_manager import DatabaseManager
-from core.utils.logger import get_logger
 from .card_deck import CardDeck
 from .models import Card, Character, Item, Suit, ItemType
 from . import calculations
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class MechanicsManager:
