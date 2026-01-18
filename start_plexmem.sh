@@ -61,27 +61,14 @@ mkdir -p data logs
 
 echo -e "${GREEN}✓ Directories ready${NC}"
 
-# Check if ports are available
-if lsof -Pi :8000 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo -e "${RED}Error: Port 8000 is already in use!${NC}"
-    echo -e "${YELLOW}Stop the running process or change the port${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}✓ Port 8000 is available${NC}"
-
-# Kill existing processes
+# Kill existing processes more aggressively
 echo -e "${BLUE}Checking for existing processes...${NC}"
-EXISTING_PROCESSES=$(pgrep -f "python.*run_api.py|python.*run_bot.py" || true)
-if [ ! -z "$EXISTING_PROCESSES" ]; then
-    echo -e "${YELLOW}Found running processes. Stopping them...${NC}"
-    pkill -f "python.*run_api.py" 2>/dev/null || true
-    pkill -f "python.*run_bot.py" 2>/dev/null || true
-    sleep 2
-    echo -e "${GREEN}✓ Old processes stopped${NC}"
-else
-    echo -e "${GREEN}✓ No existing processes found${NC}"
+pkill -9 -f "uvicorn|run_api|run_bot" 2>/dev/null || true
+if command -v lsof &> /dev/null; then
+    lsof -ti:8000 | xargs kill -9 2>/dev/null || true
 fi
+sleep 2
+echo -e "${GREEN}✓ All old processes stopped${NC}"
 
 # Start services
 echo ""
