@@ -131,8 +131,11 @@ class ContextManager:
         
         # Add module data if provided
         if module_data:
-            for module_name, data in module_data.items():
-                prompt_sections.append(f"# {module_name}\n{data}")
+            # Handle game mechanics specially
+            if "character_creation" in module_data:
+                prompt_sections.append(self._format_character_creation(module_data["character_creation"]))
+            elif "character" in module_data:
+                prompt_sections.append(self._format_mechanics(module_data))
         
         return "\n\n".join(prompt_sections)
     
@@ -249,4 +252,129 @@ class ContextManager:
         new_turns_start = recent_turns[settings.raw_turns_min - 1].turn_number if len(recent_turns) >= settings.raw_turns_min else 0
         
         return turns_to_summarize, new_turns_start
+    
+    # =========================================================================
+    # GAME MECHANICS FORMATTING
+    # =========================================================================
+    
+    def _format_character_creation(self, creation_data: Dict[str, Any]) -> str:
+        """Format character creation data for GM context"""
+        cards = creation_data["cards"]
+        instructions = creation_data["instructions"]
+        
+        return f"""# 🎲 Создание персонажа
+
+{instructions}
+
+**Карты:** {', '.join(cards)}
+
+**Инструкция для ГМ:**
+1. Объясни игроку правила распределения характеристик
+2. Дождись его выбора (или сам распредели оптимально если попросит)
+3. Верни в `response_data`:
+```json
+{{
+  "create_character": {{
+    "spades": 45,
+    "hearts": 70,
+    "diamonds": 35,
+    "clubs": 75
+  }}
+}}
+```
+"""
+    
+    def _format_mechanics(self, module_data: Dict[str, Any]) -> str:
+        """Format full game mechanics data for GM context (compact ~300 tokens)"""
+        char = module_data["character"]
+        cards = module_data["cards"]
+        thresholds = module_data["thresholds"]
+        checks = module_data["checks"]
+        combat = module_data["combat"]
+        
+        # Format cards
+        pairs_str = []
+        for pair in cards["pairs"]:
+            cards_str = " + ".join(pair["cards"])
+            pairs_str.append(f"Пара {pair['pair']}: {cards_str}")
+        
+        # Format special events
+        special_events_str = ""
+        if cards["special_events"]:
+            special_events_str = "\n🎴 **Особые события (только вне боя):**\n" + "\n".join([f"- {event}" for event in cards["special_events"]])
+        
+        # Format inventory (compact)
+        inventory_str = ""
+        if char["inventory"]:
+            equipped = [item["id"] for item in char["inventory"] if item.get("equipped")]
+            not_equipped = [item["id"] for item in char["inventory"] if not item.get("equipped")]
+            inventory_lines = []
+            if equipped:
+                inventory_lines.append(f"✅ Надето: {', '.join(equipped)}")
+            if not_equipped:
+                inventory_lines.append(f"📦 В сумке: {', '.join(not_equipped)}")
+            inventory_str = "\n".join(inventory_lines)
+        else:
+            inventory_str = "Пусто"
+        
+        # Format checks (show only totals for each suit from pair 1)
+        pair1_checks = checks["pair_1"]
+        checks_str = []
+        for suit in ["spades", "hearts", "diamonds", "clubs"]:
+            total = pair1_checks[suit]["total"]
+            easy_thresh = thresholds[suit]["easy"]
+            hard_thresh = thresholds[suit]["hard"]
+            suit_icon = {"spades": "♠", "hearts": "♥", "diamonds": "♦", "clubs": "♣"}[suit]
+            checks_str.append(f"{suit_icon}: {total} (легко {easy_thresh}, сложно {hard_thresh})")
+        
+        # Format combat (show only best options from pair 1)
+        pair1_combat = combat["pair_1"]
+        melee_total = pair1_combat["melee_attack"]["total"]
+        ranged_total = pair1_combat["ranged_attack"]["total"]
+        phys_def_total = pair1_combat["physical_defense"]["total"]
+        magic_def_total = pair1_combat["magic_defense"]["total"]
+        
+        return f"""# 🎲 Игровые механики
+
+## Персонаж
+**HP**: {char['hp']}/{char['max_hp']} | **Мана**: {char['mana']}/{char['max_mana']} | **Золото**: {char['gold']}
+
+**Характеристики** (среднее: {char['average']}):
+♠ Сила: {char['spades']} | ♥ Магия: {char['hearts']} | ♦ Стойкость: {char['diamonds']} | ♣ Ловкость: {char['clubs']}
+
+## 🎴 Карты (игрок НЕ видит, вытянуты случайно)
+{chr(10).join(pairs_str)}{special_events_str}
+
+## 🎯 Готовые расчёты проверок (пара 1)
+{chr(10).join(checks_str)}
+
+## ⚔️ Готовые расчёты боя (пара 1)
+Атака: ближняя {melee_total} | дальняя {ranged_total}
+Защита: физ. {phys_def_total} | маг. {magic_def_total}
+Комбо: доступно (используются те же карты)
+
+## 🎒 Инвентарь ({len(char['inventory'])}/20)
+{inventory_str}
+
+---
+**Инструкции:**
+1. Все расчёты УЖЕ СДЕЛАНЫ - просто выбери подходящий результат
+2. Опиши действие сюжетно, используя готовые значения
+3. В `response_data` укажи изменения и какие проверки были использованы:
+```json
+{{
+  "checks_used": [{{"suit": "spades", "success": true}}],
+  "hp": -15,
+  "mana": -10,
+  "gold": 100,
+  "inventory": {{
+    "add": [{{"id": "Меч", "type": "weapon", "suit": "♠", "bonus": 25, "description": "..."}}],
+    "remove": ["Старый_меч"]
+  }},
+  "equip": ["Меч"]
+}}
+```
+4. Особые события (фигуры) используй ТОЛЬКО в мирное время
+5. В бою фигуры НЕ учитываются
+"""
 

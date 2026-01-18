@@ -13,6 +13,7 @@ from core.agents.gm_agent import GMAgent
 from core.agents.quantizer_agent import QuantizerAgent
 from core.agents.summarizer_agent import SummarizerAgent
 from core.llm.openrouter_client import OpenRouterClient
+from core.mechanics.mechanics_manager import MechanicsManager
 from core.config import settings
 from core.utils import load_initial_summary, load_initial_quants
 
@@ -44,6 +45,7 @@ class TurnOrchestrator:
         
         # Managers
         self.memory_manager = MemoryManager(db_manager)
+        self.mechanics_manager = MechanicsManager(db_manager)
         self.context_manager = ContextManager(db_manager, self.memory_manager)
         
         # Agents (each with their own model configuration)
@@ -87,12 +89,40 @@ class TurnOrchestrator:
         active_quants = await self._get_active_quants(session_id)
         logger.info(f"Active quants: {[q.id for q in active_quants]}")
         
+        # Step 1.5: Game mechanics (cards, checks, combat)
+        module_data = None
+        character_exists = self.mechanics_manager.character_exists(session_id)
+        
+        if not character_exists:
+            # First turn - character creation
+            logger.info("Character doesn't exist, generating creation cards")
+            module_data = {
+                "character_creation": self.mechanics_manager.generate_character_cards()
+            }
+        else:
+            # Normal turn - draw cards and calculate
+            logger.info("Drawing cards and calculating mechanics")
+            cards_data = self.mechanics_manager.draw_cards_for_turn()
+            thresholds = self.mechanics_manager.calculate_thresholds(session_id)
+            checks = self.mechanics_manager.calculate_all_checks(session_id, cards_data)
+            combat = self.mechanics_manager.calculate_all_combat_options(session_id, cards_data)
+            character_state = self.mechanics_manager.get_character_state(session_id)
+            
+            module_data = {
+                "cards": cards_data,
+                "thresholds": thresholds,
+                "checks": checks,
+                "combat": combat,
+                "character": character_state
+            }
+        
         # Step 2: Build context
         context_messages = self.context_manager.build_context(
             session_id=session_id,
             current_turn=current_turn,
             active_quants=active_quants,
-            system_prompt_parts=system_prompt_parts
+            system_prompt_parts=system_prompt_parts,
+            module_data=module_data
         )
         logger.debug(f"Context built with {len(context_messages)} messages")
         
@@ -105,8 +135,19 @@ class TurnOrchestrator:
         
         reply = gm_response["reply"]
         requested_quants = gm_response["quants"]
+        response_data = gm_response.get("response_data", {})
         
         logger.info(f"GM response generated. Requested quants: {requested_quants}")
+        
+        # Step 3.5: Apply game mechanics changes
+        if character_exists and response_data:
+            logger.info(f"Applying mechanics changes: {response_data}")
+            self.mechanics_manager.apply_gm_changes(session_id, response_data)
+        elif not character_exists and response_data and "create_character" in response_data:
+            # Character creation confirmed by GM
+            logger.info("Creating character from GM response")
+            char_stats = response_data["create_character"]
+            self.mechanics_manager.create_character(session_id, char_stats)
         
         # Step 4: Save turn to database
         self.db.create_turn(
