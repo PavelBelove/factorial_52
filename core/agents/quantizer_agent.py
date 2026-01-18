@@ -28,9 +28,10 @@ class QuantizerAgent:
     - Choose which quants are active
     """
     
-    def __init__(self, llm_client: OpenRouterClient, model: Optional[str] = None):
+    def __init__(self, llm_client: OpenRouterClient, memory_manager, model: Optional[str] = None):
         """Initialize Quantizer agent."""
         self.llm = llm_client
+        self.memory_manager = memory_manager
         self.model = model  # Can override default model
     
     async def process_memory_updates(

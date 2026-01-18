@@ -13,8 +13,7 @@ from core.config import settings
 
 def add_characters_table():
     """Add characters table to database"""
-    db_path = f"sqlite:///{settings.database_path}"
-    engine = create_engine(db_path, echo=True)
+    engine = create_engine(settings.database_url, echo=True)
     
     print("Creating characters table...")
     CharacterDB.__table__.create(engine, checkfirst=True)

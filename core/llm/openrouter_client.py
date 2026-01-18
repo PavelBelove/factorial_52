@@ -112,6 +112,12 @@ class OpenRouterClient:
             if settings.debug:
                 logger.debug("=" * 80)
                 logger.debug("LLM RESPONSE:")
+                
+                # Log token usage
+                if "usage" in result:
+                    usage = result["usage"]
+                    logger.info(f"📊 Tokens: {usage.get('prompt_tokens', 0)} prompt + {usage.get('completion_tokens', 0)} completion = {usage.get('total_tokens', 0)} total")
+                
                 content = self.extract_content(result)
                 # For GM responses, only log parsed reply and quants
                 try:

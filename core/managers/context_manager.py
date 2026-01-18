@@ -85,7 +85,7 @@ class ContextManager:
                 messages.append({
                     "role": "system",
                     "content": f"# Доступные кванты (последние обновления)\n\n{synopsis_list}"
-                })
+            })
         
         # 4. Recent raw turns
         turns = self._get_recent_turns(session_id, current_turn)
@@ -133,9 +133,13 @@ class ContextManager:
         if module_data:
             # Handle game mechanics specially
             if "character_creation" in module_data:
-                prompt_sections.append(self._format_character_creation(module_data["character_creation"]))
+                mechanics_section = self._format_character_creation(module_data["character_creation"])
+                prompt_sections.append(mechanics_section)
+                logger.info("Added character creation section to prompt")
             elif "character" in module_data:
-                prompt_sections.append(self._format_mechanics(module_data))
+                mechanics_section = self._format_mechanics(module_data)
+                prompt_sections.append(mechanics_section)
+                logger.info("Added game mechanics section to prompt")
         
         return "\n\n".join(prompt_sections)
     
@@ -299,11 +303,13 @@ class ContextManager:
     
     def _format_mechanics(self, module_data: Dict[str, Any]) -> str:
         """Format full game mechanics data for GM context (compact ~300 tokens)"""
+        logger.debug(f"Formatting mechanics. Module data keys: {module_data.keys()}")
         char = module_data["character"]
         cards = module_data["cards"]
         thresholds = module_data["thresholds"]
         checks = module_data["checks"]
         combat = module_data["combat"]
+        logger.debug(f"Character stats: spades={char['spades']}, hearts={char['hearts']}, diamonds={char['diamonds']}, clubs={char['clubs']}")
         
         # Format cards
         pairs_str = []
@@ -330,15 +336,22 @@ class ContextManager:
         else:
             inventory_str = "Пусто"
         
-        # Format checks (show only totals for each suit from pair 1)
+        # Format checks with FULL BREAKDOWN from pair 1
         pair1_checks = checks["pair_1"]
         checks_str = []
         for suit in ["spades", "hearts", "diamonds", "clubs"]:
-            total = pair1_checks[suit]["total"]
+            check = pair1_checks[suit]
+            total = check["total"]
             easy_thresh = thresholds[suit]["easy"]
             hard_thresh = thresholds[suit]["hard"]
             suit_icon = {"spades": "♠", "hearts": "♥", "diamonds": "♦", "clubs": "♣"}[suit]
-            checks_str.append(f"{suit_icon}: {total} (легко {easy_thresh}, сложно {hard_thresh})")
+            
+            # Show breakdown: card1 + card2 + stat
+            card1_str = f"{check['card1_value']}+{check['card1_bonus']}" if check['card1_bonus'] > 0 else str(check['card1_value'])
+            card2_str = f"{check['card2_value']}+{check['card2_bonus']}" if check['card2_bonus'] > 0 else str(check['card2_value'])
+            breakdown = f"({card1_str} + {card2_str} + {check['stat']} стат)"
+            
+            checks_str.append(f"{suit_icon}: {total} {breakdown} → легко {easy_thresh}, сложно {hard_thresh}")
         
         # Format combat (show only best options from pair 1)
         pair1_combat = combat["pair_1"]
@@ -347,7 +360,7 @@ class ContextManager:
         phys_def_total = pair1_combat["physical_defense"]["total"]
         magic_def_total = pair1_combat["magic_defense"]["total"]
         
-        return f"""# 🎲 Игровые механики
+        mechanics_text = f"""# 🎲 Игровые механики
 
 ## Персонаж
 **HP**: {char['hp']}/{char['max_hp']} | **Мана**: {char['mana']}/{char['max_mana']} | **Золото**: {char['gold']}
@@ -390,4 +403,9 @@ class ContextManager:
 4. Особые события (фигуры) используй ТОЛЬКО в мирное время
 5. В бою фигуры НЕ учитываются
 """
+        
+        # Log the formatted mechanics for debugging
+        logger.info(f"Formatted mechanics block:\n{mechanics_text}")
+        
+        return mechanics_text
 

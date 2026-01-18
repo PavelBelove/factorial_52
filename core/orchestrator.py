@@ -50,7 +50,7 @@ class TurnOrchestrator:
         
         # Agents (each with their own model configuration)
         self.gm_agent = GMAgent(llm_client, model=settings.gm_model)
-        self.quantizer_agent = QuantizerAgent(llm_client, model=settings.quantizer_model)
+        self.quantizer_agent = QuantizerAgent(llm_client, self.memory_manager, model=settings.quantizer_model)
         self.summarizer_agent = SummarizerAgent(llm_client, model=settings.summarizer_model)
     
     async def process_turn(
@@ -92,6 +92,7 @@ class TurnOrchestrator:
         # Step 1.5: Game mechanics (cards, checks, combat)
         module_data = None
         character_exists = self.mechanics_manager.character_exists(session_id)
+        logger.info(f"Character exists: {character_exists}")
         
         if not character_exists:
             # First turn - character creation
@@ -99,14 +100,24 @@ class TurnOrchestrator:
             module_data = {
                 "character_creation": self.mechanics_manager.generate_character_cards()
             }
+            logger.debug(f"Character creation data keys: {module_data.keys()}")
         else:
             # Normal turn - draw cards and calculate
             logger.info("Drawing cards and calculating mechanics")
             cards_data = self.mechanics_manager.draw_cards_for_turn()
+            logger.debug(f"Cards drawn: {cards_data['pairs']}")
+            
             thresholds = self.mechanics_manager.calculate_thresholds(session_id)
+            logger.debug(f"Thresholds calculated: {list(thresholds.keys())}")
+            
             checks = self.mechanics_manager.calculate_all_checks(session_id, cards_data)
+            logger.debug(f"Checks calculated: {len(checks)} checks")
+            
             combat = self.mechanics_manager.calculate_all_combat_options(session_id, cards_data)
+            logger.debug(f"Combat options calculated: {len(combat)} options")
+            
             character_state = self.mechanics_manager.get_character_state(session_id)
+            logger.debug(f"Character state: HP={character_state.get('hp')}/{character_state.get('max_hp')}, Mana={character_state.get('mana')}/{character_state.get('max_mana')}")
             
             module_data = {
                 "cards": cards_data,
@@ -115,6 +126,7 @@ class TurnOrchestrator:
                 "combat": combat,
                 "character": character_state
             }
+            logger.info(f"Module data prepared with keys: {list(module_data.keys())}")
         
         # Step 2: Build context
         context_messages = self.context_manager.build_context(

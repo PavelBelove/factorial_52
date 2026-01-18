@@ -43,19 +43,18 @@ def calculate_thresholds(character: Character) -> Dict[str, any]:
 # CARD BONUSES
 # =============================================================================
 
-def calculate_card_bonus(card: Card, action_suit: Suit, both_same_color: bool) -> int:
+def calculate_card_bonus(card: Card, action_suit: Suit) -> int:
     """
-    Calculate bonus for a single card.
+    Calculate bonus for a single card in combat.
     
-    Priority:
-    1. If suit matches action type → +20
-    2. Else if both cards are same color → +10
+    Priority (per tabletop rules):
+    1. If suit matches action → +20
+    2. Else if color matches action → +10
     3. Else → 0
     
     Args:
         card: The card
         action_suit: The suit of the action (e.g., SPADES for melee attack)
-        both_same_color: Whether both cards in pair are same color
         
     Returns:
         Bonus value (0, 10, or 20)
@@ -64,8 +63,9 @@ def calculate_card_bonus(card: Card, action_suit: Suit, both_same_color: bool) -
     if card.suit == action_suit:
         return 20
     
-    # Priority 2: Color match
-    if both_same_color:
+    # Priority 2: Color match (card color matches action suit color)
+    action_color = "red" if action_suit in [Suit.HEARTS, Suit.DIAMONDS] else "black"
+    if card.color == action_color:
         return 10
     
     # No bonus
@@ -84,11 +84,10 @@ def calculate_check_for_pair(
     """
     Calculate check result for a pair of cards and a specific suit.
     
-    Formula:
-    - Base roll = (rank1 + rank2) × 10
-    - Color bonus: +10 if both red, -10 if both black
-    - Suit bonus: +20 if both same suit and red, -20 if both same suit and black
-    - Total = base_roll + color_bonus + suit_bonus + character_stat
+    Formula (per tabletop rules):
+    - Each card: rank × 10
+    - Bonus: +20 if suit matches OR +10 if color matches (not both!)
+    - Total = card1_value + card2_value + character_stat
     
     Args:
         cards: Pair of cards (must be exactly 2)
@@ -102,36 +101,36 @@ def calculate_check_for_pair(
     
     card1, card2 = cards
     
-    # Base roll
-    base_roll = (card1.rank + card2.rank) * 10
+    # Calculate each card separately
+    def calc_card_value(card: Card, check_suit: Suit) -> tuple[int, int]:
+        """Returns (base_value, bonus)"""
+        base = card.rank * 10
+        bonus = 0
+        
+        # +20 for suit match, OR +10 for color match (suit takes precedence)
+        if card.suit == check_suit:
+            bonus = 20
+        elif card.color == ("red" if check_suit in [Suit.HEARTS, Suit.DIAMONDS] else "black"):
+            bonus = 10
+        
+        return base, bonus
     
-    # Color bonus
-    color_bonus = 0
-    if card1.color == card2.color:
-        if card1.color == "red":
-            color_bonus = 10
-        else:  # black
-            color_bonus = -10
+    card1_base, card1_bonus = calc_card_value(card1, suit)
+    card2_base, card2_bonus = calc_card_value(card2, suit)
     
-    # Suit bonus
-    suit_bonus = 0
-    if card1.suit == card2.suit:
-        if card1.color == "red":
-            suit_bonus = 20
-        else:  # black
-            suit_bonus = -20
+    card1_total = card1_base + card1_bonus
+    card2_total = card2_base + card2_bonus
     
     # Character stat (including equipped bonuses)
     stat_value = character.get_total_stat(suit)
     
     # Total
-    total = base_roll + color_bonus + suit_bonus + stat_value
+    total = card1_total + card2_total + stat_value
     
     return {
         "cards": [str(card1), str(card2)],
-        "base_roll": base_roll,
-        "color_bonus": color_bonus,
-        "suit_bonus": suit_bonus,
+        "card1": {"base": card1_base, "bonus": card1_bonus, "total": card1_total},
+        "card2": {"base": card2_base, "bonus": card2_bonus, "total": card2_total},
         "stat_value": stat_value,
         "total": total
     }
@@ -213,11 +212,10 @@ def calculate_combat_action(
     assert len(cards) == 2, "Must provide exactly 2 cards"
     
     card1, card2 = cards
-    both_same_color = card1.color == card2.color
     
-    # Calculate bonuses
-    card1_bonus = calculate_card_bonus(card1, action_suit, both_same_color)
-    card2_bonus = calculate_card_bonus(card2, action_suit, both_same_color)
+    # Calculate bonuses (each card independently)
+    card1_bonus = calculate_card_bonus(card1, action_suit)
+    card2_bonus = calculate_card_bonus(card2, action_suit)
     
     # Card values
     card1_value = card1.value  # rank × 10

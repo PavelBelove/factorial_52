@@ -312,6 +312,7 @@ class DatabaseManager:
     def delete_last_turn(self, session_id: int) -> bool:
         """
         Delete the last turn from the session and decrement current_turn.
+        Also clears requested_quants from the previous turn to prevent stale quants.
         Returns True if deleted, False if no turns exist.
         Used for /undo and /retry functionality.
         """
@@ -336,6 +337,17 @@ class DatabaseManager:
                 
                 # Decrement current_turn
                 db_session.current_turn -= 1
+                
+                # Clear requested_quants from the NEW last turn (previous turn)
+                # This prevents stale quants from confusing GM on retry
+                if db_session.current_turn > 0:
+                    prev_turn = session.query(TurnDB).filter(
+                        TurnDB.session_id == session_id,
+                        TurnDB.turn_number == db_session.current_turn
+                    ).first()
+                    
+                    if prev_turn:
+                        prev_turn.requested_quants = "[]"  # Clear quant requests
                 
                 session.commit()
                 return True
