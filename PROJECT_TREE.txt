@@ -1,0 +1,118 @@
+PlexMem Project Structure
+=========================
+
+plexmem/
+│
+├── core/                           # ЯДРО СИСТЕМЫ
+│   │
+│   ├── agents/                     # Агенты (3 файла)
+│   │   ├── __init__.py
+│   │   ├── gm_agent.py            # Главный агент (ГМ)
+│   │   ├── quantizer_agent.py     # Квантователь
+│   │   └── summarizer_agent.py    # Суммаризатор
+│   │
+│   ├── api/                        # FastAPI (3 файла)
+│   │   ├── __init__.py
+│   │   ├── main.py                # Основной API файл
+│   │   └── models.py              # Request/Response модели
+│   │
+│   ├── database/                   # База данных (3 файла)
+│   │   ├── __init__.py
+│   │   ├── db_manager.py          # Менеджер БД
+│   │   └── models.py              # SQLAlchemy модели
+│   │
+│   ├── llm/                        # LLM интеграция (2 файла)
+│   │   ├── __init__.py
+│   │   └── openrouter_client.py   # OpenRouter клиент
+│   │
+│   ├── managers/                   # Менеджеры (3 файла)
+│   │   ├── __init__.py
+│   │   ├── context_manager.py     # Менеджер контекста
+│   │   └── memory_manager.py      # Менеджер памяти
+│   │
+│   ├── models/                     # Pydantic модели (5 файлов)
+│   │   ├── __init__.py
+│   │   ├── quant.py               # Модель кванта
+│   │   ├── session.py             # Модель сессии
+│   │   ├── summary.py             # Модель сводки
+│   │   └── turn.py                # Модель хода
+│   │
+│   ├── utils/                      # Утилиты (2 файла)
+│   │   ├── __init__.py
+│   │   └── logger.py              # Логирование
+│   │
+│   ├── __init__.py
+│   ├── config.py                  # Конфигурация
+│   └── orchestrator.py            # Оркестратор ходов
+│
+├── data/                           # ДАННЫЕ (создаётся автоматически)
+│   └── plexmem.db                 # SQLite база (после первого запуска)
+│
+├── logs/                           # ЛОГИ (создаётся автоматически)
+│   └── plexmem_YYYYMMDD.log       # Лог-файлы
+│
+├── md/                             # ДОКУМЕНТАЦИЯ КОНЦЕПЦИИ
+│   ├── concept.md                 # Теоретическая база
+│   ├── step.md                    # План разработки
+│   └── ответы.md                  # Ответы на вопросы
+│
+├── telegram/                       # TELEGRAM БОТ (Фаза 2, пока пусто)
+│
+├── .env                            # Конфигурация (требует API ключ!)
+├── .env.example                   # Пример конфигурации
+├── .gitignore                     # Git ignore правила
+│
+├── ARCHITECTURE.md                # Архитектура системы
+├── FIRST_RUN.md                   # Инструкции первого запуска
+├── IMPLEMENTATION_SUMMARY.md      # Отчёт о реализации
+├── QUICKSTART.md                  # Быстрый старт
+├── README.md                      # Общий обзор
+│
+├── requirements.txt               # Python зависимости
+├── run_api.py                     # Скрипт запуска API
+└── test_api.py                    # Тестовый скрипт
+
+
+СТАТИСТИКА:
+-----------
+Python файлов: 25
+Документов: 6 (MD)
+Компонентов: 10 (агенты, менеджеры, БД, API, LLM)
+Строк кода: ~3500+
+
+
+КЛЮЧЕВЫЕ ФАЙЛЫ:
+----------------
+
+ДЛЯ ЗАПУСКА:
+  .env                    - ВАЖНО! Укажите API ключ здесь
+  run_api.py              - Запуск API сервера
+  test_api.py             - Тестирование системы
+
+ДЛЯ ИЗУЧЕНИЯ:
+  FIRST_RUN.md           - Начните отсюда!
+  QUICKSTART.md          - Быстрый старт
+  ARCHITECTURE.md        - Детали архитектуры
+
+ЯДРО:
+  core/orchestrator.py   - Главный координатор
+  core/agents/*.py       - Три агента
+  core/managers/*.py     - Два менеджера
+  core/api/main.py       - REST API
+
+
+ГОТОВНОСТЬ:
+-----------
+✅ База данных (SQLite)
+✅ Менеджеры (Память, Контекст)
+✅ Агенты (ГМ, Квантователь, Суммаризатор)
+✅ LLM клиент (OpenRouter)
+✅ Оркестратор
+✅ REST API (FastAPI)
+✅ Логирование
+✅ Документация
+
+⏳ Telegram бот (Фаза 2)
+⏳ Модули (Фаза 3)
+⏳ Автотесты (Фаза 4)
+
