@@ -130,3 +130,43 @@ class SummaryDB(Base):
         Index("idx_summary_session", "session_id"),
     )
 
+
+class CharacterDB(Base):
+    """Character table - RPG character data for game sessions."""
+    __tablename__ = "characters"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(Integer, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False, unique=True)
+    
+    # Characteristics (4 suits)
+    spades = Column(Integer, default=0, nullable=False)      # ♠ Strength, melee combat
+    hearts = Column(Integer, default=0, nullable=False)      # ♥ Magic, magical defense
+    diamonds = Column(Integer, default=0, nullable=False)    # ♦ Endurance, physical defense
+    clubs = Column(Integer, default=0, nullable=False)       # ♣ Agility, ranged combat
+    
+    # Experience (auto-leveling, not shown to player)
+    spades_xp = Column(Integer, default=0, nullable=False)   # At 10 XP → +1 to spades
+    hearts_xp = Column(Integer, default=0, nullable=False)
+    diamonds_xp = Column(Integer, default=0, nullable=False)
+    clubs_xp = Column(Integer, default=0, nullable=False)
+    
+    # State
+    hp = Column(Integer, default=100, nullable=False)
+    max_hp = Column(Integer, default=100, nullable=False)
+    mana = Column(Integer, default=50, nullable=False)
+    max_mana = Column(Integer, default=50, nullable=False)
+    gold = Column(Integer, default=0, nullable=False)
+    
+    # Inventory
+    inventory = Column(JSON, default=list)  # List of items
+    equipped = Column(JSON, default=dict)   # Map of equipped items
+    
+    # Metadata
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Indexes
+    __table_args__ = (
+        Index("idx_character_session", "session_id"),
+    )
+

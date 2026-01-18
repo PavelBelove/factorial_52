@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 
 from core.config import settings
-from core.database.models import Base, UserDB, SessionDB, QuantDB, TurnDB, SummaryDB
+from core.database.models import Base, UserDB, SessionDB, QuantDB, TurnDB, SummaryDB, CharacterDB
 from core.models import Quant, QuantType, SessionType
 
 
@@ -407,4 +407,106 @@ class DatabaseManager:
             return session.query(SummaryDB).filter(
                 SummaryDB.session_id == session_id
             ).order_by(SummaryDB.turns_end.desc()).first()
+    
+    # ============= CHARACTER OPERATIONS =============
+    
+    def get_character(self, session_id: int) -> Optional[CharacterDB]:
+        """Get character for session."""
+        with self.get_session() as session:
+            return session.query(CharacterDB).filter(
+                CharacterDB.session_id == session_id
+            ).first()
+    
+    def create_character(
+        self,
+        session_id: int,
+        spades: int,
+        hearts: int,
+        diamonds: int,
+        clubs: int,
+        hp: int,
+        max_hp: int,
+        mana: int,
+        max_mana: int,
+        gold: int = 0
+    ) -> CharacterDB:
+        """Create new character."""
+        with self.get_session() as session:
+            character = CharacterDB(
+                session_id=session_id,
+                spades=spades,
+                hearts=hearts,
+                diamonds=diamonds,
+                clubs=clubs,
+                hp=hp,
+                max_hp=max_hp,
+                mana=mana,
+                max_mana=max_mana,
+                gold=gold
+            )
+            session.add(character)
+            session.commit()
+            session.refresh(character)
+            return character
+    
+    def update_character(
+        self,
+        session_id: int,
+        spades: Optional[int] = None,
+        hearts: Optional[int] = None,
+        diamonds: Optional[int] = None,
+        clubs: Optional[int] = None,
+        spades_xp: Optional[int] = None,
+        hearts_xp: Optional[int] = None,
+        diamonds_xp: Optional[int] = None,
+        clubs_xp: Optional[int] = None,
+        hp: Optional[int] = None,
+        max_hp: Optional[int] = None,
+        mana: Optional[int] = None,
+        max_mana: Optional[int] = None,
+        gold: Optional[int] = None,
+        inventory: Optional[List[Dict]] = None,
+        equipped: Optional[Dict] = None
+    ):
+        """Update character data."""
+        with self.get_session() as session:
+            character = session.query(CharacterDB).filter(
+                CharacterDB.session_id == session_id
+            ).first()
+            
+            if not character:
+                return
+            
+            if spades is not None:
+                character.spades = spades
+            if hearts is not None:
+                character.hearts = hearts
+            if diamonds is not None:
+                character.diamonds = diamonds
+            if clubs is not None:
+                character.clubs = clubs
+            if spades_xp is not None:
+                character.spades_xp = spades_xp
+            if hearts_xp is not None:
+                character.hearts_xp = hearts_xp
+            if diamonds_xp is not None:
+                character.diamonds_xp = diamonds_xp
+            if clubs_xp is not None:
+                character.clubs_xp = clubs_xp
+            if hp is not None:
+                character.hp = hp
+            if max_hp is not None:
+                character.max_hp = max_hp
+            if mana is not None:
+                character.mana = mana
+            if max_mana is not None:
+                character.max_mana = max_mana
+            if gold is not None:
+                character.gold = gold
+            if inventory is not None:
+                character.inventory = inventory
+            if equipped is not None:
+                character.equipped = equipped
+            
+            session.commit()
 
