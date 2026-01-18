@@ -140,14 +140,17 @@ class TurnOrchestrator:
         logger.info(f"GM response generated. Requested quants: {requested_quants}")
         
         # Step 3.5: Apply game mechanics changes
-        if character_exists and response_data:
-            logger.info(f"Applying mechanics changes: {response_data}")
-            self.mechanics_manager.apply_gm_changes(session_id, response_data)
-        elif not character_exists and response_data and "create_character" in response_data:
-            # Character creation confirmed by GM
-            logger.info("Creating character from GM response")
-            char_stats = response_data["create_character"]
-            self.mechanics_manager.create_character(session_id, char_stats)
+        if response_data:
+            # Check if character was just created
+            if response_data.get("character_created") and "create_character" in response_data:
+                logger.info("Creating character from GM response")
+                char_stats = response_data["create_character"]
+                self.mechanics_manager.create_character(session_id, char_stats)
+                logger.info(f"Character created: {char_stats}")
+            elif character_exists:
+                # Apply changes to existing character
+                logger.info(f"Applying mechanics changes: {response_data}")
+                self.mechanics_manager.apply_gm_changes(session_id, response_data)
         
         # Step 4: Save turn to database
         self.db.create_turn(

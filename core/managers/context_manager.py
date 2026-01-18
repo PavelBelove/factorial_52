@@ -259,21 +259,24 @@ class ContextManager:
     
     def _format_character_creation(self, creation_data: Dict[str, Any]) -> str:
         """Format character creation data for GM context"""
-        cards = creation_data["cards"]
         instructions = creation_data["instructions"]
         
-        return f"""# 🎲 Создание персонажа
+        return f"""# 🎲 Создание персонажа (система "Факториал 52!")
 
 {instructions}
 
-**Карты:** {', '.join(cards)}
+---
 
 **Инструкция для ГМ:**
-1. Объясни игроку правила распределения характеристик
-2. Дождись его выбора (или сам распредели оптимально если попросит)
-3. Верни в `response_data`:
+1. Покажи игроку карты и объясни правила (текст выше)
+2. Дождись его выбора:
+   - Если хочет распределить сам - пусть скажет какую карту куда
+   - Если просит "оптимально" - распредели по совпадениям мастей
+3. После распределения верни в `response_data`:
+
 ```json
 {{
+  "character_created": true,
   "create_character": {{
     "spades": 45,
     "hearts": 70,
@@ -282,6 +285,16 @@ class ContextManager:
   }}
 }}
 ```
+
+**Расчет характеристик:**
+- Значение = номинал карты × 5
+- Если масть карты = масть характеристики, добавь +10
+
+**Пример:**
+Карта 7♠ на Силу (♠): 7×5 + 10 = 45
+Карта 7♠ на Магию (♥): 7×5 + 0 = 35
+
+**НЕ запрашивай кванты "Character" или "Inventory"** - это теперь отдельная система!
 """
     
     def _format_mechanics(self, module_data: Dict[str, Any]) -> str:

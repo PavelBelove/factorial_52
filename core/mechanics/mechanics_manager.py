@@ -144,37 +144,63 @@ class MechanicsManager:
         Generate 5 cards for character creation.
         
         Returns:
-            Dict with cards and instructions
+            Dict with cards and detailed instructions
         """
         cards = self.deck.draw(5)
         cards_str = [str(card) for card in cards]
         
-        # Sort by value to identify worst card
-        sorted_cards = sorted(enumerate(cards), key=lambda x: x[1].rank)
-        worst_idx = sorted_cards[0][0]
-        
-        instructions = f"""Вытянуты 5 карт для создания персонажа:
-"""
+        # Calculate values for each card
+        card_details = []
         for idx, card in enumerate(cards):
-            value = card.rank * 5
-            note = " (ХУДШАЯ - не учитывается)" if idx == worst_idx else ""
-            instructions += f"{idx + 1}. {card} ({value} очков, +10 если назначить на {card.suit.value}){note}\n"
+            base_value = card.rank * 5
+            details = {
+                "card": str(card),
+                "base": base_value,
+                "with_bonus": base_value + 10,
+                "suit": card.suit.value,
+                "index": idx
+            }
+            card_details.append(details)
         
-        instructions += """
-Ты можешь:
-- Распределить карты по характеристикам самостоятельно
-- Попросить меня распределить оптимально
+        # Sort to find worst
+        sorted_by_value = sorted(card_details, key=lambda x: x["base"])
+        worst_card = sorted_by_value[0]
+        
+        # Build detailed instructions
+        instructions = f"""🎲 **СОЗДАНИЕ ПЕРСОНАЖА** (система "Факториал 52!")
 
-Характеристики:
-♠ Сила: ближний бой, сила, воля, запугивание
-♥ Магия: магическая защита, колдовство, мудрость, общение
-♦ Стойкость: физическая защита, выносливость, харизма, торговля
-♣ Ловкость: дальний бой, акробатика, меткость, скрытность
+Вытянуто 5 карт. Нужно распределить 4 лучших по характеристикам (худшая не учитывается).
+
+**Вытянутые карты:**
+"""
+        for detail in card_details:
+            is_worst = (detail["index"] == worst_card["index"])
+            worst_mark = " ❌ **ХУДШАЯ - не учитывается**" if is_worst else ""
+            instructions += f"{detail['index'] + 1}. {detail['card']} → {detail['base']} очков (+10 если совпадёт масть = {detail['with_bonus']}){worst_mark}\n"
+        
+        instructions += f"""
+**Правила распределения:**
+- Каждую карту назначаешь на одну характеристику
+- Значение = номинал × 5
+- **БОНУС +10 если масть карты совпадает с характеристикой!**
+
+**Характеристики (масти):**
+♠ **Сила** (Пики): ближний бой, физическая сила, воля, запугивание
+♥ **Магия** (Червы): магическая защита, колдовство, мудрость, общение
+♦ **Стойкость** (Бубны): физическая защита, выносливость, харизма, торговля
+♣ **Ловкость** (Трефы): дальний бой, акробатика, меткость, скрытность
+
+**Что ты можешь сделать:**
+1. Распределить карты самостоятельно (скажи как)
+2. Попросить меня распределить оптимально (я выберу лучшие совпадения)
+
+Напиши что выбираешь, и я зафиксирую характеристики!
 """
         
         return {
             "cards": cards_str,
             "instructions": instructions,
+            "card_details": card_details,
             "_card_objects": cards  # Keep for stat calculation
         }
     
