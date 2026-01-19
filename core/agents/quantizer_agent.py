@@ -36,6 +36,7 @@ class QuantizerAgent:
     
     async def process_memory_updates(
         self,
+        session_id: int,
         summary_text: str,
         recent_turns: List[Dict[str, str]],
         active_quants: List[Quant],
@@ -61,6 +62,7 @@ class QuantizerAgent:
         """
         # Build context for quantizer
         context = self._build_quantizer_context(
+            session_id,
             summary_text,
             recent_turns,
             active_quants,
@@ -90,6 +92,7 @@ class QuantizerAgent:
     
     def _build_quantizer_context(
         self,
+        session_id: int,
         summary_text: str,
         recent_turns: List[Dict[str, str]],
         active_quants: List[Quant],

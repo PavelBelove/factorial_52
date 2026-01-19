@@ -295,6 +295,7 @@ class TurnOrchestrator:
             
             # Run quantizer
             commands = await self.quantizer_agent.process_memory_updates(
+                session_id=session_id,
                 summary_text=summary_text,
                 recent_turns=recent_turns,
                 active_quants=active_quants,
