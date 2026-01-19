@@ -206,9 +206,20 @@ class GMAgent:
         if not isinstance(data, dict):
             raise ValueError("GM response must be a dict")
         
+        # MAP new field names to expected names
+        # Prolog prompt uses: narrative, quant_requests, response_data
+        # System expects: reply, quants, response_data
+        if "narrative" in data and "reply" not in data:
+            data["reply"] = data.pop("narrative")
+            logger.debug("Mapped 'narrative' -> 'reply'")
+        
+        if "quant_requests" in data and "quants" not in data:
+            data["quants"] = data.pop("quant_requests")
+            logger.debug("Mapped 'quant_requests' -> 'quants'")
+        
         # Ensure required fields
         if "reply" not in data:
-            logger.warning("GM response missing 'reply' field")
+            logger.warning("GM response missing 'reply' field, converting to string")
             data["reply"] = str(data)
         
         if "quants" not in data:
@@ -216,6 +227,7 @@ class GMAgent:
         
         # Ensure quants is a list
         if not isinstance(data["quants"], list):
+            logger.warning(f"'quants' is not a list: {type(data['quants'])}, converting")
             data["quants"] = []
         
         # Validate quant names and clean markers
@@ -229,6 +241,10 @@ class GMAgent:
                     cleaned_quants.append(cleaned)
         
         data["quants"] = cleaned_quants
+        logger.info(f"✅ Cleaned quants ({len(cleaned_quants)}): {cleaned_quants}")
+        
+        # Preserve response_data if present (for game mechanics)
+        # Already in data dict, no action needed
         
         return data
     
