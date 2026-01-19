@@ -19,11 +19,14 @@ if [ ! -f "run_api.py" ]; then
     exit 1
 fi
 
-# Kill existing processes
+# Kill existing processes - AGGRESSIVE
 echo "🧹 Очистка старых процессов..."
-pkill -9 -f "uvicorn|run_api|run_bot" 2>/dev/null || true
-if command -v lsof &> /dev/null; then
-    lsof -ti:8000 | xargs kill -9 2>/dev/null || true
+pkill -9 -f "python.*run_api" 2>/dev/null || true
+pkill -9 -f "python.*run_bot" 2>/dev/null || true
+pkill -9 -f "uvicorn" 2>/dev/null || true
+# Kill by port
+if command -v fuser &> /dev/null; then
+    fuser -k 8000/tcp 2>/dev/null || true
 fi
 sleep 2
 echo "✅ Готово"
