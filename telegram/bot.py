@@ -306,14 +306,36 @@ class SimplePlexMemBot:
                     
                     logger.debug(f"Sending to Telegram: {len(reply)} chars")
                     
-                    # FAST NATIVE SEND
-                    await message.answer(reply, parse_mode=None)
+                    # Split long messages (Telegram limit: 4096 chars)
+                    if len(reply) > 4000:
+                        # Split into chunks
+                        header = f"🎲 Ход #{data['turn_number']}\n\n"
+                        content = data['reply']
+                        chunk_size = 3900  # Leave margin for safety
+                        
+                        chunks = []
+                        for i in range(0, len(content), chunk_size):
+                            chunk = content[i:i + chunk_size]
+                            if i == 0:
+                                chunks.append(header + chunk)
+                            else:
+                                chunks.append(chunk)
+                        
+                        logger.info(f"Message split into {len(chunks)} chunks")
+                        
+                        for idx, chunk in enumerate(chunks):
+                            await message.answer(chunk, parse_mode=None)
+                            if idx < len(chunks) - 1:
+                                await asyncio.sleep(0.5)  # Small delay between chunks
+                    else:
+                        # Send normally
+                        await message.answer(reply, parse_mode=None)
                     
                     logger.info(f"Turn {data['turn_number']} completed for user {user_id}")
                 else:
                     await message.answer("❌ Ошибка API")
         
-        except httpx.TimeoutError:
+        except httpx.TimeoutException:
             logger.error("API timeout")
             await message.answer("⏱️ Превышено время ожидания. Попробуй /retry")
         
