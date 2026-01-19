@@ -63,6 +63,14 @@ class ItemType(str, Enum):
     ARMOR = "armor"
     ACCESSORY = "accessory"
     CONSUMABLE = "consumable"
+    RING = "ring"
+    BRACELET = "bracelet"
+    CLOAK = "cloak"
+    AMULET = "amulet"
+    BELT = "belt"
+    BOOTS = "boots"
+    GLOVES = "gloves"
+    HELMET = "helmet"
 
 
 class Item(BaseModel):

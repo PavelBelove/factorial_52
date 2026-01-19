@@ -252,7 +252,9 @@
   - `hp/mana/gold`: Изменения (+10, -5, etc.)
   - `xp`: Опыт по характеристикам (если проверка успешна +1)
   - `inventory.add/remove`: Добавленные/удаленные предметы
-  - `equipped`: Экипированные предметы
+    - **РАЗРЕШЕННЫЕ ТИПЫ предметов:** `weapon`, `armor`, `accessory`, `consumable`, `ring`, `bracelet`, `cloak`, `amulet`, `belt`, `boots`, `gloves`, `helmet`
+    - Формат: `{"id": "Название", "type": "weapon", "suit": "♠", "bonus": 10, "description": "..."}`
+  - `equipped`: Экипированные предметы (по слотам)
 - **quant_requests** (массив): 5-10 имён квантов для СЛЕДУЮЩЕГО хода.
 
 ### Примеры ПРАВИЛЬНЫХ ответов:
