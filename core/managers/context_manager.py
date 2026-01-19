@@ -69,7 +69,7 @@ class ContextManager:
         
         # 3. Active quants
         if active_quants:
-            quant_ids = [q.quant_id for q in active_quants]
+            quant_ids = [q.id for q in active_quants]
             logger.info(f"📚 Active quants in context ({len(quant_ids)}): {quant_ids}")
             quants_text = self._format_quants(active_quants)
             messages.append({
