@@ -347,9 +347,15 @@ class ContextManager:
             suit_icon = {"spades": "♠", "hearts": "♥", "diamonds": "♦", "clubs": "♣"}[suit]
             
             # Show breakdown: card1 + card2 + stat
-            card1_str = f"{check['card1_value']}+{check['card1_bonus']}" if check['card1_bonus'] > 0 else str(check['card1_value'])
-            card2_str = f"{check['card2_value']}+{check['card2_bonus']}" if check['card2_bonus'] > 0 else str(check['card2_value'])
-            breakdown = f"({card1_str} + {card2_str} + {check['stat']} стат)"
+            card1_base = check['card1']['base']
+            card1_bonus = check['card1']['bonus']
+            card2_base = check['card2']['base']
+            card2_bonus = check['card2']['bonus']
+            stat = check['stat_value']
+            
+            card1_str = f"{card1_base}+{card1_bonus}" if card1_bonus > 0 else str(card1_base)
+            card2_str = f"{card2_base}+{card2_bonus}" if card2_bonus > 0 else str(card2_base)
+            breakdown = f"({card1_str} + {card2_str} + {stat} стат)"
             
             checks_str.append(f"{suit_icon}: {total} {breakdown} → легко {easy_thresh}, сложно {hard_thresh}")
         
