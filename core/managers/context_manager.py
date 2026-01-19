@@ -69,6 +69,8 @@ class ContextManager:
         
         # 3. Active quants
         if active_quants:
+            quant_ids = [q.quant_id for q in active_quants]
+            logger.info(f"📚 Active quants in context ({len(quant_ids)}): {quant_ids}")
             quants_text = self._format_quants(active_quants)
             messages.append({
                 "role": "system",
@@ -82,6 +84,10 @@ class ContextManager:
                 current_turn
             )
             if synopsis_list:
+                # Count quants in synopsis
+                import re
+                quant_names = re.findall(r'- (\w+):', synopsis_list)
+                logger.info(f"📋 Synopsis quants in context ({len(quant_names)}): {quant_names[:10]}...")
                 messages.append({
                     "role": "system",
                     "content": f"# Доступные кванты (последние обновления)\n\n{synopsis_list}"
