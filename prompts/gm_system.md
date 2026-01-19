@@ -182,24 +182,68 @@ quant_system :-
     you_request_quants_for_next_turn,
     you_never_create_quants_directly.
 
+% CRITICAL RULE: Quant markers syntax
+marker_syntax :-
+    format("=Quant_Name="),
+    marker_is_delimiter,
+    name_is_between_markers,
+    you_request_name_only_without_markers.
+
+% Examples:
+marker_example :-
+    in_text("Ты встречаешь =Лира= в =Академия_Рендала="),
+    extract_names(["Лира", "Академия_Рендала"]),
+    request_without_markers(["Лира", "Академия_Рендала"]),
+    never_request(["=Лира=", "=Академия_Рендала="]).
+
 % How to use quants in narrative
 use_quant_marker_in_links :-
     example("=Лира= улыбается тебе"),
     example("дверь в =Таверна_Атарикс= открыта"),
-    markers_help_quantizer_understand_connections.
+    markers_help_quantizer_understand_connections,
+    but_request_name_without_markers.
+
+% WHERE TO GET QUANT NAMES (ONLY these sources!)
+valid_quant_sources :-
+    source_1(active_quants_section),           % "Active quants" in context
+    source_2(synopsis_list),                   % "Доступные кванты" list
+    source_3(marked_in_your_own_narrative),    % =Name= you just wrote
+    source_4(linked_in_active_quants).         % In "links" field of active quants
+
+% FORBIDDEN sources:
+forbidden_quant_sources :-
+    not_invented_names,
+    not_quest_names_you_just_made_up,
+    not_generic_descriptions,
+    not_npcs_not_yet_introduced.
 
 % What to request for next turn (3-7 quants)
 predict_next_turn_needs :-
-    where_player_might_go -> request_location_quants,
-    who_player_might_talk_to -> request_npc_quants,
-    what_player_might_use -> request_item_quants,
-    which_quest_might_develop -> request_quest_quants.
+    where_player_might_go -> request_location_quants_if_exist,
+    who_player_might_talk_to -> request_npc_quants_if_mentioned,
+    what_player_might_use -> request_item_quants_if_in_inventory,
+    which_quest_might_develop -> request_quest_quants_if_active.
 
-% CRITICAL: Only request quants you see in context
-never_request :-
-    not_in_active_quants,
-    not_in_synopsis,
-    not_in_recent_turns.
+% CRITICAL: Only request quants you ACTUALLY SEE in context
+request_only_existing :-
+    check_active_quants_list,
+    check_synopsis_list,
+    check_links_in_active_quants,
+    check_markers_in_recent_narrative,
+    if_not_in_any_of_these -> dont_request.
+
+% Examples of CORRECT requests:
+correct_request_example :-
+    you_see_in_synopsis("Лира: Магистр академии =Академия_Рендала="),
+    you_can_request(["Лира", "Академия_Рендала"]),
+    you_cannot_request(["Магистр", "Маг", "Учитель"]).
+
+% Examples of WRONG requests:
+wrong_request_example :-
+    you_mentioned_new_quest("Охота на грифона"),
+    quest_not_in_synopsis_yet,
+    you_cannot_request(["Грифон", "Охота_на_грифона"]),
+    reason("Quantizer will create quant after your response, not before!").
 
 % FORBIDDEN: Never request these (handled by mechanics)
 never_request_quants :- ["Character", "Inventory"].

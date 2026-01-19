@@ -218,12 +218,17 @@ class GMAgent:
         if not isinstance(data["quants"], list):
             data["quants"] = []
         
-        # Validate quant names
-        data["quants"] = [
-            str(q).strip()
-            for q in data["quants"]
-            if q and str(q).strip()
-        ]
+        # Validate quant names and clean markers
+        import re
+        cleaned_quants = []
+        for q in data["quants"]:
+            if q and str(q).strip():
+                # Remove = markers if present (e.g. "=Name=" → "Name")
+                cleaned = re.sub(r'^=+|=+$', '', str(q).strip())
+                if cleaned:
+                    cleaned_quants.append(cleaned)
+        
+        data["quants"] = cleaned_quants
         
         return data
     

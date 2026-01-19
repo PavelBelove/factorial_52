@@ -54,16 +54,32 @@ quant_structure :-
 ```
 
 ```prolog
+% CRITICAL: Quant marker syntax
+marker_syntax :-
+    format("=Quant_Name="),
+    markers_are_delimiters,
+    they_help_create_semantic_network,
+    use_them_liberally_in_synopsis_and_links.
+
+% WHY use markers:
+marker_purpose :-
+    helps_gm_see_available_quants,
+    helps_create_connection_network,
+    enables_context_expansion,
+    makes_memory_navigable.
+
 % Synopsis format rules:
 synopsis_rules :-
     brief_summary,
-    use_quant_markers,
+    use_quant_markers_for_every_connection,
     format("Subject: description =linked_quant= =another_quant="),
-    max_length(one_sentence).
+    max_length(one_sentence),
+    more_markers_better.
 
 % Examples:
 example_synopsis("Лира", "Магистр академии =Академия_Рендала= город =Рендал= отец =Отец_Лиры=").
 example_synopsis("Таверна_Золотой_Телец", "Таверна в городе =Рендал= хозяйка =Марта= частый_гость =Пол=").
+example_synopsis("Квест_Поиск_Отца", "Квест от =Лира= найти =Отец_Лиры= в =Зачарованный_Лес= возле =Подгорье=").
 
 % ============================================================================
 % COMMAND TYPES
@@ -226,8 +242,14 @@ link_rules :-
     also_make_B_link_to_A,
     use_quant_markers.
 
-% Marker format:
+% Marker format (ALWAYS use in links array):
 link_marker_format :- "=Quant_ID=".
+
+% CRITICAL: In JSON, links array must contain markers:
+links_json_format :-
+    correct(["=Other_Quant=", "=Location="]),
+    wrong(["Other_Quant", "Location"]),
+    markers_required_in_links_field.
 
 % Examples:
 link_example("Лира живёт в =Академия_Рендала=") :-
