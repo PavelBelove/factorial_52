@@ -320,19 +320,27 @@ class MechanicsManager:
                 char.max_hp += increase
                 char.max_mana += increase
         
-        # Inventory changes
+        # Inventory changes (with graceful error handling)
         if "inventory" in response_data:
             inv_data = response_data["inventory"]
             
             # Remove items (with stack support)
             if "remove" in inv_data:
                 for item_id in inv_data["remove"]:
-                    self._remove_item_from_inventory(char, item_id, changes_applied)
+                    try:
+                        self._remove_item_from_inventory(char, item_id, changes_applied)
+                    except Exception as e:
+                        logger.error(f"Error removing item {item_id}: {e}")
+                        changes_applied.append(f"⚠️ Не удалось удалить: {item_id}")
             
             # Add items (with deduplication and stacking)
             if "add" in inv_data:
                 for item_data in inv_data["add"]:
-                    self._add_item_to_inventory(char, item_data, changes_applied)
+                    try:
+                        self._add_item_to_inventory(char, item_data, changes_applied)
+                    except Exception as e:
+                        logger.error(f"Error adding item {item_data.get('id', 'unknown')}: {e}")
+                        changes_applied.append(f"⚠️ Не удалось добавить: {item_data.get('id', 'unknown')}")
         
         # Equip/unequip items
         if "equip" in response_data:
@@ -424,7 +432,29 @@ class MechanicsManager:
         """
         import re
         
-        new_item = Item(**item_data)
+        # Graceful item creation with fallback
+        try:
+            # Sanitize item data
+            sanitized_data = item_data.copy()
+            
+            # Convert empty suit to None
+            if 'suit' in sanitized_data and (sanitized_data['suit'] == '' or sanitized_data['suit'] is None):
+                sanitized_data['suit'] = None
+            
+            # Ensure required fields have defaults
+            if 'bonus' not in sanitized_data:
+                sanitized_data['bonus'] = 0
+            if 'description' not in sanitized_data:
+                sanitized_data['description'] = ''
+            
+            new_item = Item(**sanitized_data)
+            
+        except Exception as e:
+            logger.error(f"Failed to create item from data: {item_data}")
+            logger.error(f"Validation error: {e}")
+            logger.warning(f"Skipping invalid item: {item_data.get('id', 'unknown')}")
+            changes_log.append(f"⚠️ Предмет не добавлен (ошибка валидации): {item_data.get('id', 'unknown')}")
+            return
         
         # Check for exact duplicate (all fields match)
         for existing_item in char.inventory:

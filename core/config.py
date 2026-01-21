@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     # Model configuration per agent (can be customized separately)
     # Grok 4.1 Fast - быстрая агентская модель с 128K контекстом
     # https://openrouter.ai/x-ai/grok-4.1-fast
-    gm_model: str = "deepseek/deepseek-v3.2"  # Game Master model
+    gm_model: str = "x-ai/grok-4.1-fast"  # Game Master model
     quantizer_model: str = "x-ai/grok-4.1-fast"  # Quantizer model  
     summarizer_model: str = "x-ai/grok-4.1-fast"  # Summarizer model
     

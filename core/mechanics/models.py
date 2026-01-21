@@ -103,6 +103,21 @@ class Item(BaseModel):
     description: str = Field("", description="Item description")
     equipped: bool = Field(False, description="Whether item is currently equipped")
     quantity: int = Field(1, description="Quantity (for stackable consumables)")
+    
+    @classmethod
+    def model_validate(cls, obj):
+        """Custom validation with graceful handling of empty suit."""
+        if isinstance(obj, dict):
+            # Convert empty string suit to None
+            if 'suit' in obj and (obj['suit'] == '' or obj['suit'] is None):
+                obj['suit'] = None
+            # Default bonus if not provided
+            if 'bonus' not in obj:
+                obj['bonus'] = 0
+            # Default description if not provided
+            if 'description' not in obj:
+                obj['description'] = ''
+        return super().model_validate(obj)
 
 
 class Character(BaseModel):
