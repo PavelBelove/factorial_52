@@ -155,8 +155,10 @@ class DatabaseManager:
                 session_id=session_id,
                 quant_id=quant.id,
                 type=quant.type.value,
+                synopsis=quant.synopsis,  # Save synopsis!
                 body=quant.body,
                 links=quant.links,
+                aliases=quant.aliases,  # Save aliases!
                 created_at=quant.created_at,
                 updated_at=quant.updated_at,
                 is_game=quant.is_game
