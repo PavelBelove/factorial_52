@@ -253,13 +253,13 @@ class ContextManager:
         )
         
         # Get turns beyond the minimum window
-        turns_to_summarize = recent_turns[settings.raw_turns_min:]
+        turns_to_summarize = recent_turns[settings.raw_turns_keep:]
         
         if not turns_to_summarize:
             return [], 0
         
         # New raw window starts at the minimum
-        new_turns_start = recent_turns[settings.raw_turns_min - 1].turn_number if len(recent_turns) >= settings.raw_turns_min else 0
+        new_turns_start = recent_turns[settings.raw_turns_keep - 1].turn_number if len(recent_turns) >= settings.raw_turns_keep else 0
         
         return turns_to_summarize, new_turns_start
     

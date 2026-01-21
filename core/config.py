@@ -46,8 +46,8 @@ class Settings(BaseSettings):
     quants_synopsis_window: int = 30  # Show synopsis of quants updated/created in last 30 turns
     
     # Raw turns management
-    raw_turns_min: int = 4  # Minimum raw turns to keep after summarization (trimmed to this after background processing)
-    raw_turns_max: int = 7  # Maximum raw turns before triggering background agents (when reached, Quantizer and Summarizer run async)
+    raw_turns_keep: int = 5  # How many raw turns to keep after summarization (trimmed to this after summarizer runs)
+    raw_turns_max: int = 10  # When raw turns >= this, trigger Summarizer (then trim to raw_turns_keep)
     
     # Summarizer configuration
     summary_append_threshold: int = 2000  # Characters threshold for append mode

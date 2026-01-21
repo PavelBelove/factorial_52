@@ -261,11 +261,11 @@ class TurnOrchestrator:
             # After summarization, trim old turns (keep last 4)
             deleted_count = self.db.trim_old_turns(
                 session_id=session_id,
-                keep_last_n=settings.raw_turns_min
+                keep_last_n=settings.raw_turns_keep
             )
             
             if deleted_count > 0:
-                logger.info(f"Trimmed {deleted_count} old turns, keeping last {settings.raw_turns_min}")
+                logger.info(f"Trimmed {deleted_count} old turns, keeping last {settings.raw_turns_keep}")
             
             logger.info("Background memory processing completed")
         
@@ -456,6 +456,16 @@ class TurnOrchestrator:
                     )
             
             logger.info(f"Summarizer completed in {mode} mode")
+            
+            # Trim old raw turns after successful summarization
+            # Keep only last N turns as per config
+            deleted_count = self.db.trim_old_turns(
+                session_id,
+                keep_last_n=settings.raw_turns_keep
+            )
+            
+            if deleted_count > 0:
+                logger.info(f"Trimmed {deleted_count} summarized turns, keeping last {settings.raw_turns_keep} raw turns")
         
         except Exception as e:
             logger.error(f"Error running Summarizer: {e}", exc_info=True)

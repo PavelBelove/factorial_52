@@ -324,18 +324,15 @@ class MechanicsManager:
         if "inventory" in response_data:
             inv_data = response_data["inventory"]
             
-            # Remove items
+            # Remove items (with stack support)
             if "remove" in inv_data:
                 for item_id in inv_data["remove"]:
-                    char.inventory = [item for item in char.inventory if item.id != item_id]
-                    changes_applied.append(f"Удалён: {item_id}")
+                    self._remove_item_from_inventory(char, item_id, changes_applied)
             
-            # Add items
+            # Add items (with deduplication and stacking)
             if "add" in inv_data:
                 for item_data in inv_data["add"]:
-                    item = Item(**item_data)
-                    char.inventory.append(item)
-                    changes_applied.append(f"Получен: {item.id}")
+                    self._add_item_to_inventory(char, item_data, changes_applied)
         
         # Equip/unequip items
         if "equip" in response_data:
@@ -359,6 +356,116 @@ class MechanicsManager:
         
         if changes_applied:
             logger.info(f"Applied changes for session {session_id}: {', '.join(changes_applied)}")
+    
+    def _remove_item_from_inventory(self, char: Character, item_id: str, changes_log: List[str]):
+        """
+        Remove item from inventory with stack support.
+        
+        Rules:
+        1. If item has _X5 suffix, decrement to _X4
+        2. If item has _X2, decrement to base name (no suffix)
+        3. If item has no suffix or _X1, remove completely
+        
+        Args:
+            char: Character
+            item_id: Item ID to remove
+            changes_log: List to append change messages
+        """
+        import re
+        
+        # Find item by exact ID
+        for i, item in enumerate(char.inventory):
+            if item.id == item_id:
+                # Check if it's a stacked item
+                match = re.match(r'^(.+?)_[Xx](\d+)$', item_id)
+                if match:
+                    base_name = match.group(1)
+                    count = int(match.group(2))
+                    
+                    if count > 2:
+                        # Decrement count
+                        new_id = f"{base_name}_X{count - 1}"
+                        char.inventory[i].id = new_id
+                        changes_log.append(f"Использован: {item_id} (остался {new_id})")
+                        logger.info(f"Decremented stack: {new_id}")
+                    elif count == 2:
+                        # Decrement to base name (no suffix)
+                        char.inventory[i].id = base_name
+                        changes_log.append(f"Использован: {item_id} (остался {base_name})")
+                        logger.info(f"Decremented stack: {base_name}")
+                    else:
+                        # Remove completely (shouldn't happen with _X1, but just in case)
+                        char.inventory.pop(i)
+                        changes_log.append(f"Удалён: {item_id}")
+                        logger.info(f"Removed item: {item_id}")
+                else:
+                    # Not a stack - remove completely
+                    char.inventory.pop(i)
+                    changes_log.append(f"Удалён: {item_id}")
+                    logger.info(f"Removed item: {item_id}")
+                return
+        
+        # Item not found - log warning
+        logger.warning(f"Item not found in inventory: {item_id}")
+    
+    def _add_item_to_inventory(self, char: Character, item_data: Dict[str, Any], changes_log: List[str]):
+        """
+        Add item to inventory with deduplication and stacking.
+        
+        Rules:
+        1. If exact duplicate exists (same id, type, suit, bonus, description) - don't add
+        2. If item with same base_id exists, increment stack count (e.g., Зелье_X2 -> Зелье_X3)
+        3. Otherwise, add new item
+        
+        Args:
+            char: Character
+            item_data: Item data from GM
+            changes_log: List to append change messages
+        """
+        import re
+        
+        new_item = Item(**item_data)
+        
+        # Check for exact duplicate (all fields match)
+        for existing_item in char.inventory:
+            if (existing_item.id == new_item.id and
+                existing_item.type == new_item.type and
+                existing_item.suit == new_item.suit and
+                existing_item.bonus == new_item.bonus and
+                existing_item.description == new_item.description):
+                # Exact duplicate - skip
+                logger.debug(f"Skipping duplicate item: {new_item.id}")
+                return
+        
+        # Check for stackable items (e.g., Зелье, Зелье_X2, etc.)
+        # Extract base name and count
+        match = re.match(r'^(.+?)(?:_[Xx](\d+))?$', new_item.id)
+        if match:
+            base_name = match.group(1)
+            new_count = int(match.group(2)) if match.group(2) else 1
+            
+            # Find existing item with same base name
+            for existing_item in char.inventory:
+                existing_match = re.match(r'^(.+?)(?:_[Xx](\d+))?$', existing_item.id)
+                if existing_match:
+                    existing_base_name = existing_match.group(1)
+                    existing_count = int(existing_match.group(2)) if existing_match.group(2) else 1
+                    
+                    # If same base name and same type/bonus - stack
+                    if (existing_base_name == base_name and
+                        existing_item.type == new_item.type and
+                        existing_item.bonus == new_item.bonus):
+                        # Update count
+                        total_count = existing_count + new_count
+                        existing_item.id = f"{base_name}_X{total_count}"
+                        changes_log.append(f"Получен: {new_item.id} (теперь {existing_item.id})")
+                        logger.info(f"Stacked item: {existing_item.id}")
+                        return
+        
+        # No duplicate found - add new item
+        char.inventory.append(new_item)
+        changes_log.append(f"Получен: {new_item.id}")
+        logger.info(f"Added new item: {new_item.id}")
     
     def _add_xp(self, char: Character, suit_name: str):
         """
