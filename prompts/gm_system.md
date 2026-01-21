@@ -252,8 +252,13 @@
   - `hp/mana/gold`: Изменения (+10, -5, etc.)
   - `xp`: Опыт по характеристикам (если проверка успешна +1)
   - `inventory.add/remove`: Добавленные/удаленные предметы
-    - **РАЗРЕШЕННЫЕ ТИПЫ предметов:** `weapon`, `armor`, `accessory`, `consumable`, `ring`, `bracelet`, `cloak`, `amulet`, `belt`, `boots`, `gloves`, `helmet`
-    - Формат: `{"id": "Название", "type": "weapon", "suit": "♠", "bonus": 10, "description": "..."}`
+    - **РАЗРЕШЕННЫЕ ТИПЫ предметов:**
+      - Экипировка: `weapon`, `armor`, `ring`, `bracelet`, `cloak`, `amulet`, `belt`, `boots`, `gloves`, `helmet`, `accessory`
+      - Расходники: `consumable`
+      - Квестовые: `quest`, `key`, `document`
+      - Материалы: `material`, `ingredient`
+      - Прочее: `tool`, `treasure`, `other`
+    - Формат: `{"id": "Название", "type": "quest", "suit": "♥", "bonus": 0, "description": "..."}`
   - `equipped`: Экипированные предметы (по слотам)
 - **quant_requests** (массив): 5-10 имён квантов для СЛЕДУЮЩЕГО хода.
 

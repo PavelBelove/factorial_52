@@ -59,10 +59,11 @@ class Card:
 
 class ItemType(str, Enum):
     """Types of items"""
+    # Combat gear
     WEAPON = "weapon"
     ARMOR = "armor"
-    ACCESSORY = "accessory"
-    CONSUMABLE = "consumable"
+    
+    # Wearables
     RING = "ring"
     BRACELET = "bracelet"
     CLOAK = "cloak"
@@ -71,6 +72,24 @@ class ItemType(str, Enum):
     BOOTS = "boots"
     GLOVES = "gloves"
     HELMET = "helmet"
+    ACCESSORY = "accessory"  # Generic accessory
+    
+    # Consumables
+    CONSUMABLE = "consumable"  # Potions, food, etc.
+    
+    # Quest items
+    QUEST = "quest"           # Quest items, objectives
+    KEY = "key"               # Keys for doors, chests
+    DOCUMENT = "document"     # Papers, notes, maps
+    
+    # Materials
+    MATERIAL = "material"     # Crafting materials
+    INGREDIENT = "ingredient" # Alchemy ingredients
+    
+    # Other
+    TOOL = "tool"             # Tools, instruments
+    TREASURE = "treasure"     # Valuables, gems
+    OTHER = "other"           # Anything else
 
 
 class Item(BaseModel):
