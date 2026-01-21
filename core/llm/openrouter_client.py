@@ -88,11 +88,52 @@ class OpenRouterClient:
         
         # Console Verbose Output
         if settings.debug_verbose:
-            print(f"\n[DEBUG_VERBOSE] LLM REQUEST ({model}):")
-            for msg in messages:
-                content_preview = msg['content']
-                print(f"[{msg['role']}]\n{content_preview}\n")
-            print("-" * 40)
+            print(f"\n{'='*80}")
+            print(f"🤖 LLM REQUEST ({model})")
+            print(f"{'='*80}")
+            
+            for i, msg in enumerate(messages):
+                content = msg['content']
+                role = msg['role']
+                
+                # Parse message content to show only relevant parts
+                if role == 'system':
+                    # Show only header for system prompt (it's static)
+                    if '# Роль:' in content or '# Role:' in content:
+                        header = content.split('\n')[0:3]
+                        print(f"\n[{i}] [{role.upper()}] System Prompt ({len(content)} chars)")
+                        print(f"  {header[0] if header else '...'}")
+                    else:
+                        # For summaries, quants, etc - show full
+                        print(f"\n[{i}] [{role.upper()}]")
+                        # Check for summary
+                        if '# Summary' in content or 'История:' in content or 'События:' in content:
+                            print(f"📜 SUMMARY:\n{content[:500]}{'...' if len(content) > 500 else ''}")
+                        # Check for quants
+                        elif '# Активная память' in content or 'кванты' in content.lower():
+                            print(f"💾 ACTIVE QUANTS:\n{content[:800]}{'...' if len(content) > 800 else ''}")
+                        # Check for synopsis
+                        elif '# Доступные кванты' in content or 'синопсис' in content.lower():
+                            print(f"📋 SYNOPSIS:\n{content[:800]}{'...' if len(content) > 800 else ''}")
+                        # Check for mechanics
+                        elif 'карты' in content.lower() or 'HP:' in content or 'Мана:' in content:
+                            print(f"🎲 MECHANICS:\n{content}")
+                        else:
+                            print(content[:300] + ('...' if len(content) > 300 else ''))
+                
+                elif role == 'user':
+                    # Show full user messages (they're short)
+                    print(f"\n[{i}] [USER MESSAGE]")
+                    print(content)
+                
+                elif role == 'assistant':
+                    # Show full assistant messages (they're short)
+                    print(f"\n[{i}] [ASSISTANT REPLY]")
+                    print(content[:300] + ('...' if len(content) > 300 else ''))
+            
+            print(f"\n{'='*80}")
+            print(f"Total messages: {len(messages)}")
+            print(f"{'='*80}\n")
         
         # Send request
         try:

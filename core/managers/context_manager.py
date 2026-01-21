@@ -62,6 +62,7 @@ class ContextManager:
         # 2. Summary (if exists)
         summary_text = self._get_summary(session_id)
         if summary_text:
+            logger.info(f"📜 Summary in context ({len(summary_text)} chars): {summary_text[:100]}...")
             messages.append({
                 "role": "system",
                 "content": f"# История сессии\n\n{summary_text}"
@@ -95,6 +96,8 @@ class ContextManager:
         
         # 4. Recent raw turns
         turns = self._get_recent_turns(session_id, current_turn)
+        if turns:
+            logger.info(f"💬 Raw turns in context: {len(turns)} turns")
         for turn in turns:
             messages.append({
                 "role": "user",
