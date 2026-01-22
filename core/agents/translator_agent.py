@@ -65,6 +65,11 @@ class TranslatorAgent:
             # Parse JSON
             content = response.get("content", "").strip()
             
+            if not content or content == "...":
+                logger.error("Translator: empty or placeholder content from LLM")
+                logger.debug(f"Full response: {response}")
+                return None
+            
             # Remove markdown code blocks if present
             if content.startswith("```json"):
                 content = content[7:]
@@ -73,6 +78,10 @@ class TranslatorAgent:
             if content.endswith("```"):
                 content = content[:-3]
             content = content.strip()
+            
+            if not content:
+                logger.error("Translator: content empty after cleanup")
+                return None
             
             translated = json.loads(content)
             

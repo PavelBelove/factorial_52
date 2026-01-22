@@ -13,7 +13,33 @@ Each card (quant) is an atomic unit of information about the game world. Your ta
 - All decisions and their consequences
 - All relationships between entities
 
-**IMPORTANT: Write quant bodies in English, but keep quant names (IDs) in Russian.**
+---
+
+## ⚠️ LANGUAGE REQUIREMENTS (СТРОГО!)
+
+**YOU MUST WRITE IN ENGLISH:**
+- All quant body descriptions (`body.description`, `body.role`, `body.notes`, etc.)
+- All synopsis texts
+- All link descriptions
+- All field values
+
+**KEEP IN RUSSIAN:**
+- Only quant names/IDs (keys like `Пол`, `Таверна_Золотой_Дракон`)
+- Entity names in links keys
+
+**Example:**
+```json
+{
+  "create_Таверна_Золотой_Дракон": {
+    "synopsis": "noisy tavern in central district",  // ← ENGLISH
+    "body": {
+      "description": "popular meeting place"  // ← ENGLISH
+    }
+  }
+}
+```
+
+---
 
 ## Memory Architecture
 

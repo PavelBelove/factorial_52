@@ -240,7 +240,13 @@ class ContextManager:
             limit=settings.raw_turns_max + 1
         )
         
-        return len(recent_turns) > settings.raw_turns_max
+        should_trigger = len(recent_turns) >= settings.raw_turns_max
+        logger.debug(
+            f"Summarizer check: {len(recent_turns)} raw turns, "
+            f"threshold {settings.raw_turns_max}, trigger={should_trigger}"
+        )
+        
+        return should_trigger
     
     def get_turns_for_summarization(
         self,
