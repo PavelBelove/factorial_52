@@ -209,18 +209,19 @@ class SimplePlexMemBot:
                 if response.status_code == 200:
                     char = response.json()
                     stats = (
-                        f"⚔️ **Характеристики персонажа**\n\n"
+                        f"⚔️ ХАРАКТЕРИСТИКИ ПЕРСОНАЖА\n\n"
                         f"❤️ HP: {char['hp']}/{char['max_hp']}\n"
                         f"💙 Mana: {char['mana']}/{char['max_mana']}\n"
                         f"💰 Gold: {char['gold']}\n\n"
-                        f"**Характеристики:**\n"
-                        f"♠️ Сила (Spades): {char['spades']} (XP: {char['spades_xp']}/10)\n"
-                        f"♥️ Магия (Hearts): {char['hearts']} (XP: {char['hearts_xp']}/10)\n"
-                        f"♦️ Харизма (Diamonds): {char['diamonds']} (XP: {char['diamonds_xp']}/10)\n"
-                        f"♣️ Ловкость (Clubs): {char['clubs']} (XP: {char['clubs_xp']}/10)\n\n"
-                        f"_При 10 XP характеристика повышается на 1_"
+                        f"📊 Характеристики:\n"
+                        f"  ♠️ Сила (Spades): {char['spades']} (XP: {char['spades_xp']}/10)\n"
+                        f"  ♥️ Магия (Hearts): {char['hearts']} (XP: {char['hearts_xp']}/10)\n"
+                        f"  ♦️ Харизма (Diamonds): {char['diamonds']} (XP: {char['diamonds_xp']}/10)\n"
+                        f"  ♣️ Ловкость (Clubs): {char['clubs']} (XP: {char['clubs_xp']}/10)\n\n"
+                        f"💡 При 10 XP характеристика повышается на 1"
                     )
-                    await message.answer(stats, parse_mode="Markdown")
+                    # Send without parse_mode for stability
+                    await message.answer(stats)
                 elif response.status_code == 404:
                     await message.answer("❌ Персонаж не создан. Используйте /start")
                 else:
@@ -251,34 +252,35 @@ class SimplePlexMemBot:
                     # Format equipped items
                     equipped_text = ""
                     if equipped:
-                        equipped_text = "**Экипировано:**\n"
+                        equipped_text = "📌 Экипировано:\n"
                         for slot, item in equipped.items():
                             suit_emoji = item.get('suit', '')
                             bonus = item.get('bonus', 0)
-                            equipped_text += f"• {slot}: {item['id']} {suit_emoji} (+{bonus})\n"
+                            equipped_text += f"  • {slot}: {item['id']} {suit_emoji} (+{bonus})\n"
                         equipped_text += "\n"
                     
                     # Format inventory items
                     if inventory:
-                        inv_text = f"🎒 **Инвентарь** ({len(inventory)} предметов)\n\n"
+                        inv_text = f"🎒 Инвентарь ({len(inventory)} предметов)\n\n"
                         inv_text += equipped_text
                         
-                        inv_text += "**В сумке:**\n"
+                        inv_text += "🎁 В сумке:\n"
                         for item in inventory:
                             suit_emoji = item.get('suit', '')
                             bonus = item.get('bonus', 0)
                             item_type = item.get('type', '')
                             
                             if bonus > 0:
-                                inv_text += f"• {item['id']} {suit_emoji} (+{bonus}) [{item_type}]\n"
+                                inv_text += f"  • {item['id']} {suit_emoji} (+{bonus}) [{item_type}]\n"
                             else:
-                                inv_text += f"• {item['id']} [{item_type}]\n"
+                                inv_text += f"  • {item['id']} [{item_type}]\n"
                         
                         # Split if too long
                         if len(inv_text) > 4000:
                             inv_text = inv_text[:3950] + "\n\n... (список обрезан)"
                         
-                        await message.answer(inv_text, parse_mode="Markdown")
+                        # Send without parse_mode to avoid Markdown conflicts
+                        await message.answer(inv_text)
                     else:
                         await message.answer("🎒 Инвентарь пуст")
                         
@@ -307,12 +309,12 @@ class SimplePlexMemBot:
                 if response.status_code == 200:
                     info = response.json()
                     stats = (
-                        f"📊 **Статистика сессии**\n\n"
+                        f"📊 СТАТИСТИКА СЕССИИ\n\n"
                         f"🎲 Ходов: {info['current_turn']}\n"
                         f"🧠 Квантов: {info['quants_count']}\n"
                         f"📝 Размер сводки: {info['summary_length']} символов"
                     )
-                    await message.answer(stats, parse_mode="Markdown")
+                    await message.answer(stats)
                 else:
                     await message.answer("❌ Ошибка получения статистики")
         
