@@ -23,7 +23,7 @@ class TranslatorAgent:
         self.llm = llm_client
         self.model = "x-ai/grok-4.1-fast"  # Optimal: cheap + fast + good quality
     
-    def translate_turn(
+    async def translate_turn(
         self,
         player_action: str,
         gm_response: str,
@@ -51,7 +51,7 @@ class TranslatorAgent:
             ]
             
             # Call LLM
-            response = self.llm.chat_completion(
+            response = await self.llm.chat_completion(
                 messages=messages,
                 model=self.model,
                 temperature=0.3,  # Low temperature for consistent translation
@@ -81,6 +81,10 @@ class TranslatorAgent:
             if not all(field in translated for field in required_fields):
                 logger.error(f"Translator: missing required fields. Got: {list(translated.keys())}")
                 return None
+            
+            # Add cost info
+            if "usage" in response:
+                translated["cost"] = response["usage"].get("cost", 0.0)
             
             logger.info(
                 f"Translated turn {turn_number}: "

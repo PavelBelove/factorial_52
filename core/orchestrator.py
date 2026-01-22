@@ -169,8 +169,9 @@ class TurnOrchestrator:
         # Step 4: Save turn to database
         # Extract cost from GM response (if available)
         gm_cost = 0.0
-        if hasattr(gm_response, 'get') and 'usage' in gm_response:
+        if isinstance(gm_response, dict) and 'usage' in gm_response:
             gm_cost = gm_response['usage'].get('cost', 0.0)
+            logger.info(f"GM cost: ${gm_cost:.6f}")
         
         self.db.create_turn(
             session_id=session_id,
@@ -270,9 +271,8 @@ class TurnOrchestrator:
         try:
             logger.info(f"Translator: processing turn {turn_number}")
             
-            # Call translator
-            translated_json = await asyncio.to_thread(
-                self.translator_agent.translate_turn,
+            # Call translator (async)
+            translated_json = await self.translator_agent.translate_turn(
                 player_action=user_message,
                 gm_response=agent_reply,
                 turn_number=turn_number
@@ -284,7 +284,17 @@ class TurnOrchestrator:
                 json_str = json.dumps(translated_json, ensure_ascii=False)
                 self.db.update_turn_translation(session_id, turn_number, json_str)
                 
-                logger.info(f"Translator: turn {turn_number} translated and saved")
+                # Extract cost if available
+                translator_cost = translated_json.get('cost', 0.0) if isinstance(translated_json, dict) else 0.0
+                if translator_cost > 0:
+                    self.db.update_turn_costs(
+                        session_id=session_id,
+                        turn_number=turn_number,
+                        cost_translator=translator_cost
+                    )
+                    logger.info(f"Translator: turn {turn_number} translated, cost ${translator_cost:.6f}")
+                else:
+                    logger.info(f"Translator: turn {turn_number} translated and saved")
             else:
                 logger.warning(f"Translator: failed to translate turn {turn_number}")
                 
