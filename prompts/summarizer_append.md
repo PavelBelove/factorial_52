@@ -52,3 +52,15 @@ Player met =Лира= at arena. She offered help in finding =Кристалл_Э
 - Focus on actions and events, not emotions
 - Write entity names in Russian, same as in quants
 - Use =markers= for important quants as anchors
+
+---
+
+# ⚠️ FINAL REMINDER!
+
+**WRITE YOUR SUMMARY IN ENGLISH!**
+
+Only entity NAMES stay in Russian (Пол, Лира, Таверна_Золотой_Дракон).
+All other text MUST be English!
+
+❌ BAD: "Пол зашел в таверну и встретил девушку"
+✅ GOOD: "=Пол= entered tavern and met girl"

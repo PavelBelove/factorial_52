@@ -65,3 +65,15 @@ Player - summoned hero with magical dragon =Драг=. =Афродита= gave q
 - Be brief - goal to reduce volume 2-3 times
 - Focus on actions and key plot moments
 - Use =markers= for most important quants as navigation anchors
+
+---
+
+# ⚠️ FINAL REMINDER!
+
+**WRITE YOUR SUMMARY IN ENGLISH!**
+
+Only entity NAMES stay in Russian (Пол, Лира, Таверна_Золотой_Дракон).
+All other text MUST be English!
+
+❌ BAD: "Пол зашел в таверну и встретил девушку"
+✅ GOOD: "=Пол= entered tavern and met girl"

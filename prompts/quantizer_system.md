@@ -457,3 +457,23 @@ GM will request quants by these names, and system will find them even with small
 ## Goal
 
 Create rich, connected semantic network of memory that supports living, consistent game world and allows main agent (GM) to request relevant information for each turn.
+
+---
+
+# ⚠️ FINAL REMINDER: LANGUAGE!
+
+**WRITE IN ENGLISH!** Not Russian!
+
+```json
+{
+  "create_Таверна": {  // ← Russian KEY (OK)
+    "synopsis": "Noisy tavern...",  // ← ENGLISH text (REQUIRED!)
+    "body": {
+      "description": "Popular meeting place..."  // ← ENGLISH (REQUIRED!)
+    }
+  }
+}
+```
+
+❌ BAD: `"synopsis": "Шумная таверна..."` (Russian text)
+✅ GOOD: `"synopsis": "Noisy tavern..."` (English text)
