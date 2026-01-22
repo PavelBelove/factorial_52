@@ -4,7 +4,7 @@ Designed to be easily migrated from SQLite to PostgreSQL.
 """
 from datetime import datetime
 from sqlalchemy import (
-    Column, Integer, String, Text, Boolean, DateTime, 
+    Column, Integer, String, Text, Boolean, DateTime, Float,
     ForeignKey, JSON, Index
 )
 from sqlalchemy.ext.declarative import declarative_base
