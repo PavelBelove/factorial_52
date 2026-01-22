@@ -92,10 +92,18 @@ class TurnDB(Base):
     # Content
     user_message = Column(Text, nullable=False)
     agent_reply = Column(Text, nullable=False)
+    translated_json = Column(Text, nullable=True)  # English JSON compressed version
     
     # Metadata
     requested_quants = Column(JSON, default=list)  # Quants requested for next turn
     timestamp = Column(DateTime, default=datetime.utcnow)
+    
+    # Cost tracking
+    cost_gm = Column(Float, default=0.0)
+    cost_quantizer = Column(Float, default=0.0)
+    cost_summarizer = Column(Float, default=0.0)
+    cost_translator = Column(Float, default=0.0)
+    cost_total = Column(Float, default=0.0)
     
     # Relationships
     session = relationship("SessionDB", back_populates="turns")

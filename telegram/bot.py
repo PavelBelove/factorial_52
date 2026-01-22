@@ -49,6 +49,7 @@ class SimplePlexMemBot:
         self.dp.message.register(self.cmd_retry, Command("retry"))
         self.dp.message.register(self.cmd_undo, Command("undo"))
         self.dp.message.register(self.cmd_stats, Command("stats"))
+        self.dp.message.register(self.cmd_cost, Command("cost"))
         self.dp.message.register(self.cmd_help, Command("help"))
         self.dp.message.register(self.handle_message, F.text)
     
@@ -219,6 +220,49 @@ class SimplePlexMemBot:
             logger.error(f"Error in stats: {e}")
             await message.answer("❌ Ошибка")
     
+    async def cmd_cost(self, message: Message):
+        """Show cost breakdown for session."""
+        user_id = message.from_user.id
+        session_id = await self._get_or_restore_session(user_id)
+        
+        if not session_id:
+            await message.answer("❌ Нет активной игры")
+            return
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(f"{API_BASE_URL}/sessions/{session_id}/costs")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    costs = data["costs"]
+                    formatted = data["costs_formatted"]
+                    num_turns = data["num_turns"]
+                    
+                    cost_text = (
+                        f"💰 Расходы за сессию\n\n"
+                        f"🎲 Ходов: {num_turns}\n\n"
+                        f"📊 Затраты по агентам:\n"
+                        f"🎭 ГМ:          {formatted['gm']}\n"
+                        f"🧠 Квантователь: {formatted['quantizer']}\n"
+                        f"📝 Суммаризатор: {formatted['summarizer']}\n"
+                        f"🔄 Переводчик:   {formatted['translator']}\n\n"
+                        f"💵 Всего: {formatted['total']}\n\n"
+                    )
+                    
+                    # Add per-turn average
+                    if num_turns > 0:
+                        avg = costs['total'] / num_turns
+                        cost_text += f"📉 В среднем за ход: ${avg:.6f}"
+                    
+                    await message.answer(cost_text)
+                else:
+                    await message.answer("❌ Ошибка получения статистики затрат")
+        
+        except Exception as e:
+            logger.error(f"Error in cost: {e}")
+            await message.answer("❌ Ошибка")
+    
     async def cmd_help(self, message: Message):
         """Show help."""
         help_text = (
@@ -226,7 +270,9 @@ class SimplePlexMemBot:
             "Команды:\n"
             "/start - начать новую игру\n"
             "/retry - повторить последний запрос\n"
+            "/undo - отменить последний ход\n"
             "/stats - статистика сессии\n"
+            "/cost - расходы на API\n"
             "/help - эта справка\n\n"
             "Как играть:\n"
             "Просто пиши свои действия текстом!"

@@ -75,6 +75,10 @@ class GMAgent:
             result = self._parse_gm_response(content)
             result["raw_response"] = content
             
+            # Add usage/cost info if available
+            if "usage" in response:
+                result["usage"] = response["usage"]
+            
             return result
         
         except Exception as e:

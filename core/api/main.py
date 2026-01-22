@@ -429,6 +429,52 @@ async def undo_last_turn(session_id: int):
         )
 
 
+@app.get("/sessions/{session_id}/costs")
+async def get_session_costs(session_id: int):
+    """Get cost breakdown for a session."""
+    try:
+        logger.info(f"Getting costs for session {session_id}")
+        
+        # Get session to verify it exists
+        session = db_manager.get_session_by_id(session_id)
+        if not session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Session {session_id} not found"
+            )
+        
+        # Get cost breakdown
+        costs = db_manager.get_session_costs(session_id)
+        
+        return {
+            "session_id": session_id,
+            "num_turns": costs["num_turns"],
+            "costs": {
+                "gm": costs["gm"],
+                "quantizer": costs["quantizer"],
+                "summarizer": costs["summarizer"],
+                "translator": costs["translator"],
+                "total": costs["total"]
+            },
+            "costs_formatted": {
+                "gm": f"${costs['gm']:.6f}",
+                "quantizer": f"${costs['quantizer']:.6f}",
+                "summarizer": f"${costs['summarizer']:.6f}",
+                "translator": f"${costs['translator']:.6f}",
+                "total": f"${costs['total']:.6f}"
+            }
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting costs: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(

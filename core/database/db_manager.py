@@ -270,16 +270,27 @@ class DatabaseManager:
         turn_number: int,
         user_message: str,
         agent_reply: str,
-        requested_quants: List[str]
+        requested_quants: List[str],
+        cost_gm: float = 0.0,
+        cost_quantizer: float = 0.0,
+        cost_summarizer: float = 0.0,
+        cost_translator: float = 0.0
     ) -> TurnDB:
-        """Create new turn."""
+        """Create new turn with cost tracking."""
+        cost_total = cost_gm + cost_quantizer + cost_summarizer + cost_translator
+        
         with self.get_session() as session:
             turn = TurnDB(
                 session_id=session_id,
                 turn_number=turn_number,
                 user_message=user_message,
                 agent_reply=agent_reply,
-                requested_quants=requested_quants
+                requested_quants=requested_quants,
+                cost_gm=cost_gm,
+                cost_quantizer=cost_quantizer,
+                cost_summarizer=cost_summarizer,
+                cost_translator=cost_translator,
+                cost_total=cost_total
             )
             session.add(turn)
             session.commit()
@@ -383,6 +394,67 @@ class DatabaseManager:
             
             session.commit()
             return deleted_count
+    
+    def update_turn_translation(self, session_id: int, turn_number: int, translated_json: str):
+        """Update turn with translated JSON."""
+        with self.get_session() as session:
+            turn = session.query(TurnDB).filter(
+                TurnDB.session_id == session_id,
+                TurnDB.turn_number == turn_number
+            ).first()
+            
+            if turn:
+                turn.translated_json = translated_json
+                session.commit()
+    
+    def update_turn_costs(
+        self,
+        session_id: int,
+        turn_number: int,
+        cost_quantizer: float = 0.0,
+        cost_summarizer: float = 0.0,
+        cost_translator: float = 0.0
+    ):
+        """Update turn costs after background processing."""
+        with self.get_session() as session:
+            turn = session.query(TurnDB).filter(
+                TurnDB.session_id == session_id,
+                TurnDB.turn_number == turn_number
+            ).first()
+            
+            if turn:
+                turn.cost_quantizer = cost_quantizer
+                turn.cost_summarizer = cost_summarizer
+                turn.cost_translator = cost_translator
+                turn.cost_total = (
+                    turn.cost_gm +
+                    cost_quantizer +
+                    cost_summarizer +
+                    cost_translator
+                )
+                session.commit()
+    
+    def get_session_costs(self, session_id: int) -> Dict[str, Any]:
+        """Get aggregated costs for entire session."""
+        with self.get_session() as session:
+            turns = session.query(TurnDB).filter(
+                TurnDB.session_id == session_id
+            ).all()
+            
+            total_gm = sum(t.cost_gm or 0.0 for t in turns)
+            total_quantizer = sum(t.cost_quantizer or 0.0 for t in turns)
+            total_summarizer = sum(t.cost_summarizer or 0.0 for t in turns)
+            total_translator = sum(t.cost_translator or 0.0 for t in turns)
+            total_all = sum(t.cost_total or 0.0 for t in turns)
+            
+            return {
+                "num_turns": len(turns),
+                "gm": total_gm,
+                "quantizer": total_quantizer,
+                "summarizer": total_summarizer,
+                "translator": total_translator,
+                "total": total_all
+            }
     
     # ============= SUMMARY OPERATIONS =============
     

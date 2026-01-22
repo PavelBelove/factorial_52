@@ -12,6 +12,7 @@ from core.managers.context_manager import ContextManager
 from core.agents.gm_agent import GMAgent
 from core.agents.quantizer_agent import QuantizerAgent
 from core.agents.summarizer_agent import SummarizerAgent
+from core.agents.translator_agent import TranslatorAgent
 from core.llm.openrouter_client import OpenRouterClient
 from core.mechanics.mechanics_manager import MechanicsManager
 from core.config import settings
@@ -52,6 +53,7 @@ class TurnOrchestrator:
         self.gm_agent = GMAgent(llm_client, model=settings.gm_model)
         self.quantizer_agent = QuantizerAgent(llm_client, self.memory_manager, model=settings.quantizer_model)
         self.summarizer_agent = SummarizerAgent(llm_client, model=settings.summarizer_model)
+        self.translator_agent = TranslatorAgent(llm_client)
     
     async def process_turn(
         self,
@@ -165,16 +167,33 @@ class TurnOrchestrator:
                 self.mechanics_manager.apply_gm_changes(session_id, response_data)
         
         # Step 4: Save turn to database
+        # Extract cost from GM response (if available)
+        gm_cost = 0.0
+        if hasattr(gm_response, 'get') and 'usage' in gm_response:
+            gm_cost = gm_response['usage'].get('cost', 0.0)
+        
         self.db.create_turn(
             session_id=session_id,
             turn_number=current_turn,
             user_message=user_message,
             agent_reply=reply,
-            requested_quants=requested_quants
+            requested_quants=requested_quants,
+            cost_gm=gm_cost
         )
         
         # Update session turn counter
         self.db.update_session_turn(session_id, current_turn)
+        
+        # Step 4.5: Trigger TranslatorAgent (background, non-blocking)
+        logger.info("Triggering translator agent (background)")
+        asyncio.create_task(
+            self._translate_turn(
+                session_id=session_id,
+                turn_number=current_turn,
+                user_message=user_message,
+                agent_reply=reply
+            )
+        )
         
         # Step 5: Check if background processing is needed
         # Trigger when raw turns reach max (7), not by turn number
@@ -236,6 +255,41 @@ class TurnOrchestrator:
         )
         
         return quants
+    
+    async def _translate_turn(
+        self,
+        session_id: int,
+        turn_number: int,
+        user_message: str,
+        agent_reply: str
+    ):
+        """
+        Translate turn to English JSON (background task).
+        Runs asynchronously after turn is saved.
+        """
+        try:
+            logger.info(f"Translator: processing turn {turn_number}")
+            
+            # Call translator
+            translated_json = await asyncio.to_thread(
+                self.translator_agent.translate_turn,
+                player_action=user_message,
+                gm_response=agent_reply,
+                turn_number=turn_number
+            )
+            
+            if translated_json:
+                # Save to database
+                import json
+                json_str = json.dumps(translated_json, ensure_ascii=False)
+                self.db.update_turn_translation(session_id, turn_number, json_str)
+                
+                logger.info(f"Translator: turn {turn_number} translated and saved")
+            else:
+                logger.warning(f"Translator: failed to translate turn {turn_number}")
+                
+        except Exception as e:
+            logger.error(f"Translator: error processing turn {turn_number}: {e}")
     
     async def _background_memory_processing(
         self,
