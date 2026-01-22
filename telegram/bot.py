@@ -214,12 +214,11 @@ class SimplePlexMemBot:
                         f"💙 Mana: {char['mana']}/{char['max_mana']}\n"
                         f"💰 Gold: {char['gold']}\n\n"
                         f"**Характеристики:**\n"
-                        f"♠️ Сила (Spades): {char['spades']}\n"
-                        f"♥️ Магия (Hearts): {char['hearts']}\n"
-                        f"♦️ Харизма (Diamonds): {char['diamonds']}\n"
-                        f"♣️ Ловкость (Clubs): {char['clubs']}\n\n"
-                        f"⭐ Уровень: {char['level']}\n"
-                        f"✨ Опыт: {char['xp']}"
+                        f"♠️ Сила (Spades): {char['spades']} (XP: {char['spades_xp']}/10)\n"
+                        f"♥️ Магия (Hearts): {char['hearts']} (XP: {char['hearts_xp']}/10)\n"
+                        f"♦️ Харизма (Diamonds): {char['diamonds']} (XP: {char['diamonds_xp']}/10)\n"
+                        f"♣️ Ловкость (Clubs): {char['clubs']} (XP: {char['clubs_xp']}/10)\n\n"
+                        f"_При 10 XP характеристика повышается на 1_"
                     )
                     await message.answer(stats, parse_mode="Markdown")
                 elif response.status_code == 404:

@@ -500,8 +500,10 @@ async def get_character(session_id: int):
             "hearts": character.hearts,
             "diamonds": character.diamonds,
             "clubs": character.clubs,
-            "level": character.level,
-            "xp": character.xp
+            "spades_xp": character.spades_xp,
+            "hearts_xp": character.hearts_xp,
+            "diamonds_xp": character.diamonds_xp,
+            "clubs_xp": character.clubs_xp
         }
     
     except HTTPException:
