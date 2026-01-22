@@ -1,23 +1,23 @@
-# Типичный мир аниме-исекай
+# Typical anime-isekai world
 
-Ты находишься в типичном мире аниме-исекай - фэнтези-мире с элементами японской культуры и ролевых игр. Такие миры обычно содержат:
+You are in a typical anime-isekai world - a fantasy world with elements of Japanese culture and role-playing games. Such worlds usually contain:
 
-## Общие черты исекай-миров
+## Common features of isekai worlds
 
-**Магия и способности**: В таких мирах существует магия, которая работает через ману. Герои часто получают уникальные способности при переносе в новый мир. Магия может принимать разные формы - от классических заклинаний до необычных умений.
+**Magic and abilities**: In such worlds there is magic that works through mana. Heroes often receive unique abilities when transferred to a new world. Magic can take different forms - from classic spells to unusual skills.
 
-**Расы и существа**: Населены различными разумными расами - людьми, эльфами, дварфами, зверолюдьми, демонами, драконами. Также встречаются монстры - от слаймов до драконов.
+**Races and creatures**: Populated by various sentient races - humans, elves, dwarves, beast-folk, demons, dragons. Also monsters are found - from slimes to dragons.
 
-**Система уровней и статов**: Многие исекай-миры имеют игровую механику - уровни, очки характеристик (HP, MP, сила, ловкость), навыки, инвентарь. Прогресс измеряется количественно.
+**Level and stats system**: Many isekai worlds have game mechanics - levels, stat points (HP, MP, strength, agility), skills, inventory. Progress is measured quantitatively.
 
-**Гильдии и квесты**: Герои обычно вступают в гильдии авантюристов, выполняют квесты, сражаются с монстрами, исследуют подземелья.
+**Guilds and quests**: Heroes usually join adventurer guilds, complete quests, fight monsters, explore dungeons.
 
-**Социальная структура**: Королевства, империи, феодализм. Часто есть знать, купцы, простолюдины, рабство. Политические интриги и конфликты между королевствами.
+**Social structure**: Kingdoms, empires, feudalism. Often there are nobility, merchants, commoners, slavery. Political intrigues and conflicts between kingdoms.
 
-**Особенность героя**: Главный герой обычно обладает уникальным даром или способностью, неизвестной в этом мире. Это может быть что угодно - от технологических знаний до необычной магии.
+**Hero's peculiarity**: Main hero usually possesses unique gift or ability unknown in this world. This can be anything - from technological knowledge to unusual magic.
 
-## Начало истории
+## Story beginning
 
-История обычно начинается с того, что герой попадает в новый мир - либо внезапно просыпается, либо призван специально. Ему предстоит освоиться, понять правила нового мира и найти своё место в нём.
+Story usually starts with hero entering new world - either suddenly waking up or being summoned specifically. They must settle in, understand rules of new world and find their place in it.
 
-Впереди ждут приключения, битвы, новые знакомства и раскрытие тайн этого мира...
+Adventures, battles, new acquaintances and revealing secrets of this world await...

@@ -153,7 +153,7 @@ class MemoryManager:
                 else:
                     # For append/replace, split remaining by underscore to separate quant_id and path
                     # Need to find where quant_id ends and path begins
-                    # Path is typically: body_notes, links_Name, etc
+                    # Path is typically: body_notes, links_Name, synopsis, etc
                     # So look for known path prefixes
                     if "_body_" in remaining:
                         parts = remaining.split("_body_", 1)
@@ -163,6 +163,10 @@ class MemoryManager:
                         parts = remaining.split("_links_", 1)
                         quant_id = parts[0]
                         path = "links_" + parts[1]
+                    elif "_synopsis" in remaining:
+                        parts = remaining.rsplit("_synopsis", 1)
+                        quant_id = parts[0]
+                        path = "synopsis"
                     else:
                         # Fallback: assume last underscore separates quant_id from path
                         parts = remaining.rsplit("_", 1)
@@ -246,6 +250,30 @@ class MemoryManager:
         
         if not path:
             results["errors"].append(f"Path required for append: {quant_id}")
+            return
+        
+        # Special handling for synopsis (top-level field)
+        if path == "synopsis":
+            # Append to synopsis
+            existing_synopsis = db_quant.synopsis or ""
+            if existing_synopsis:
+                # Check for duplicate content
+                if self._is_duplicate_content(existing_synopsis, value):
+                    logger.info(f"Skipping duplicate append to {quant_id}.synopsis")
+                    results["skipped"] = results.get("skipped", 0) + 1
+                    return
+                new_synopsis = f"{existing_synopsis}; {value}"
+            else:
+                new_synopsis = value
+            
+            self.db.update_quant(
+                session_id,
+                quant_id,
+                synopsis=new_synopsis,
+                updated_at=current_turn
+            )
+            results["updated"].append(f"{quant_id}.synopsis")
+            logger.info(f"Appended to quant {quant_id}: synopsis")
             return
         
         # Parse path (e.g., "body_notes" or "links_Таверна")
@@ -459,7 +487,7 @@ class MemoryManager:
         Returns:
             True if new content is similar to existing (likely duplicate)
         """
-        from fuzzywuzzy import fuzz
+        # Use rapidfuzz which is already imported at module level
         
         # Split existing content by separators
         existing_parts = existing.split(';')
