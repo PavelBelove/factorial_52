@@ -62,12 +62,16 @@ class TranslatorAgent:
                 logger.error("Translator: empty response from LLM")
                 return None
             
-            # Parse JSON
-            content = response.get("content", "").strip()
+            # Extract content from response structure
+            try:
+                content = response["choices"][0]["message"]["content"].strip()
+            except (KeyError, IndexError, TypeError) as e:
+                logger.error(f"Translator: failed to extract content from response: {e}")
+                logger.debug(f"Full response: {response}")
+                return None
             
             if not content or content == "...":
                 logger.error("Translator: empty or placeholder content from LLM")
-                logger.debug(f"Full response: {response}")
                 return None
             
             # Remove markdown code blocks if present
