@@ -475,6 +475,95 @@ async def get_session_costs(session_id: int):
         )
 
 
+@app.get("/sessions/{session_id}/character")
+async def get_character(session_id: int):
+    """Get character stats for session."""
+    try:
+        # Load character from mechanics manager
+        character = mechanics_manager.get_character(session_id)
+        
+        if not character:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Character not found"
+            )
+        
+        return {
+            "hp": character.hp,
+            "max_hp": character.max_hp,
+            "mana": character.mana,
+            "max_mana": character.max_mana,
+            "gold": character.gold,
+            "spades": character.spades,
+            "hearts": character.hearts,
+            "diamonds": character.diamonds,
+            "clubs": character.clubs,
+            "level": character.level,
+            "xp": character.xp
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting character: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@app.get("/sessions/{session_id}/inventory")
+async def get_inventory(session_id: int):
+    """Get inventory for session."""
+    try:
+        # Load character from mechanics manager
+        character = mechanics_manager.get_character(session_id)
+        
+        if not character:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Character not found"
+            )
+        
+        # Format inventory items
+        inventory_items = []
+        for item in character.inventory:
+            inventory_items.append({
+                "id": item.id,
+                "type": item.type,
+                "suit": item.suit,
+                "bonus": item.bonus,
+                "description": item.description
+            })
+        
+        # Format equipped items
+        equipped_items = {}
+        if character.equipped:
+            for slot, item in character.equipped.items():
+                equipped_items[slot] = {
+                    "id": item.id,
+                    "type": item.type,
+                    "suit": item.suit,
+                    "bonus": item.bonus,
+                    "description": item.description
+                }
+        
+        return {
+            "inventory": inventory_items,
+            "equipped": equipped_items,
+            "total_items": len(inventory_items)
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting inventory: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(

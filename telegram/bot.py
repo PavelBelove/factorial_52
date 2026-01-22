@@ -49,6 +49,8 @@ class SimplePlexMemBot:
         self.dp.message.register(self.cmd_retry, Command("retry"))
         self.dp.message.register(self.cmd_undo, Command("undo"))
         self.dp.message.register(self.cmd_stats, Command("stats"))
+        self.dp.message.register(self.cmd_inventory, Command("inventory"))
+        self.dp.message.register(self.cmd_session, Command("session"))
         self.dp.message.register(self.cmd_cost, Command("cost"))
         self.dp.message.register(self.cmd_help, Command("help"))
         self.dp.message.register(self.handle_message, F.text)
@@ -192,6 +194,105 @@ class SimplePlexMemBot:
             await message.answer(f"❌ Ошибка: {str(e)[:100]}")
     
     async def cmd_stats(self, message: Message):
+        """Show character stats."""
+        user_id = message.from_user.id
+        session_id = await self._get_or_restore_session(user_id)
+        
+        if not session_id:
+            await message.answer("❌ Нет активной игры. Используйте /start")
+            return
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(f"{API_BASE_URL}/sessions/{session_id}/character")
+                
+                if response.status_code == 200:
+                    char = response.json()
+                    stats = (
+                        f"⚔️ **Характеристики персонажа**\n\n"
+                        f"❤️ HP: {char['hp']}/{char['max_hp']}\n"
+                        f"💙 Mana: {char['mana']}/{char['max_mana']}\n"
+                        f"💰 Gold: {char['gold']}\n\n"
+                        f"**Характеристики:**\n"
+                        f"♠️ Сила (Spades): {char['spades']}\n"
+                        f"♥️ Магия (Hearts): {char['hearts']}\n"
+                        f"♦️ Харизма (Diamonds): {char['diamonds']}\n"
+                        f"♣️ Ловкость (Clubs): {char['clubs']}\n\n"
+                        f"⭐ Уровень: {char['level']}\n"
+                        f"✨ Опыт: {char['xp']}"
+                    )
+                    await message.answer(stats, parse_mode="Markdown")
+                elif response.status_code == 404:
+                    await message.answer("❌ Персонаж не создан. Используйте /start")
+                else:
+                    await message.answer("❌ Ошибка получения характеристик")
+        
+        except Exception as e:
+            logger.error(f"Error in stats: {e}")
+            await message.answer("❌ Ошибка")
+    
+    async def cmd_inventory(self, message: Message):
+        """Show inventory."""
+        user_id = message.from_user.id
+        session_id = await self._get_or_restore_session(user_id)
+        
+        if not session_id:
+            await message.answer("❌ Нет активной игры. Используйте /start")
+            return
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(f"{API_BASE_URL}/sessions/{session_id}/inventory")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    inventory = data['inventory']
+                    equipped = data['equipped']
+                    
+                    # Format equipped items
+                    equipped_text = ""
+                    if equipped:
+                        equipped_text = "**Экипировано:**\n"
+                        for slot, item in equipped.items():
+                            suit_emoji = item.get('suit', '')
+                            bonus = item.get('bonus', 0)
+                            equipped_text += f"• {slot}: {item['id']} {suit_emoji} (+{bonus})\n"
+                        equipped_text += "\n"
+                    
+                    # Format inventory items
+                    if inventory:
+                        inv_text = f"🎒 **Инвентарь** ({len(inventory)} предметов)\n\n"
+                        inv_text += equipped_text
+                        
+                        inv_text += "**В сумке:**\n"
+                        for item in inventory:
+                            suit_emoji = item.get('suit', '')
+                            bonus = item.get('bonus', 0)
+                            item_type = item.get('type', '')
+                            
+                            if bonus > 0:
+                                inv_text += f"• {item['id']} {suit_emoji} (+{bonus}) [{item_type}]\n"
+                            else:
+                                inv_text += f"• {item['id']} [{item_type}]\n"
+                        
+                        # Split if too long
+                        if len(inv_text) > 4000:
+                            inv_text = inv_text[:3950] + "\n\n... (список обрезан)"
+                        
+                        await message.answer(inv_text, parse_mode="Markdown")
+                    else:
+                        await message.answer("🎒 Инвентарь пуст")
+                        
+                elif response.status_code == 404:
+                    await message.answer("❌ Персонаж не создан. Используйте /start")
+                else:
+                    await message.answer("❌ Ошибка получения инвентаря")
+        
+        except Exception as e:
+            logger.error(f"Error in inventory: {e}")
+            await message.answer("❌ Ошибка")
+    
+    async def cmd_session(self, message: Message):
         """Show session stats."""
         user_id = message.from_user.id
         session_id = await self._get_or_restore_session(user_id)
@@ -207,17 +308,17 @@ class SimplePlexMemBot:
                 if response.status_code == 200:
                     info = response.json()
                     stats = (
-                        f"📊 Статистика сессии\n\n"
+                        f"📊 **Статистика сессии**\n\n"
                         f"🎲 Ходов: {info['current_turn']}\n"
                         f"🧠 Квантов: {info['quants_count']}\n"
                         f"📝 Размер сводки: {info['summary_length']} символов"
                     )
-                    await message.answer(stats)
+                    await message.answer(stats, parse_mode="Markdown")
                 else:
                     await message.answer("❌ Ошибка получения статистики")
         
         except Exception as e:
-            logger.error(f"Error in stats: {e}")
+            logger.error(f"Error in session: {e}")
             await message.answer("❌ Ошибка")
     
     async def cmd_cost(self, message: Message):
@@ -308,9 +409,11 @@ class SimplePlexMemBot:
             "• Используйте /undo если хотите изменить последнее действие\n\n"
             
             "⚡ **Команды:**\n"
+            "/stats — характеристики персонажа (HP, мана, характеристики)\n"
+            "/inventory — инвентарь и экипировка\n"
             "/retry — повторить последний ход (если ГМ завис)\n"
             "/undo — отменить последний ход\n"
-            "/stats — посмотреть характеристики персонажа\n"
+            "/session — статистика сессии (ходы, кванты)\n"
             "/cost — расходы на API (для разработчиков)\n"
             "/help — эта справка\n\n"
             
