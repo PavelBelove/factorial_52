@@ -11,6 +11,7 @@ from core.config import settings
 from core.database.db_manager import DatabaseManager
 from core.llm.openrouter_client import OpenRouterClient
 from core.orchestrator import TurnOrchestrator
+from core.mechanics.mechanics_manager import MechanicsManager
 from core.models import SessionType
 from core.utils.logger import setup_logging
 from core.api.models import (
@@ -36,13 +37,14 @@ orchestrator: TurnOrchestrator = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifecycle management for FastAPI app."""
-    global db_manager, orchestrator
+    global db_manager, orchestrator, mechanics_manager
     
     logger.info("Starting PlexMem API...")
     
     # Initialize components
     db_manager = DatabaseManager()
     llm_client = OpenRouterClient()
+    mechanics_manager = MechanicsManager(db_manager)
     orchestrator = TurnOrchestrator(db_manager, llm_client)
     
     logger.info("PlexMem API started successfully")
