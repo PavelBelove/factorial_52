@@ -1,0 +1,46 @@
+[
+  {
+    "id": "CharacterCreation",
+    "type": "concept",
+    "body": {
+      "role": "SPECIAL QUANT FOR CHARACTER CREATION",
+      "priority": "CRITICAL - if you see this quant, character creation process is priority",
+      "instruction_for_gm": "You see this quant ONLY during character creation stage.\n\n**THIS IS IMPORTANT:**\n1. Card system will show 5 cards for stat distribution\n2. You must explain distribution rules (text will be in context)\n3. After player distributes or asks to distribute optimally - return characteristics in response_data\n\n**After character creation:**\n- DON'T REQUEST this quant again\n- DON'T request 'Character' or 'Inventory' - they are now in game mechanics\n- Request quants about character features if quantizer creates them (e.g. 'Драг', 'Магический_Призыв')",
+      "instruction_for_quantizer": "🔴 IMPORTANT:\n\n**DON'T create 'Character' or 'Inventory' quants** - they are now part of game mechanics!\n\nInstead:\n1. Create quants for UNIQUE character abilities (if any)\n   Example: 'Драг' (dragon tattoo), 'Магический_Призыв' (item summoning)\n2. Create quants for important character features\n   Example: 'Предыстория_Пола', 'Способность_Делать_Магическими'\n\nAfter creating abilities add links to CharacterCreation\n\nDON'T DELETE this quant - it's needed for future editing."
+    },
+    "is_game": false
+  },
+  {
+    "id": "Магическая_Система",
+    "type": "concept",
+    "body": {
+      "description": "Basic magic system of isekai world. Magic works through mana - internal energy. All beings have mana reserve that regenerates with rest, food, potions. Different races have different magic predisposition.",
+      "mechanics": "Mana is used to activate abilities, spells, magical items. Exceeding mana limit can lead to exhaustion.",
+      "typical_schools": "elemental magic, healing, body enhancement, summoning, illusions, necromancy"
+    },
+    "links": {},
+    "is_game": true
+  },
+  {
+    "id": "Система_Уровней",
+    "type": "concept",
+    "body": {
+      "description": "Game progress system characteristic of isekai worlds. Heroes gain experience for victories over monsters and quest completion, grow in levels, improve characteristics.",
+      "stats": "HP (health), MP (mana), STR (strength), AGI (agility), INT (intelligence), VIT (vitality)",
+      "mechanics": "When leveling up, base stats increase, new skills and abilities unlock"
+    },
+    "links": {},
+    "is_game": true
+  },
+  {
+    "id": "Гильдия_Авантюристов",
+    "type": "concept",
+    "body": {
+      "description": "Typical organization in isekai worlds. Issues quests, evaluates adventurer rank (F to S), provides exchange, trade, information gathering services.",
+      "ranks": "F (novice), E, D, C (average), B, A (experienced), S (legendary)",
+      "services": "quest acceptance, resource exchange, monster and dungeon information, recommendation letters"
+    },
+    "links": {},
+    "is_game": true
+  }
+]

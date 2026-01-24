@@ -1,0 +1,16 @@
+{
+  "id": "magic_academy",
+  "name": {
+    "ru": "Магическая Академия",
+    "en": "Magic Academy"
+  },
+  "description": {
+    "ru": "Престижная школа магии. Обучение заклинаниям, магические турниры, тайны академии.",
+    "en": "Prestigious magic school. Spell learning, magical tournaments, academy secrets."
+  },
+  "icon": "🏫",
+  "enabled": false,
+  "has_content": false,
+  "tags": ["fantasy", "magic", "school", "academy"]
+}
+

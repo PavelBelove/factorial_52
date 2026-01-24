@@ -1,0 +1,16 @@
+{
+  "id": "fallout",
+  "name": {
+    "ru": "Пустошь",
+    "en": "Wasteland"
+  },
+  "description": {
+    "ru": "Постапокалиптический мир после ядерной войны. Радиация, мутанты, борьба за выживание.",
+    "en": "Post-apocalyptic world after nuclear war. Radiation, mutants, struggle for survival."
+  },
+  "icon": "☢️",
+  "enabled": false,
+  "has_content": false,
+  "tags": ["post-apocalyptic", "survival", "wasteland"]
+}
+

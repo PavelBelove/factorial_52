@@ -69,6 +69,19 @@ class Settings(BaseSettings):
     # Quant name marker (for summary and context)
     quant_marker: str = "="
     
+    # Localization & Worlds
+    default_language: str = "ru"  # Default language
+    available_languages: list[str] = ["ru", "en"]  # Available languages (only ru is fully translated)
+    default_world: str = "isekai"  # Default world if not specified
+    max_save_slots: int = 5  # Maximum save slots per user
+    
+    # Telegram FSM
+    fsm_ttl_seconds: int = 3600  # FSM state TTL (1 hour)
+    
+    # Prompt templating (future feature - for user gameplay customization)
+    prompt_use_templates: bool = True  # Enable Jinja2 templating in prompts
+    # Future template variables: {difficulty}, {content_policy}, {game_style}, {world_setting}
+    
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
@@ -92,8 +105,11 @@ except Exception as e:
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 LOGS_DIR = PROJECT_ROOT / "logs"
+WORLDS_DIR = DATA_DIR / "worlds"  # Worlds configuration directory
+PROMPTS_DIR = PROJECT_ROOT / "prompts"  # Prompts directory
 
 # Ensure directories exist
 DATA_DIR.mkdir(exist_ok=True)
 LOGS_DIR.mkdir(exist_ok=True)
+WORLDS_DIR.mkdir(exist_ok=True)
 

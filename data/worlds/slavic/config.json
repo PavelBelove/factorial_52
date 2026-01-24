@@ -1,0 +1,16 @@
+{
+  "id": "slavic",
+  "name": {
+    "ru": "Славянское Фэнтези",
+    "en": "Slavic Fantasy"
+  },
+  "description": {
+    "ru": "Мир, пропитанный славянской мифологией. Волхвы, лесные духи, древние боги, богатыри.",
+    "en": "World steeped in Slavic mythology. Sorcerers, forest spirits, ancient gods, bogatyrs."
+  },
+  "icon": "🐻",
+  "enabled": false,
+  "has_content": false,
+  "tags": ["fantasy", "slavic", "mythology"]
+}
+

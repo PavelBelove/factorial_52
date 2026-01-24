@@ -1,0 +1,16 @@
+{
+  "id": "steampunk",
+  "name": {
+    "ru": "Стимпанк",
+    "en": "Steampunk"
+  },
+  "description": {
+    "ru": "Эпоха пара и механизмов. Воздушные корабли, паровые машины, викторианская эстетика.",
+    "en": "Age of steam and mechanisms. Airships, steam engines, Victorian aesthetics."
+  },
+  "icon": "🎩",
+  "enabled": false,
+  "has_content": false,
+  "tags": ["steampunk", "victorian", "adventure"]
+}
+

@@ -1,0 +1,16 @@
+{
+  "id": "cyberpunk",
+  "name": {
+    "ru": "Киберпанк",
+    "en": "Cyberpunk"
+  },
+  "description": {
+    "ru": "Мрачное будущее с высокими технологиями и низким уровнем жизни. Мегакорпорации, киберпротезы, нейронные интерфейсы.",
+    "en": "Dark future with high tech and low life. Megacorporations, cyberware, neural interfaces."
+  },
+  "icon": "🤖",
+  "enabled": false,
+  "has_content": false,
+  "tags": ["sci-fi", "dystopia", "cyberpunk"]
+}
+
