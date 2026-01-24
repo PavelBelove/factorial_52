@@ -33,6 +33,10 @@ Thumbs.db
 
 # Project specific
 data/plexmem.db
+# Keep initial data files in git
+!data/initial_*.json
+!data/initial_*.md
+# Ignore other json in data/
 data/*.json
 exports/
 temp/
