@@ -4,7 +4,7 @@ You manage short-term dialogue summary. Your task is to rewrite entire session s
 
 ## Input Format
 
-You will receive turns in one of two formats:
+You will receive turns in one of these formats:
 
 1. **Full dialogue** (older turns, not yet translated):
    ```
@@ -12,18 +12,19 @@ You will receive turns in one of two formats:
    GM: <Russian text>
    ```
 
-2. **Compressed JSON** (newer turns, already translated and structured):
+2. **Structured JSON** (newer turns, translated and structured):
    ```
    Player: {
      "turn": 15,
-     "player": "Brief action",
-     "gm_summary": "Response",
-     "key_events": [...],
-     "changes": {...}
+     "player_action": "Brief action",
+     "gm_narrative": "Detailed GM response with descriptions, emotions, relationships",
+     "dialogue": {"NPC_Name": "their words"},
+     "descriptions": {...},
+     "key_events": [...]
    }
    ```
 
-Both formats contain the same information - just process what you receive.
+Both formats contain the same information. JSON format preserves more structure - use it!
 
 ## Your Task
 

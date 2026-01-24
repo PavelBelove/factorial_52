@@ -4,7 +4,7 @@ You manage short-term dialogue summary. Your task is to add a brief summary of n
 
 ## Input Format
 
-You will receive turns in one of two formats:
+You will receive turns in one of these formats:
 
 1. **Full dialogue** (older turns, not yet translated):
    ```
@@ -12,19 +12,20 @@ You will receive turns in one of two formats:
    GM: <Russian text>
    ```
 
-2. **Compressed JSON** (newer turns, already translated and structured):
+2. **Structured JSON** (newer turns, translated and structured):
    ```
    Player: {
      "turn": 15,
-     "player": "Brief action in English",
-     "gm_summary": "Concise GM response",
+     "player_action": "Brief action",
+     "gm_narrative": "Detailed GM response preserving descriptions, emotions, relationships (300-500 words)",
+     "dialogue": {"NPC_Name": "their words"},
+     "descriptions": {"NPCs": {...}, "locations": {...}},
      "key_events": [...],
-     "npcs_involved": [...],
      "changes": {...}
    }
    ```
 
-Both formats contain the same information - just process what you receive.
+Both formats contain the same information. JSON format preserves more details and structure - use it all!
 
 ## Your Task
 

@@ -90,8 +90,8 @@ class TranslatorAgent:
             
             translated = json.loads(content)
             
-            # Validate structure
-            required_fields = ["turn", "player", "gm_summary", "key_events"]
+            # Validate structure (minimal requirements)
+            required_fields = ["turn"]
             if not all(field in translated for field in required_fields):
                 logger.error(f"Translator: missing required fields. Got: {list(translated.keys())}")
                 return None
@@ -126,22 +126,53 @@ class TranslatorAgent:
     
     def _build_system_prompt(self) -> str:
         """Build system prompt for translator."""
-        return """You are a game turn translator and compressor. Your task:
+        return """You are a game turn translator and structurizer. Your task:
 
 1. Translate from Russian to English
-2. Compress and structure the content
-3. Remove unnecessary descriptive fluff
-4. Keep all essential plot elements, NPC names, locations, items, actions
+2. Structure content in JSON-like format
+3. Preserve all plot-important details, emotions, relationships, descriptions
+4. Remove only RHETORICAL repetition (not content!)
 
-Output ONLY valid JSON with this structure:
+## Important principles:
+
+**PRESERVE (keep in English translation):**
+- Character emotions, reactions, feelings
+- NPC personality traits and mannerisms  
+- Physical descriptions (appearance, clothing, etc.)
+- Atmosphere and mood (if plot-relevant)
+- Relationships between characters
+- All plot details and consequences
+- Dialog content and tone
+
+**REDUCE (25-35% compression):**
+- Repetitive phrasing ("again and again")
+- Over-elaborate metaphors (keep essence, simplify wording)
+- Excessive synonyms for same action
+- Redundant narrative connectors
+
+**Example transformation:**
+❌ Bad (too aggressive): "Kира: silver hair, slim figure"
+✅ Good (preserves details): "Kира: long silver curls flowing in moonlight, slender well-proportioned figure"
+
+❌ Bad (loses emotion): "Two shots fired at agents"
+✅ Good (preserves scene): "BAM-BAM! Two shotgun blasts tear through silence at point-blank range. First Weyland agent takes full load to chest - magical shield can't even form, body slams into wall leaving bloody trail. Second shot shatters another mage's knee - he falls screaming, clutching shattered bone."
+
+Output JSON structure:
 {
   "turn": <number>,
-  "player": "Brief player action",
-  "gm_summary": "Concise GM response summary (100-200 words max)",
-  "key_events": ["event1", "event2", ...],
-  "npcs_involved": ["Name1", "Name2", ...],
-  "locations": ["Location1", ...],
-  "items": ["Item1", ...],
+  "player_action": "Brief player action (1-2 sentences)",
+  "gm_narrative": "Main GM response preserving ALL important details, emotions, descriptions. Can be 300-500 words if scene is rich. Don't cut plot content!",
+  "dialogue": {
+    "NPC_Name": "their words and tone"
+  },
+  "descriptions": {
+    "NPCs": {"Name": "appearance, personality traits"},
+    "locations": {"Place": "atmosphere, details"}
+  },
+  "key_events": ["event1", "event2"],
+  "npcs_involved": ["Name1", "Name2"],
+  "locations": ["Location1"],
+  "items": ["Item1"],
   "changes": {
     "hp": <delta or null>,
     "mana": <delta or null>,
@@ -151,29 +182,13 @@ Output ONLY valid JSON with this structure:
 }
 
 Rules:
-- Keep NPC names, locations, item names in Russian (transliteration if needed)
-- Translate narrative and descriptions to English
-- Be concise but preserve plot important details
-- Remove atmospheric descriptions unless plot-critical
-- Focus on actions, decisions, consequences
-- Maximum 200 words for gm_summary
-
-Example:
-Input (RU):
-Player: "Я иду в гильдию авантюристов и сдаю квест"
-GM: "Ты входишь в гильдию. Торгард встречает тебя с улыбкой. Он проверяет твой отчёт... (3000 chars)"
-
-Output (EN JSON):
-{
-  "turn": 15,
-  "player": "Goes to adventurers guild, completes quest",
-  "gm_summary": "Торгард greets player at guild. Reviews quest report on Подгорье. Awards 350 gold, guild reputation +10. Offers new quest: griffon hunt or elf ruins exploration.",
-  "key_events": ["quest_completed", "reward_received", "new_quests_offered"],
-  "npcs_involved": ["Торгард"],
-  "locations": ["Гильдия_Авантюристов"],
-  "items": [],
-  "changes": {"gold": 350, "xp": {"clubs": 1}}
-}"""
+- Keep all Russian names (NPCs, locations, items) in Russian - use Cyrillic!
+- Translate descriptions and narrative to English
+- 25-35% compression through removing redundancy, NOT cutting content
+- Preserve plot, emotions, relationships, descriptions
+- If GM text is rich and detailed - keep it detailed in translation!
+- Don't create structured fields if info not present (no hallucinations)
+"""
     
     def _build_user_prompt(
         self,
