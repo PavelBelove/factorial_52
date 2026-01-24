@@ -41,7 +41,8 @@ class QuantizerAgent:
         summary_text: str,
         recent_turns: List[Dict[str, str]],
         active_quants: List[Quant],
-        current_turn: int
+        current_turn: int,
+        world_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Analyze recent dialogue and generate memory update commands.
@@ -51,6 +52,7 @@ class QuantizerAgent:
             recent_turns: Recent conversation turns
             active_quants: Currently active quants
             current_turn: Current turn number
+            world_id: World ID for world-specific instructions (optional)
         
         Returns:
             Dict with commands in format:
@@ -70,8 +72,8 @@ class QuantizerAgent:
             current_turn
         )
         
-        # System prompt for quantizer
-        system_prompt = self._get_quantizer_system_prompt()
+        # System prompt for quantizer (with world-specific instructions if available)
+        system_prompt = self._get_quantizer_system_prompt(world_id)
         
         try:
             # Call LLM with max_tokens
@@ -159,11 +161,26 @@ class QuantizerAgent:
         
         return "\n\n".join(context_parts)
     
-    def _get_quantizer_system_prompt(self) -> str:
-        """System prompt for Quantizer - loads from file."""
+    def _get_quantizer_system_prompt(self, world_id: Optional[str] = None) -> str:
+        """
+        System prompt for Quantizer - loads from file.
+        If world_id is provided, appends world-specific instructions.
+        """
         try:
             from core.utils import get_prompt, PROMPT_QUANTIZER
-            return get_prompt(PROMPT_QUANTIZER)
+            base_prompt = get_prompt(PROMPT_QUANTIZER)
+            
+            # Add world-specific instructions if available
+            if world_id:
+                from core.config import settings
+                world_instructions = settings.world_manager.get_quantizer_instructions(world_id)
+                
+                if world_instructions:
+                    logger.info(f"Adding world-specific Quantizer instructions for world: {world_id}")
+                    base_prompt += f"\n\n# WORLD-SPECIFIC INSTRUCTIONS ({world_id})\n\n{world_instructions}"
+            
+            return base_prompt
+            
         except Exception as e:
             logger.error(f"Failed to load Quantizer prompt from file: {e}")
             # Fallback (should never happen)

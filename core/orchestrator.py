@@ -346,6 +346,10 @@ class TurnOrchestrator:
         try:
             logger.info("Running Quantizer agent")
             
+            # Get session to determine world_id
+            session = self.db.get_session_by_id(session_id)
+            world_id = session.world_id if session else None
+            
             # Get context for quantizer
             summary_text = self.context_manager._get_summary(session_id)
             recent_turns_db = self.db.get_recent_turns(session_id, limit=20)
@@ -357,13 +361,14 @@ class TurnOrchestrator:
                 for t in reversed(recent_turns_db)
             ]
             
-            # Run quantizer
+            # Run quantizer with world_id for world-specific instructions
             commands = await self.quantizer_agent.process_memory_updates(
                 session_id=session_id,
                 summary_text=summary_text,
                 recent_turns=recent_turns,
                 active_quants=active_quants,
-                current_turn=current_turn
+                current_turn=current_turn,
+                world_id=world_id
             )
             
             if commands:
