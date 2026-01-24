@@ -7,6 +7,7 @@ from typing import Dict, Any, Optional
 
 from core.llm.openrouter_client import OpenRouterClient
 from core.config import settings
+from core.utils.agent_logger import log_agent_call
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +99,14 @@ class TranslatorAgent:
             # Add cost info
             if "usage" in response:
                 translated["cost"] = response["usage"].get("cost", 0.0)
+            
+            # Log agent call for debugging
+            log_agent_call(
+                agent_name="translator",
+                context=messages,
+                response=translated,
+                turn_number=turn_number
+            )
             
             logger.info(
                 f"Translated turn {turn_number}: "

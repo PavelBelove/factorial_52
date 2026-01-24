@@ -8,6 +8,7 @@ from typing import List, Dict, Any, Optional
 from core.llm.openrouter_client import OpenRouterClient
 from core.config import settings
 from core.utils import get_prompt, PROMPT_SUMMARIZER_APPEND, PROMPT_SUMMARIZER_REWRITE
+from core.utils.agent_logger import log_agent_call
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +91,16 @@ class SummarizerAgent:
                 max_tokens=settings.summarizer_max_tokens
             )
             
+            # Log agent call for debugging
+            log_agent_call(
+                agent_name="summarizer_append",
+                context=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": context}
+                ],
+                response=new_summary_part
+            )
+            
             # Append to existing summary
             if existing_summary:
                 return f"{existing_summary}\n\n{new_summary_part}"
@@ -123,6 +134,16 @@ class SummarizerAgent:
                 model=self.model,
                 temperature=0.5,
                 max_tokens=4000  # Limit summary length
+            )
+            
+            # Log agent call for debugging
+            log_agent_call(
+                agent_name="summarizer_rewrite",
+                context=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": context}
+                ],
+                response=new_summary
             )
             
             return new_summary

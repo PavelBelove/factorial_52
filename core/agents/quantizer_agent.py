@@ -8,6 +8,7 @@ from typing import List, Dict, Any, Optional
 
 from core.llm.openrouter_client import OpenRouterClient
 from core.models import Quant
+from core.utils.agent_logger import log_agent_call
 
 logger = logging.getLogger(__name__)
 
@@ -83,8 +84,20 @@ class QuantizerAgent:
                 max_tokens=settings.quantizer_max_tokens
             )
             
-            # Validate and return commands
-            return self._validate_commands(response)
+            # Validate commands
+            result = self._validate_commands(response)
+            
+            # Log agent call for debugging
+            log_agent_call(
+                agent_name="quantizer",
+                context=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": context}
+                ],
+                response=result
+            )
+            
+            return result
         
         except Exception as e:
             logger.error(f"Error in Quantizer agent: {e}")

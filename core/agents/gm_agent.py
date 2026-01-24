@@ -8,6 +8,7 @@ from typing import List, Dict, Any, Optional
 
 from core.llm.openrouter_client import OpenRouterClient
 from core.models import Quant
+from core.utils.agent_logger import log_agent_call
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +79,13 @@ class GMAgent:
             # Add usage/cost info if available
             if "usage" in response:
                 result["usage"] = response["usage"]
+            
+            # Log agent call for debugging
+            log_agent_call(
+                agent_name="gm",
+                context=messages,
+                response=result
+            )
             
             return result
         
