@@ -73,13 +73,15 @@ class DatabaseManager:
     def create_session(
         self,
         user_id: int,
-        session_type: SessionType = SessionType.GAME
+        session_type: SessionType = SessionType.GAME,
+        world_id: str = "isekai"
     ) -> SessionDB:
-        """Create new session."""
+        """Create new session with specified world."""
         with self.get_session() as session:
             new_session = SessionDB(
                 user_id=user_id,
-                session_type=session_type.value
+                session_type=session_type.value,
+                world_id=world_id
             )
             session.add(new_session)
             session.commit()
@@ -598,4 +600,136 @@ class DatabaseManager:
                 character.equipped = equipped
             
             session.commit()
+    
+    # ============= SAVE SYSTEM OPERATIONS =============
+    
+    def get_user_saved_sessions(self, user_id: int) -> List[SessionDB]:
+        """
+        Get all saved sessions for a user (is_saved=True).
+        Returns sessions ordered by slot number.
+        """
+        with self.get_session() as session:
+            return session.query(SessionDB).filter(
+                SessionDB.user_id == user_id,
+                SessionDB.is_saved == True
+            ).order_by(SessionDB.slot_number).all()
+    
+    def get_session_in_slot(self, user_id: int, slot: int) -> Optional[SessionDB]:
+        """Get session in specific save slot."""
+        with self.get_session() as session:
+            return session.query(SessionDB).filter(
+                SessionDB.user_id == user_id,
+                SessionDB.slot_number == slot,
+                SessionDB.is_saved == True
+            ).first()
+    
+    def save_session_to_slot(
+        self,
+        session_id: int,
+        slot: int,
+        save_name: Optional[str] = None
+    ) -> bool:
+        """
+        Save session to a specific slot.
+        If slot is already occupied, overwrites it.
+        
+        Returns:
+            True if successful, False otherwise
+        """
+        from datetime import datetime
+        
+        with self.get_session() as session:
+            # Get the session to save
+            game_session = session.query(SessionDB).filter(
+                SessionDB.id == session_id
+            ).first()
+            
+            if not game_session:
+                return False
+            
+            # Check if slot is occupied by another session
+            existing_in_slot = session.query(SessionDB).filter(
+                SessionDB.user_id == game_session.user_id,
+                SessionDB.slot_number == slot,
+                SessionDB.is_saved == True,
+                SessionDB.id != session_id  # Different session
+            ).first()
+            
+            if existing_in_slot:
+                # Clear the old session from this slot
+                existing_in_slot.slot_number = None
+                existing_in_slot.is_saved = False
+                existing_in_slot.saved_at = None
+            
+            # Save current session to slot
+            game_session.slot_number = slot
+            game_session.is_saved = True
+            game_session.saved_at = datetime.utcnow()
+            if save_name:
+                game_session.save_name = save_name
+            
+            session.commit()
+            return True
+    
+    def delete_session_from_slot(self, session_id: int) -> bool:
+        """
+        Remove session from save slot (but keep session in DB).
+        Just clears slot_number and is_saved flag.
+        """
+        with self.get_session() as session:
+            game_session = session.query(SessionDB).filter(
+                SessionDB.id == session_id
+            ).first()
+            
+            if not game_session:
+                return False
+            
+            game_session.slot_number = None
+            game_session.is_saved = False
+            game_session.saved_at = None
+            session.commit()
+            return True
+    
+    def deactivate_user_sessions(self, user_id: int):
+        """Deactivate all sessions for a user (for starting new game)."""
+        with self.get_session() as session:
+            sessions = session.query(SessionDB).filter(
+                SessionDB.user_id == user_id,
+                SessionDB.is_active == True
+            ).all()
+            
+            for game_session in sessions:
+                game_session.is_active = False
+            
+            session.commit()
+    
+    # ============= USER PREFERENCES =============
+    
+    def set_user_language(self, user_id: int, language: str):
+        """Set user's language preference."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            if user:
+                user.language = language
+                session.commit()
+    
+    def get_user_language(self, user_id: int) -> str:
+        """Get user's language preference."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            return user.language if user else "ru"
+    
+    def set_user_current_world(self, user_id: int, world_id: str):
+        """Set user's last selected world."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            if user:
+                user.current_world = world_id
+                session.commit()
+    
+    def get_user_current_world(self, user_id: int) -> str:
+        """Get user's last selected world."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            return user.current_world if user else "isekai"
 
