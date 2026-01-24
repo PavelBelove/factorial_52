@@ -454,13 +454,22 @@ class TurnOrchestrator:
                 
                 # Get all recent turns for rewrite
                 recent_turns_db = self.db.get_recent_turns(session_id, limit=20)
-                turns_data = [
-                    {
-                        "user_message": t.user_message,
-                        "agent_reply": t.agent_reply
-                    }
-                    for t in reversed(recent_turns_db)
-                ]
+                
+                # Use translated JSON if available, otherwise raw turns
+                turns_data = []
+                for t in reversed(recent_turns_db):
+                    if t.translated_json:
+                        # Use compressed English JSON
+                        turns_data.append({
+                            "user_message": t.translated_json,
+                            "agent_reply": ""  # Already included in JSON
+                        })
+                    else:
+                        # Fallback to raw Russian turns
+                        turns_data.append({
+                            "user_message": t.user_message,
+                            "agent_reply": t.agent_reply
+                        })
                 
                 # Create new summary
                 new_summary = await self.summarizer_agent.summarize(
@@ -490,13 +499,21 @@ class TurnOrchestrator:
                     logger.info("Summarizer: no turns to summarize")
                     return
                 
-                turns_data = [
-                    {
-                        "user_message": t.user_message,
-                        "agent_reply": t.agent_reply
-                    }
-                    for t in reversed(turns_to_summarize)
-                ]
+                # Use translated JSON if available, otherwise raw turns
+                turns_data = []
+                for t in reversed(turns_to_summarize):
+                    if t.translated_json:
+                        # Use compressed English JSON
+                        turns_data.append({
+                            "user_message": t.translated_json,
+                            "agent_reply": ""  # Already included in JSON
+                        })
+                    else:
+                        # Fallback to raw Russian turns
+                        turns_data.append({
+                            "user_message": t.user_message,
+                            "agent_reply": t.agent_reply
+                        })
                 
                 # Get last summary for context
                 last_summary = self.db.get_latest_summary(session_id)

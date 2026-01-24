@@ -171,7 +171,8 @@ class SummarizerAgent:
         turns_text = []
         for turn in new_turns:
             turns_text.append(f"Player: {turn['user_message']}")
-            turns_text.append(f"GM: {turn['agent_reply']}")
+            if turn.get('agent_reply'):  # Only add if not empty
+                turns_text.append(f"GM: {turn['agent_reply']}")
         
         context_parts.append(f"# New Turns to Summarize\n\n" + "\n\n".join(turns_text))
         
@@ -194,7 +195,8 @@ class SummarizerAgent:
             turns_text = []
             for turn in all_turns[-10:]:  # Last 10 turns
                 turns_text.append(f"Player: {turn['user_message']}")
-                turns_text.append(f"GM: {turn['agent_reply']}")
+                if turn.get('agent_reply'):  # Only add if not empty
+                    turns_text.append(f"GM: {turn['agent_reply']}")
             
             context_parts.append(f"# Recent Turns\n\n" + "\n\n".join(turns_text))
         

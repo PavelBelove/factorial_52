@@ -18,10 +18,10 @@ class Settings(BaseSettings):
     # Model configuration per agent (can be customized separately)
     # Grok 4.1 Fast - быстрая агентская модель с 128K контекстом
     # https://openrouter.ai/x-ai/grok-4.1-fast
-    gm_model: str = "deepseek/deepseek-chat-v3.1"  # Game Master model
-    quantizer_model: str = "x-ai/grok-4.1-fast"  # Quantizer model  
-    summarizer_model: str = "x-ai/grok-4.1-fast"  # Summarizer model
-    translator_model: str = "x-ai/grok-4.1-fast"  # Translator model (cheapest for simple JSON)
+    gm_model: str = "tngtech/deepseek-r1t2-chimera:free"  # Game Master model
+    quantizer_model: str = "tngtech/deepseek-r1t2-chimera:free"  # Quantizer model  
+    summarizer_model: str = "tngtech/deepseek-r1t2-chimera:free"  # Summarizer model
+    translator_model: str = "tngtech/deepseek-r1t2-chimera:free"  # Translator model (cheapest for simple JSON)
     
     # Max tokens for each agent (output length)
     gm_max_tokens: int = 3500  # GM can give longer, detailed responses
