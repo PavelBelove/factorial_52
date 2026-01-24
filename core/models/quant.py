@@ -38,6 +38,7 @@ class Quant(BaseModel):
     created_at: Optional[int] = Field(default=None, description="Turn number when created")
     updated_at: Optional[int] = Field(default=None, description="Turn number when last updated")
     is_game: bool = Field(default=False, description="Whether this is a game-specific quant")
+    needs_summarization: bool = Field(default=False, description="True if quant exceeds length threshold and needs condensing")
     
     class Config:
         json_schema_extra = {

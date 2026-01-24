@@ -447,6 +447,52 @@ GM will request quants by these names, and system will find them even with small
 2. **MANY links** - each card should have 3-10 links
 3. **Backlinks MANDATORY** - always create bidirectional links
 4. **All characters with names** - create cards for ALL, even mentioned in passing (Мира, Сильвия, Лира = 3 cards!)
+
+## 🔴 QUANT SUMMARIZATION (CRITICAL!)
+
+If you see quant with **`⚠️ needs_summarization: true`** in context:
+
+**THIS QUANT IS TOO LONG (>3000 chars)!**
+
+You MUST use `replace` command to **condense entire quant**:
+
+### What to do:
+1. **Read full quant** - understand all content
+2. **Identify essential** - plot-important facts, relationships, key traits
+3. **Remove routine** - administrative actions, repetitive mentions, obvious details
+4. **Condense logically** - group similar events, summarize sequences
+
+### Example of over-detailed quant:
+
+```
+notes: registered newcomers; knows Лира; offered dummies or duel with Боргар/Малькор; 
+registered Пол after duel win; issued bronze rank token; recommended quests; 
+made exception for Пол on silver quest =Гнездо_гарпий=; recommended Рианна or Торбен; 
+marked contract; amazed Пол completed =Гнездо_гарпий= overnight; confirmed contract; 
+started counting trophies; defended Пол from =Боргар= and =Малькор=; 
+counted =Гнездо_гарпий=; gave 800 gold to Пол; waiting to discuss rank; 
+ordered ale for Пол and Рианна; at audience with =Торвальд=...
+```
+**Problems**: routine admin work (counting trophies, giving gold), repetitions
+
+### After condensing:
+
+```
+notes: guild registrar, knows =Лира=; registered =Пол= after impressive duel victory 
+over =Боргар= and =Малькор=; made exception allowing bronze-rank Пол to take silver 
+quest =Гнездо_гарпий=, recommended =Рианна= as partner; defended Пол from resentful 
+=Боргар=/=Малькор=; at audience with =Торвальд= regarding =Вейланд= agents
+```
+**Result**: 70% shorter, all important plot/relationships preserved, routine removed
+
+### Command format:
+```json
+{
+  "replace_Сильвия_body_notes": "condensed version here (keep only plot-important facts)"
+}
+```
+
+**IMPORTANT**: This is MANDATORY! If quant has `needs_summarization: true` - you MUST condense it!
 5. **Detailed descriptions** - maximum information in body (role, appearance, notes)
 6. **Interlinking** - constantly add new links to existing cards
 7. **Quant names in RUSSIAN** - without anglicisms, with underscores instead of spaces

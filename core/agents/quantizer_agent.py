@@ -122,13 +122,17 @@ class QuantizerAgent:
         if active_quants:
             quants_json = []
             for q in active_quants:
-                quants_json.append({
+                quant_data = {
                     "id": q.id,
                     "type": q.type.value,
                     "body": q.body,
                     "links": q.links,
                     "updated_at": q.updated_at
-                })
+                }
+                # Add warning flag if quant needs summarization
+                if q.needs_summarization:
+                    quant_data["⚠️ needs_summarization"] = True
+                quants_json.append(quant_data)
             
             context_parts.append(
                 f"# Активные кванты\n\n```json\n{json.dumps(quants_json, ensure_ascii=False, indent=2)}\n```"

@@ -70,6 +70,7 @@ class QuantDB(Base):
     created_at = Column(Integer, nullable=True)  # Turn number
     updated_at = Column(Integer, nullable=True)  # Turn number
     is_game = Column(Boolean, default=False)  # Game-specific vs companion memory
+    needs_summarization = Column(Boolean, default=False)  # True if quant is too long and needs condensing
     
     # Relationships
     session = relationship("SessionDB", back_populates="quants")

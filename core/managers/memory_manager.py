@@ -232,6 +232,9 @@ class MemoryManager:
         self.db.create_quant(session_id, quant)
         results["created"].append(quant_id)
         logger.info(f"Created quant: {quant_id}")
+        
+        # Check length after creation
+        self._check_quant_length(session_id, quant_id)
     
     def _execute_append(
         self,
@@ -333,6 +336,61 @@ class MemoryManager:
         
         results["updated"].append(quant_id)
         logger.info(f"Appended to quant {quant_id}: {section}.{key}")
+        
+        # Check if quant needs summarization after update
+        self._check_quant_length(session_id, quant_id)
+    
+    def _check_quant_length(self, session_id: int, quant_id: str, max_length: int = 3000):
+        """
+        Check if quant exceeds max length and set needs_summarization flag.
+        
+        Args:
+            session_id: Session ID
+            quant_id: Quant ID
+            max_length: Maximum allowed length before summarization needed (default 3000)
+        """
+        db_quant = self.db.get_quant(session_id, quant_id)
+        if not db_quant:
+            return
+        
+        # Calculate total content length
+        total_length = 0
+        
+        # Synopsis
+        if db_quant.synopsis:
+            total_length += len(db_quant.synopsis)
+        
+        # Body content
+        for key, value in db_quant.body.items():
+            if isinstance(value, str):
+                total_length += len(value)
+            elif isinstance(value, (list, dict)):
+                import json
+                total_length += len(json.dumps(value, ensure_ascii=False))
+        
+        # Links
+        for key, value in db_quant.links.items():
+            total_length += len(str(key)) + len(str(value))
+        
+        # Set flag if exceeds threshold
+        if total_length > max_length and not db_quant.needs_summarization:
+            logger.warning(
+                f"Quant {quant_id} exceeds length threshold: {total_length} > {max_length}. "
+                f"Setting needs_summarization=True"
+            )
+            self.db.update_quant(
+                session_id,
+                quant_id,
+                needs_summarization=True
+            )
+        elif total_length <= max_length and db_quant.needs_summarization:
+            # Reset flag if quant was summarized and is now below threshold
+            logger.info(f"Quant {quant_id} is back below threshold, clearing needs_summarization")
+            self.db.update_quant(
+                session_id,
+                quant_id,
+                needs_summarization=False
+            )
     
     def _execute_replace(
         self,
@@ -362,6 +420,8 @@ class MemoryManager:
                 )
                 results["updated"].append(quant_id)
                 logger.info(f"Replaced entire quant: {quant_id}")
+                # Check length
+                self._check_quant_length(session_id, quant_id)
             else:
                 results["errors"].append(f"Full replace requires dict: {quant_id}")
             return
@@ -377,6 +437,8 @@ class MemoryManager:
             )
             results["updated"].append(quant_id)
             logger.info(f"Replaced synopsis for quant: {quant_id}")
+            # Check length
+            self._check_quant_length(session_id, quant_id)
             return
         
         path_parts = path.split("_", 1)
@@ -414,6 +476,9 @@ class MemoryManager:
         
         results["updated"].append(quant_id)
         logger.info(f"Replaced in quant {quant_id}: {section}.{key}")
+        
+        # Check length after replace
+        self._check_quant_length(session_id, quant_id)
     
     def _execute_delete(
         self,

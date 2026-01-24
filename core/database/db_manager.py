@@ -206,7 +206,8 @@ class DatabaseManager:
         synopsis: Optional[str] = None,
         body: Optional[Dict[str, Any]] = None,
         links: Optional[Dict[str, str]] = None,
-        updated_at: Optional[int] = None
+        updated_at: Optional[int] = None,
+        needs_summarization: Optional[bool] = None
     ):
         """Update quant fields."""
         with self.get_session() as session:
@@ -224,6 +225,8 @@ class DatabaseManager:
                     db_quant.links = links
                 if updated_at is not None:
                     db_quant.updated_at = updated_at
+                if needs_summarization is not None:
+                    db_quant.needs_summarization = needs_summarization
                 
                 session.commit()
     
