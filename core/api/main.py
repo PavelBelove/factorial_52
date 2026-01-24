@@ -200,13 +200,17 @@ async def create_session(request: CreateSessionRequest):
             platform_type=request.platform_type
         )
         
+        # Get world_id from request or use default
+        world_id = getattr(request, 'world_id', 'isekai')
+        
         # Create session
         session = db_manager.create_session(
             user_id=user.id,
-            session_type=SessionType(request.session_type)
+            session_type=SessionType(request.session_type),
+            world_id=world_id
         )
         
-        logger.info(f"Session {session.id} created for user {user.id}")
+        logger.info(f"Session {session.id} created for user {user.id} in world {world_id}")
         
         return CreateSessionResponse(
             session_id=session.id,
@@ -568,6 +572,181 @@ async def get_inventory(session_id: int):
         )
 
 
+# ============= WORLDS ENDPOINTS =============
+
+@app.get("/worlds")
+async def get_available_worlds():
+    """Get list of available worlds."""
+    try:
+        worlds = settings.world_manager.get_available_worlds()
+        
+        worlds_list = []
+        for world_id, world_name in worlds.items():
+            world_config = settings.world_manager.get_world_config(world_id)
+            worlds_list.append({
+                "id": world_id,
+                "name": world_name,
+                "description": world_config.get("description", "") if world_config else ""
+            })
+        
+        return {
+            "worlds": worlds_list,
+            "total": len(worlds_list)
+        }
+    
+    except Exception as e:
+        logger.error(f"Error getting worlds: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@app.get("/worlds/{world_id}")
+async def get_world_config(world_id: str):
+    """Get configuration for specific world."""
+    try:
+        world_config = settings.world_manager.get_world_config(world_id)
+        
+        if not world_config:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"World {world_id} not found"
+            )
+        
+        return world_config
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting world config: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+# ============= SAVE/LOAD ENDPOINTS =============
+
+@app.get("/users/{user_id}/saves")
+async def get_user_saves(user_id: int):
+    """Get all saved sessions for a user."""
+    try:
+        saved_sessions = db_manager.get_user_saved_sessions(user_id)
+        
+        saves_list = []
+        for session in saved_sessions:
+            saves_list.append({
+                "session_id": session.id,
+                "slot_number": session.slot_number,
+                "world_id": session.world_id,
+                "current_turn": session.current_turn,
+                "saved_at": session.saved_at.isoformat() if session.saved_at else None,
+                "save_name": session.save_name
+            })
+        
+        return {
+            "saves": saves_list,
+            "total": len(saves_list)
+        }
+    
+    except Exception as e:
+        logger.error(f"Error getting saves: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@app.post("/sessions/{session_id}/save")
+async def save_session(session_id: int, slot: int, save_name: str = None):
+    """Save session to specific slot."""
+    try:
+        # Validate session exists
+        session = db_manager.get_session_by_id(session_id)
+        if not session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Session {session_id} not found"
+            )
+        
+        # Validate slot number (1-5)
+        if slot < 1 or slot > 5:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Slot number must be between 1 and 5"
+            )
+        
+        # Save to slot
+        success = db_manager.save_session_to_slot(session_id, slot, save_name)
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to save session"
+            )
+        
+        return {
+            "success": True,
+            "session_id": session_id,
+            "slot": slot,
+            "message": f"Session saved to slot {slot}"
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error saving session: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@app.post("/sessions/{session_id}/load")
+async def load_session(session_id: int, user_id: int):
+    """
+    Load saved session.
+    Deactivates all other sessions and activates this one.
+    """
+    try:
+        # Validate session exists
+        session = db_manager.get_session_by_id(session_id)
+        if not session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Session {session_id} not found"
+            )
+        
+        # Deactivate all other sessions
+        db_manager.deactivate_user_sessions(user_id)
+        
+        # Activate this session
+        with db_manager.get_session() as db_session:
+            from core.database.models import SessionDB
+            session_obj = db_session.query(SessionDB).filter_by(id=session_id).first()
+            if session_obj:
+                session_obj.is_active = True
+                db_session.commit()
+        
+        return {
+            "success": True,
+            "session_id": session_id,
+            "world_id": session.world_id,
+            "current_turn": session.current_turn,
+            "message": "Session loaded successfully"
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error loading session: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
@@ -576,4 +755,5 @@ if __name__ == "__main__":
         port=8000,
         reload=settings.debug
     )
+
 
