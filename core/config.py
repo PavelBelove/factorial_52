@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     # Model configuration per agent (can be customized separately)
     # Grok 4.1 Fast - быстрая агентская модель с 128K контекстом
     # https://openrouter.ai/x-ai/grok-4.1-fast
-    gm_model: str = "deepseek/deepseek-chat-v3.1"  # Game Master model
+    gm_model: str = "deepseek/deepseek-v3.2"  # Game Master model
     quantizer_model: str = "x-ai/grok-4.1-fast"  # Quantizer model  
     summarizer_model: str = "x-ai/grok-4.1-fast"  # Summarizer model
     translator_model: str = "x-ai/grok-4.1-fast"  # Translator model (cheapest for simple JSON)
@@ -32,8 +32,8 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///data/plexmem.db"
     
     # Application Settings
-    debug: bool = True
-    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "DEBUG"
+    debug: bool = False
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     debug_verbose: bool = False  # If True, print raw LLM inputs/outputs to console
     
     # Memory System Configuration
@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     
     # Fuzzy matching for quant names
     fuzzy_match_threshold: int = 85  # Similarity threshold (0-100) for quant name matching
+    
+    # Quant summarization
+    quant_summarization_threshold: int = 3000  # Max length for quant content before needs_summarization flag is set
     
     # Telegram Bot (Phase 2)
     telegram_bot_token: str = ""

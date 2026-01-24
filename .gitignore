@@ -36,3 +36,5 @@ data/plexmem.db
 data/*.json
 exports/
 temp/
+# Environment
+.env
