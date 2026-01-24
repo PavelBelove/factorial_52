@@ -1,7 +1,6 @@
 """
-Simple Telegram bot for PlexMem.
-No complications, just works.
-Uses NATIVE aiogram methods for maximum speed (persistent connection).
+PlexMem Telegram Bot with FSM navigation and world selection.
+Integrates menu system with game logic.
 """
 import asyncio
 import logging
@@ -11,11 +10,17 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.context import FSMContext
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from core.config import settings
 from core.utils.logger import setup_logging
+from core.database.db_manager import DatabaseManager
+
+# Import handlers
+from telegram.handlers import menu_router
+from telegram.states import GameStates
 
 # Setup logging
 setup_logging()
@@ -24,13 +29,16 @@ logger = logging.getLogger(__name__)
 # API configuration
 API_BASE_URL = "http://localhost:8000"
 
+# Initialize database
+db = DatabaseManager()
 
-class SimplePlexMemBot:
-    """Simple Telegram bot - just send and receive messages."""
+
+class PlexMemBot:
+    """PlexMem Telegram bot with menu system."""
     
     def __init__(self, token: str):
         """Initialize bot."""
-        # Initialize Bot with HTML parse mode
+        # Initialize Bot
         self.bot = Bot(
             token=token,
             default=DefaultBotProperties(parse_mode=ParseMode.HTML)
@@ -38,14 +46,13 @@ class SimplePlexMemBot:
         self.storage = MemoryStorage()
         self.dp = Dispatcher(storage=self.storage)
         
-        # Store user sessions: telegram_id -> session_id
-        self.user_sessions = {}
+        # Include menu router
+        self.dp.include_router(menu_router)
         
-        # Store last message for retry
-        self.last_user_messages = {}
+        # Register game handlers
+        self.dp.message.register(self.handle_game_message, GameStates.IN_GAME, F.text)
         
-        # Register handlers
-        self.dp.message.register(self.cmd_start, Command("start"))
+        # Register command handlers (available in game)
         self.dp.message.register(self.cmd_retry, Command("retry"))
         self.dp.message.register(self.cmd_undo, Command("undo"))
         self.dp.message.register(self.cmd_stats, Command("stats"))
@@ -53,52 +60,39 @@ class SimplePlexMemBot:
         self.dp.message.register(self.cmd_session, Command("session"))
         self.dp.message.register(self.cmd_cost, Command("cost"))
         self.dp.message.register(self.cmd_help, Command("help"))
-        self.dp.message.register(self.handle_message, F.text)
+        self.dp.message.register(self.cmd_menu, Command("menu"))
+        
+        # Store last message for retry
+        self.last_user_messages = {}
     
-    async def cmd_start(self, message: Message):
-        """Start new game."""
+    # ============= IN-GAME MESSAGE HANDLING =============
+    
+    async def handle_game_message(self, message: Message, state: FSMContext):
+        """Handle messages during active game."""
         user_id = message.from_user.id
-        logger.info(f"User {user_id} started new game")
+        
+        # Get session_id from state
+        state_data = await state.get_data()
+        session_id = state_data.get('session_id')
+        
+        if not session_id:
+            await message.answer("❌ Ошибка сессии. Используйте /menu для возврата в меню")
+            return
+        
+        # Save for retry
+        self.last_user_messages[user_id] = message.text
+        
+        # Process message
+        await self._process_game_message(message, session_id, message.text)
+    
+    async def _process_game_message(self, message: Message, session_id: int, text: str):
+        """Process game message and send to API."""
+        user_id = message.from_user.id
         
         try:
-            # Create new session
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                # Deactivate old sessions
-                try:
-                    await client.post(
-                        f"{API_BASE_URL}/sessions/deactivate",
-                        json={
-                            "platform_id": str(user_id),
-                            "platform_type": "telegram"
-                        }
-                    )
-                except Exception:
-                    pass
-                
-                # Create new session
-                response = await client.post(
-                    f"{API_BASE_URL}/sessions",
-                    json={
-                        "platform_id": str(user_id),
-                        "platform_type": "telegram",
-                        "session_type": "game"
-                    }
-                )
-                
-                if response.status_code != 200:
-                    await message.answer("❌ Ошибка создания сессии")
-                    return
-                
-                data = response.json()
-                session_id = data["session_id"]
-                self.user_sessions[user_id] = session_id
-                
-                logger.info(f"Created session {session_id} for user {user_id}")
+            await self.bot.send_chat_action(user_id, "typing")
             
-            # Send initial message to activate agent
-            initial_message = "Давай начнем новую игру! Объясни суть и дальнейшие действия, приступим к созданию персонажа"
-            
-            await message.answer("⏳ Создаю игру...")
+            logger.debug(f"Sending to API: session={session_id}, user={user_id}")
             
             # Send to API (long timeout for LLM)
             async with httpx.AsyncClient(timeout=180.0) as client:
@@ -106,27 +100,58 @@ class SimplePlexMemBot:
                     f"{API_BASE_URL}/sessions/{session_id}/messages",
                     json={
                         "session_id": session_id,
-                        "message": initial_message
+                        "message": text
                     }
                 )
                 
                 if response.status_code == 200:
                     data = response.json()
-                    # Escape HTML characters if needed, but for now trust the LLM output or just send text
-                    # We will use simple text to avoid markup errors for now
                     reply = f"🎲 Ход #{data['turn_number']}\n\n{data['reply']}"
                     
-                    # DIRECT NATIVE SEND - FASTEST METHOD
-                    await message.answer(reply, parse_mode=None)
+                    # Split long messages
+                    if len(reply) > 4000:
+                        header = f"🎲 Ход #{data['turn_number']}\n\n"
+                        content = data['reply']
+                        chunk_size = 3900
+                        
+                        chunks = []
+                        for i in range(0, len(content), chunk_size):
+                            chunk = content[i:i + chunk_size]
+                            if i == 0:
+                                chunks.append(header + chunk)
+                            else:
+                                chunks.append(chunk)
+                        
+                        logger.info(f"Message split into {len(chunks)} chunks")
+                        
+                        for idx, chunk in enumerate(chunks):
+                            await message.answer(chunk, parse_mode=None)
+                            if idx < len(chunks) - 1:
+                                await asyncio.sleep(0.5)
+                    else:
+                        await message.answer(reply, parse_mode=None)
+                    
+                    logger.info(f"Turn {data['turn_number']} completed for user {user_id}")
                 else:
-                    await message.answer("❌ Ошибка инициализации игры")
+                    await message.answer("❌ Ошибка API")
+        
+        except httpx.TimeoutException:
+            logger.error("API timeout")
+            await message.answer("⏱️ Превышено время ожидания. Попробуй /retry")
         
         except Exception as e:
-            logger.error(f"Error in /start: {e}", exc_info=True)
+            logger.error(f"Error processing message: {e}", exc_info=True)
             await message.answer(f"❌ Ошибка: {str(e)[:100]}")
     
-    async def cmd_retry(self, message: Message):
-        """Retry last message - undo last turn and send again."""
+    # ============= COMMAND HANDLERS =============
+    
+    async def cmd_menu(self, message: Message, state: FSMContext):
+        """Return to main menu."""
+        from telegram.handlers.menu import show_main_menu
+        await show_main_menu(message, state, message.from_user.id)
+    
+    async def cmd_retry(self, message: Message, state: FSMContext):
+        """Retry last message."""
         user_id = message.from_user.id
         
         last_msg = self.last_user_messages.get(user_id)
@@ -134,13 +159,15 @@ class SimplePlexMemBot:
             await message.answer("❌ Нет сообщения для повтора")
             return
         
-        session_id = await self._get_or_restore_session(user_id)
+        state_data = await state.get_data()
+        session_id = state_data.get('session_id')
+        
         if not session_id:
-            await message.answer("❌ Нет активной игры. Используй /start")
+            await message.answer("❌ Нет активной игры")
             return
         
         try:
-            # First, undo the last turn to restore correct context
+            # Undo last turn
             async with httpx.AsyncClient(timeout=30.0) as client:
                 undo_response = await client.post(
                     f"{API_BASE_URL}/sessions/{session_id}/undo"
@@ -151,24 +178,23 @@ class SimplePlexMemBot:
                     return
                 
                 undo_data = undo_response.json()
-                logger.info(f"Undo successful: {undo_data}")
             
             await message.answer(f"🔄 Повторяю с хода {undo_data['current_turn']}: {last_msg[:50]}...")
             
-            # Now process as regular message with correct context
-            await self._process_message(message, session_id, last_msg)
+            # Process as regular message
+            await self._process_game_message(message, session_id, last_msg)
         
         except Exception as e:
             logger.error(f"Error in /retry: {e}", exc_info=True)
             await message.answer(f"❌ Ошибка retry: {str(e)[:100]}")
     
-    async def cmd_undo(self, message: Message):
-        """Undo last turn - delete it from database."""
-        user_id = message.from_user.id
-        session_id = await self._get_or_restore_session(user_id)
+    async def cmd_undo(self, message: Message, state: FSMContext):
+        """Undo last turn."""
+        state_data = await state.get_data()
+        session_id = state_data.get('session_id')
         
         if not session_id:
-            await message.answer("❌ Нет активной игры. Используй /start")
+            await message.answer("❌ Нет активной игры")
             return
         
         try:
@@ -183,7 +209,6 @@ class SimplePlexMemBot:
                         f"✅ Ход отменён. Теперь ход #{data['current_turn']}\n"
                         f"Напиши новое сообщение или /retry для повтора."
                     )
-                    logger.info(f"Undo successful for user {user_id}, session {session_id}")
                 elif response.status_code == 400:
                     await message.answer("❌ Нечего отменять (игра на 0 ходу)")
                 else:
@@ -193,13 +218,13 @@ class SimplePlexMemBot:
             logger.error(f"Error in /undo: {e}", exc_info=True)
             await message.answer(f"❌ Ошибка: {str(e)[:100]}")
     
-    async def cmd_stats(self, message: Message):
+    async def cmd_stats(self, message: Message, state: FSMContext):
         """Show character stats."""
-        user_id = message.from_user.id
-        session_id = await self._get_or_restore_session(user_id)
+        state_data = await state.get_data()
+        session_id = state_data.get('session_id')
         
         if not session_id:
-            await message.answer("❌ Нет активной игры. Используйте /start")
+            await message.answer("❌ Нет активной игры")
             return
         
         try:
@@ -220,10 +245,9 @@ class SimplePlexMemBot:
                         f"  ♣️ Ловкость (Clubs): {char['clubs']} (XP: {char['clubs_xp']}/10)\n\n"
                         f"💡 При 10 XP характеристика повышается на 1"
                     )
-                    # Send without parse_mode for stability
                     await message.answer(stats)
                 elif response.status_code == 404:
-                    await message.answer("❌ Персонаж не создан. Используйте /start")
+                    await message.answer("❌ Персонаж не создан")
                 else:
                     await message.answer("❌ Ошибка получения характеристик")
         
@@ -231,13 +255,13 @@ class SimplePlexMemBot:
             logger.error(f"Error in stats: {e}")
             await message.answer("❌ Ошибка")
     
-    async def cmd_inventory(self, message: Message):
+    async def cmd_inventory(self, message: Message, state: FSMContext):
         """Show inventory."""
-        user_id = message.from_user.id
-        session_id = await self._get_or_restore_session(user_id)
+        state_data = await state.get_data()
+        session_id = state_data.get('session_id')
         
         if not session_id:
-            await message.answer("❌ Нет активной игры. Используйте /start")
+            await message.answer("❌ Нет активной игры")
             return
         
         try:
@@ -249,7 +273,6 @@ class SimplePlexMemBot:
                     inventory = data['inventory']
                     equipped = data['equipped']
                     
-                    # Format equipped items
                     equipped_text = ""
                     if equipped:
                         equipped_text = "📌 Экипировано:\n"
@@ -259,7 +282,6 @@ class SimplePlexMemBot:
                             equipped_text += f"  • {slot}: {item['id']} {suit_emoji} (+{bonus})\n"
                         equipped_text += "\n"
                     
-                    # Format inventory items
                     if inventory:
                         inv_text = f"🎒 Инвентарь ({len(inventory)} предметов)\n\n"
                         inv_text += equipped_text
@@ -275,17 +297,15 @@ class SimplePlexMemBot:
                             else:
                                 inv_text += f"  • {item['id']} [{item_type}]\n"
                         
-                        # Split if too long
                         if len(inv_text) > 4000:
                             inv_text = inv_text[:3950] + "\n\n... (список обрезан)"
                         
-                        # Send without parse_mode to avoid Markdown conflicts
                         await message.answer(inv_text)
                     else:
                         await message.answer("🎒 Инвентарь пуст")
                         
                 elif response.status_code == 404:
-                    await message.answer("❌ Персонаж не создан. Используйте /start")
+                    await message.answer("❌ Персонаж не создан")
                 else:
                     await message.answer("❌ Ошибка получения инвентаря")
         
@@ -293,10 +313,10 @@ class SimplePlexMemBot:
             logger.error(f"Error in inventory: {e}")
             await message.answer("❌ Ошибка")
     
-    async def cmd_session(self, message: Message):
+    async def cmd_session(self, message: Message, state: FSMContext):
         """Show session stats."""
-        user_id = message.from_user.id
-        session_id = await self._get_or_restore_session(user_id)
+        state_data = await state.get_data()
+        session_id = state_data.get('session_id')
         
         if not session_id:
             await message.answer("❌ Нет активной игры")
@@ -322,10 +342,10 @@ class SimplePlexMemBot:
             logger.error(f"Error in session: {e}")
             await message.answer("❌ Ошибка")
     
-    async def cmd_cost(self, message: Message):
-        """Show cost breakdown for session."""
-        user_id = message.from_user.id
-        session_id = await self._get_or_restore_session(user_id)
+    async def cmd_cost(self, message: Message, state: FSMContext):
+        """Show cost breakdown."""
+        state_data = await state.get_data()
+        session_id = state_data.get('session_id')
         
         if not session_id:
             await message.answer("❌ Нет активной игры")
@@ -352,7 +372,6 @@ class SimplePlexMemBot:
                         f"💵 Всего: {formatted['total']}\n\n"
                     )
                     
-                    # Add per-turn average
                     if num_turns > 0:
                         avg = costs['total'] / num_turns
                         cost_text += f"📉 В среднем за ход: ${avg:.6f}"
@@ -365,7 +384,7 @@ class SimplePlexMemBot:
             logger.error(f"Error in cost: {e}")
             await message.answer("❌ Ошибка")
     
-    async def cmd_help(self, message: Message):
+    async def cmd_help(self, message: Message, state: FSMContext):
         """Show help."""
         help_text = (
             "🎮 **PlexMem RPG: Ваше Приключение с ИИ**\n\n"
@@ -377,167 +396,31 @@ class SimplePlexMemBot:
             "специально для вас.\n\n"
             
             "🎭 **Что делает эту игру особенной:**\n"
-            "• **Квантовая память** — ИИ помнит всё: персонажей, места, события, обещания\n"
-            "• **Карточная механика \"Factorial 52!\"** — проверки на картах, бой, развитие персонажа\n"
-            "• **Полная свобода действий** — нет сценария, только ваша фантазия\n"
-            "• **Реальные последствия** — каждое действие меняет мир вокруг вас\n"
-            "• **Живые NPC** — персонажи помнят вас и реагируют на ваши поступки\n\n"
-            
-            "📜 **Как играть:**\n"
-            "1️⃣ Используйте /start чтобы создать персонажа и начать приключение\n"
-            "2️⃣ Просто пишите свои действия обычным текстом — ГМ всё поймёт\n"
-            "3️⃣ Игра автоматически тянет карты для проверок и боя\n"
-            "4️⃣ ГМ описывает результаты и реакцию мира\n"
-            "5️⃣ Повторяйте — ваша история разворачивается!\n\n"
-            
-            "🎲 **Механика игры:**\n"
-            "• Карты определяют успех действий (чем выше — тем лучше)\n"
-            "• Четыре характеристики: ♠ Сила, ♥ Магия, ♦ Харизма, ♣ Ловкость\n"
-            "• Комбинации карт дают бонусы (пара, масть)\n"
-            "• Критические успехи и провалы (АА, 22)\n"
-            "• Инвентарь, квесты, опыт — всё как в настоящей RPG\n\n"
-            
-            "🎯 **Роль Гейм-Мастера:**\n"
-            "ИИ-ГМ ведёт повествование, играет всех NPC, управляет миром и механикой. "
-            "Он создаёт атмосферные описания, ведёт диалоги, подкидывает сюжетные повороты. "
-            "Все расчёты, проверки и последствия — автоматические. Вам остаётся только играть!\n\n"
-            
-            "💡 **Советы:**\n"
-            "• Описывайте действия детально — ГМ оценит креативность\n"
-            "• Взаимодействуйте с NPC — у них своя жизнь и секреты\n"
-            "• Исследуйте мир — награды ждут смелых\n"
-            "• Используйте /stats чтобы видеть характеристики персонажа\n"
-            "• Используйте /undo если хотите изменить последнее действие\n\n"
+            "• **Квантовая память** — ИИ помнит всё: персонажей, места, события\n"
+            "• **Карточная механика \"Factorial 52!\"** — проверки, бой, развитие\n"
+            "• **Полная свобода действий** — нет сценария, только фантазия\n"
+            "• **Множество миров** — исекай, киберпанк, стимпанк и другие\n"
+            "• **Живые NPC** — персонажи помнят вас и реагируют\n\n"
             
             "⚡ **Команды:**\n"
-            "/stats — характеристики персонажа (HP, мана, характеристики)\n"
+            "/menu — главное меню (новая игра, загрузка, настройки)\n"
+            "/stats — характеристики персонажа\n"
             "/inventory — инвентарь и экипировка\n"
-            "/retry — повторить последний ход (если ГМ завис)\n"
+            "/retry — повторить последний ход\n"
             "/undo — отменить последний ход\n"
-            "/session — статистика сессии (ходы, кванты)\n"
-            "/cost — расходы на API (для разработчиков)\n"
+            "/session — статистика сессии\n"
+            "/cost — расходы на API\n"
             "/help — эта справка\n\n"
             
-            "🌟 **Каждая игра уникальна!**\n"
-            "Начните приключение прямо сейчас командой /start\n\n"
-            
-            "Удачи, искатель приключений! 🗡️"
+            "🌟 **Начните приключение командой /menu!** 🗡️"
         )
         await message.answer(help_text, parse_mode="Markdown")
     
-    async def handle_message(self, message: Message):
-        """Handle regular game messages."""
-        user_id = message.from_user.id
-        
-        # Try to get or restore session
-        session_id = await self._get_or_restore_session(user_id)
-        
-        if not session_id:
-            await message.answer("❌ Нет активной игры. Используй /start для начала новой игры")
-            return
-        
-        # Save for retry
-        self.last_user_messages[user_id] = message.text
-        
-        # Process message
-        await self._process_message(message, session_id, message.text)
-    
-    async def _get_or_restore_session(self, user_id: int) -> Optional[int]:
-        """
-        Get session for user - from memory or by checking API.
-        Allows continuing game after bot restart.
-        """
-        # Check memory first
-        if user_id in self.user_sessions:
-            return self.user_sessions[user_id]
-        
-        # Try to restore from API
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.get(
-                    f"{API_BASE_URL}/sessions/user/{user_id}",
-                    params={"platform_type": "telegram"}
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    session_id = data["session_id"]
-                    self.user_sessions[user_id] = session_id
-                    logger.info(f"Restored session {session_id} for user {user_id}")
-                    return session_id
-        except Exception as e:
-            logger.debug(f"Could not restore session for user {user_id}: {e}")
-        
-        return None
-    
-    async def _process_message(self, message: Message, session_id: int, text: str):
-        """Process message and send to API."""
-        user_id = message.from_user.id
-        
-        try:
-            # Show typing - this is now fast with persistent connection
-            await self.bot.send_chat_action(user_id, "typing")
-            
-            logger.debug(f"Sending to API: session={session_id}, user={user_id}")
-            
-            # Send to API (long timeout for LLM)
-            async with httpx.AsyncClient(timeout=180.0) as client:
-                response = await client.post(
-                    f"{API_BASE_URL}/sessions/{session_id}/messages",
-                    json={
-                        "session_id": session_id,
-                        "message": text
-                    }
-                )
-                
-                logger.debug(f"API responded: status={response.status_code}")
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    reply = f"🎲 Ход #{data['turn_number']}\n\n{data['reply']}"
-                    
-                    logger.debug(f"Sending to Telegram: {len(reply)} chars")
-                    
-                    # Split long messages (Telegram limit: 4096 chars)
-                    if len(reply) > 4000:
-                        # Split into chunks
-                        header = f"🎲 Ход #{data['turn_number']}\n\n"
-                        content = data['reply']
-                        chunk_size = 3900  # Leave margin for safety
-                        
-                        chunks = []
-                        for i in range(0, len(content), chunk_size):
-                            chunk = content[i:i + chunk_size]
-                            if i == 0:
-                                chunks.append(header + chunk)
-                            else:
-                                chunks.append(chunk)
-                        
-                        logger.info(f"Message split into {len(chunks)} chunks")
-                        
-                        for idx, chunk in enumerate(chunks):
-                            await message.answer(chunk, parse_mode=None)
-                            if idx < len(chunks) - 1:
-                                await asyncio.sleep(0.5)  # Small delay between chunks
-                    else:
-                        # Send normally
-                        await message.answer(reply, parse_mode=None)
-                    
-                    logger.info(f"Turn {data['turn_number']} completed for user {user_id}")
-                else:
-                    await message.answer("❌ Ошибка API")
-        
-        except httpx.TimeoutException:
-            logger.error("API timeout")
-            await message.answer("⏱️ Превышено время ожидания. Попробуй /retry")
-        
-        except Exception as e:
-            logger.error(f"Error processing message: {e}", exc_info=True)
-            await message.answer(f"❌ Ошибка: {str(e)[:100]}")
+    # ============= BOT LIFECYCLE =============
     
     async def start(self):
         """Start bot."""
-        logger.info("Starting PlexMem Bot (FAST native version)")
+        logger.info("Starting PlexMem Bot with FSM navigation")
         logger.info(f"Bot token: {settings.telegram_bot_token[:20]}...")
         
         # Check API
@@ -566,7 +449,7 @@ async def main():
         print("ERROR: TELEGRAM_BOT_TOKEN not set")
         return
     
-    bot = SimplePlexMemBot(settings.telegram_bot_token)
+    bot = PlexMemBot(settings.telegram_bot_token)
     
     try:
         await bot.start()
@@ -578,4 +461,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
