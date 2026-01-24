@@ -160,19 +160,20 @@ class SummarizerAgent:
         """Build context for append mode."""
         context_parts = []
         
-        # Show last part of existing summary for context
+        # Show last part of existing summary for context (read-only reference)
         if existing_summary:
-            # Get last 500 chars of summary
+            # Get last 500 chars of summary as context
             summary_tail = existing_summary[-500:] if len(existing_summary) > 500 else existing_summary
-            context_parts.append(f"# Предыдущее резюме (конец)\n\n...{summary_tail}")
+            context_parts.append(f"# Previous Summary (end, for context only)\n\n...{summary_tail}")
+            context_parts.append("---\n**Task**: Add ONLY NEW events from turns below. Don't repeat what's already in summary above!\n---")
         
         # New turns
         turns_text = []
         for turn in new_turns:
-            turns_text.append(f"Игрок: {turn['user_message']}")
-            turns_text.append(f"ГМ: {turn['agent_reply']}")
+            turns_text.append(f"Player: {turn['user_message']}")
+            turns_text.append(f"GM: {turn['agent_reply']}")
         
-        context_parts.append(f"# Новые ходы для суммаризации\n\n" + "\n\n".join(turns_text))
+        context_parts.append(f"# New Turns to Summarize\n\n" + "\n\n".join(turns_text))
         
         return "\n\n".join(context_parts)
     
@@ -186,16 +187,16 @@ class SummarizerAgent:
         
         # Existing summary
         if existing_summary:
-            context_parts.append(f"# Текущее резюме (слишком длинное)\n\n{existing_summary}")
+            context_parts.append(f"# Current Summary (too long, rewrite needed)\n\n{existing_summary}")
         
         # Recent turns (for freshness)
         if all_turns:
             turns_text = []
             for turn in all_turns[-10:]:  # Last 10 turns
-                turns_text.append(f"Игрок: {turn['user_message']}")
-                turns_text.append(f"ГМ: {turn['agent_reply']}")
+                turns_text.append(f"Player: {turn['user_message']}")
+                turns_text.append(f"GM: {turn['agent_reply']}")
             
-            context_parts.append(f"# Последние ходы\n\n" + "\n\n".join(turns_text))
+            context_parts.append(f"# Recent Turns\n\n" + "\n\n".join(turns_text))
         
         return "\n\n".join(context_parts)
     

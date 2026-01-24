@@ -65,7 +65,7 @@ class ContextManager:
             logger.info(f"📜 Summary in context ({len(summary_text)} chars): {summary_text[:100]}...")
             messages.append({
                 "role": "system",
-                "content": f"# История сессии\n\n{summary_text}"
+                "content": f"# Session History\n\n{summary_text}"
             })
         
         # 3. Active quants
@@ -75,7 +75,7 @@ class ContextManager:
             quants_text = self._format_quants(active_quants)
             messages.append({
                 "role": "system",
-                "content": f"# Активная память (кванты)\n\n{quants_text}"
+                "content": f"# Active Memory (Quants)\n\n{quants_text}"
             })
         
         # 3.5. Synopsis of recent quants (quick navigation)
@@ -91,7 +91,7 @@ class ContextManager:
                 logger.info(f"📋 Synopsis quants in context ({len(quant_names)}): {quant_names[:10]}...")
                 messages.append({
                     "role": "system",
-                    "content": f"# Доступные кванты (последние обновления)\n\n{synopsis_list}"
+                    "content": f"# Available Quants (recent updates)\n\n{synopsis_list}"
             })
         
         # 4. Recent raw turns
@@ -418,33 +418,33 @@ class ContextManager:
         phys_def_total = pair1_combat["physical_defense"]["total"]
         magic_def_total = pair1_combat["magic_defense"]["total"]
         
-        mechanics_text = f"""# 🎲 Игровые механики
+        mechanics_text = f"""# 🎲 Game Mechanics
 
-## Персонаж
-**HP**: {char['hp']}/{char['max_hp']} | **Мана**: {char['mana']}/{char['max_mana']} | **Золото**: {char['gold']}
+## Character
+**HP**: {char['hp']}/{char['max_hp']} | **Mana**: {char['mana']}/{char['max_mana']} | **Gold**: {char['gold']}
 
-**Характеристики** (среднее: {char['average']}):
-♠ Сила: {char['spades']} | ♥ Магия: {char['hearts']} | ♦ Стойкость: {char['diamonds']} | ♣ Ловкость: {char['clubs']}
+**Stats** (average: {char['average']}):
+♠ Strength: {char['spades']} | ♥ Magic: {char['hearts']} | ♦ Stamina: {char['diamonds']} | ♣ Agility: {char['clubs']}
 
-## 🎴 Карты (игрок НЕ видит, вытянуты случайно)
+## 🎴 Cards (player DOESN'T see them, drawn randomly)
 {chr(10).join(pairs_str)}{special_events_str}
 
-## 🎯 Готовые расчёты проверок (пара 1)
+## 🎯 Pre-calculated Checks (pair 1)
 {chr(10).join(checks_str)}
 
-## ⚔️ Готовые расчёты боя (пара 1)
-Атака: ближняя {melee_total} | дальняя {ranged_total}
-Защита: физ. {phys_def_total} | маг. {magic_def_total}
-Комбо: доступно (используются те же карты)
+## ⚔️ Pre-calculated Combat (pair 1)
+Attack: melee {melee_total} | ranged {ranged_total}
+Defense: physical {phys_def_total} | magical {magic_def_total}
+Combo: available (uses same cards)
 
-## 🎒 Инвентарь ({len(char['inventory'])}/20)
+## 🎒 Inventory ({len(char['inventory'])}/20)
 {inventory_str}
 
 ---
-**Инструкции:**
-1. Все расчёты УЖЕ СДЕЛАНЫ - просто выбери подходящий результат
-2. Опиши действие сюжетно, используя готовые значения
-3. В `response_data` укажи изменения и какие проверки были использованы:
+**Instructions:**
+1. All calculations ALREADY DONE - just pick appropriate result
+2. Describe action narratively using ready values
+3. In `response_data` specify changes and which checks were used:
 ```json
 {{
   "checks_used": [{{"suit": "spades", "success": true}}],
@@ -458,8 +458,8 @@ class ContextManager:
   "equip": ["Меч"]
 }}
 ```
-4. Особые события (фигуры) используй ТОЛЬКО в мирное время
-5. В бою фигуры НЕ учитываются
+4. Special events (face cards) use ONLY in peaceful time
+5. In combat face cards NOT counted
 """
         
         # Log the formatted mechanics for debugging
