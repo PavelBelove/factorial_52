@@ -129,7 +129,7 @@ class PlexMemBot:
                             if idx < len(chunks) - 1:
                                 await asyncio.sleep(0.5)
                     else:
-                    await message.answer(reply, parse_mode=None)
+                        await message.answer(reply, parse_mode=None)
                     
                     logger.info(f"Turn {data['turn_number']} completed for user {user_id}")
                 else:
