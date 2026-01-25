@@ -76,6 +76,9 @@ class GMAgent:
             result = self._parse_gm_response(content)
             result["raw_response"] = content
             
+            # Log what we're returning
+            logger.debug(f"GM returning reply (first 200 chars): {result.get('reply', '')[:200]}")
+            
             # Add usage/cost info if available
             if "usage" in response:
                 result["usage"] = response["usage"]
@@ -139,7 +142,8 @@ class GMAgent:
         # Fallback: try to extract from various markdown/text formats
         logger.warning("Could not parse GM response as JSON, using text fallback")
         
-        # Try to extract reply from **reply**: format
+        # IMPORTANT: When GM returns plain text instead of JSON,
+        # we treat it as narrative (not as full response with metadata)
         reply = content
         quants = []
         

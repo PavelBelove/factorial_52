@@ -58,6 +58,12 @@ New summary (200 words): "Player - summoned hero with =Драг=. =Афроди�
 - Descriptions of characters and locations (quants exist for that)
 - Repeating events (if player did something several times, mention once)
 
+## What to PRESERVE EXACTLY (never modify!):
+
+- **Character references** - if quant has "reference" field like "Like Hinata but red hair", copy it exactly as-is
+- References are compact character descriptors that help GM maintain consistent portrayal
+- Example: "=Эмма= (ref: guild girl from Goblin Slayer but half-elf)" - keep the ref part unchanged
+
 ## Style and format:
 
 - Write in **English language**

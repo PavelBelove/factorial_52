@@ -5,12 +5,17 @@
     "en": "Slavic Fantasy"
   },
   "description": {
-    "ru": "Мир, пропитанный славянской мифологией. Волхвы, лесные духи, древние боги, богатыри.",
-    "en": "World steeped in Slavic mythology. Sorcerers, forest spirits, ancient gods, bogatyrs."
+    "ru": "Мир славянской мифологии. Волхвы и ведьмы, лесные духи и водяные, древние боги и нечисть, богатыри и княжеские дружины.",
+    "en": "World of Slavic mythology. Sorcerers and witches, forest spirits and water demons, ancient gods and monsters, bogatyrs and princely retinues."
   },
   "icon": "🐻",
-  "enabled": false,
-  "has_content": false,
-  "tags": ["fantasy", "slavic", "mythology"]
+  "enabled": true,
+  "has_content": true,
+  "features": {
+    "pagan_gods": true,
+    "nature_spirits": true,
+    "witchcraft": true,
+    "princely_politics": true
+  },
+  "tags": ["fantasy", "slavic", "mythology", "dark", "nature"]
 }
-

@@ -1,23 +1,31 @@
-# Typical anime-isekai world
+# Isekai World - Initial Context
 
-You are in a typical anime-isekai world - a fantasy world with elements of Japanese culture and role-playing games. Such worlds usually contain:
+## World References (for GM internal knowledge activation)
 
-## Common features of isekai worlds
+This is a classic anime-isekai world. Use your knowledge of these works for tone, atmosphere, and conventions:
 
-**Magic and abilities**: In such worlds there is magic that works through mana. Heroes often receive unique abilities when transferred to a new world. Magic can take different forms - from classic spells to unusual skills.
+- **Mushoku Tensei: Jobless Reincarnation** - reincarnation with memories, magic system with chantless casting, adventurer rankings, detailed worldbuilding
+- **The Rising of the Shield Hero** - summoned heroes, guild system, waves of calamity, party dynamics, betrayal potential
+- **So I'm a Spider, So What?** - game-like status systems, skill acquisition, evolution paths, dungeon exploration
+- **Log Horizon** - trapped in game world, guild politics, crafting systems, NPC consciousness
+- **Bofuri: I Don't Want to Get Hurt, so I'll Max Out My Defense** - unconventional builds, skill combinations, lighthearted adventure tone
 
-**Races and creatures**: Populated by various sentient races - humans, elves, dwarves, beast-folk, demons, dragons. Also monsters are found - from slimes to dragons.
+## World Features
 
-**Level and stats system**: Many isekai worlds have game mechanics - levels, stat points (HP, MP, strength, agility), skills, inventory. Progress is measured quantitatively.
+**Common Isekai Elements:**
+- Adventurer's Guild with rank system (F → S)
+- Magic through mana manipulation
+- Multiple races (humans, elves, dwarves, beastfolk, demons)
+- Dungeons with escalating difficulty
+- Game-like mechanics (stats, skills, levels - but subtly integrated)
+- Reincarnation/summoning from another world
+- Unique abilities for otherworlders
 
-**Guilds and quests**: Heroes usually join adventurer guilds, complete quests, fight monsters, explore dungeons.
+**Tone:**
+Adventure-focused with moments of humor, danger, and discovery. NPCs have their own lives, goals, and may be friendly, hostile, or indifferent. The world doesn't revolve around the player - they must earn their place.
 
-**Social structure**: Kingdoms, empires, feudalism. Often there are nobility, merchants, commoners, slavery. Political intrigues and conflicts between kingdoms.
+## Starting Point
 
-**Hero's peculiarity**: Main hero usually possesses unique gift or ability unknown in this world. This can be anything - from technological knowledge to unusual magic.
-
-## Story beginning
-
-Story usually starts with hero entering new world - either suddenly waking up or being summoned specifically. They must settle in, understand rules of new world and find their place in it.
+Story begins with player's arrival in new world. Method of transfer (reincarnation, summoning, portal) to be determined during character creation.
 
 Adventures, battles, new acquaintances and revealing secrets of this world await...

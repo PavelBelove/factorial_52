@@ -5,12 +5,17 @@
     "en": "Magic Academy"
   },
   "description": {
-    "ru": "Престижная школа магии. Обучение заклинаниям, магические турниры, тайны академии.",
-    "en": "Prestigious magic school. Spell learning, magical tournaments, academy secrets."
+    "ru": "Престижная школа магии. Обучение заклинаниям, магические турниры, тайны академии, соперничество факультетов.",
+    "en": "Prestigious magic school. Spell learning, magical tournaments, academy secrets, faculty rivalries."
   },
   "icon": "🏫",
-  "enabled": false,
-  "has_content": false,
-  "tags": ["fantasy", "magic", "school", "academy"]
+  "enabled": true,
+  "has_content": true,
+  "features": {
+    "magic_system": true,
+    "school_structure": true,
+    "tournaments": true,
+    "secret_societies": true
+  },
+  "tags": ["fantasy", "magic", "school", "academy", "mystery"]
 }
-
