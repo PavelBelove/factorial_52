@@ -298,42 +298,59 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
         await state.update_data(session_id=new_session.id, world_id=world_id)
         await state.set_state(GameStates.IN_GAME)
         
+        # Показываем сообщение о создании игры
+        await callback.message.edit_text("⏳ Создаю новый мир и готовлю приключение...\nЭто может занять минуту.")
+        await callback.answer()
+        
         # Отправляем первый запрос к ГМ от имени игрока
         import httpx
         api_url = f"http://localhost:8000/game/process"
         
+        logger.info(f"Sending initial GM request for session {new_session.id}")
+        
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=120.0) as client:
                 response = await client.post(
                     api_url,
                     json={
                         "session_id": new_session.id,
-                        "user_input": "Расскажи мне про игру, правила и помоги создать персонажа"
+                        "user_input": "Объясни правила игры, и давай создадим персонажа"
                     }
                 )
+                
+                logger.info(f"GM response status: {response.status_code}")
                 
                 if response.status_code == 200:
                     result = response.json()
                     gm_response = result.get("response", "")
                     
-                    # Отправляем ответ ГМ игроку
-                    await callback.message.edit_text(
-                        f"🎮 <b>Игра началась!</b>\n\n{gm_response}",
-                        parse_mode="HTML"
-                    )
+                    if gm_response:
+                        # Отправляем ответ ГМ игроку
+                        await callback.message.edit_text(
+                            f"🎮 <b>Игра началась!</b>\n\n{gm_response}",
+                            parse_mode="HTML"
+                        )
+                        logger.info("Successfully sent initial GM message")
+                    else:
+                        logger.error("Empty GM response")
+                        await callback.message.edit_text(
+                            "❌ Ошибка: ГМ вернул пустой ответ. Попробуйте написать что-нибудь."
+                        )
                 else:
+                    logger.error(f"GM API error: {response.status_code}, {response.text}")
                     await callback.message.edit_text(
-                        "⏳ Игра создана! ГМ готовит для вас приключение...\n"
-                        "Напишите свое первое действие, чтобы начать!"
+                        f"❌ Ошибка API ({response.status_code}). Попробуйте написать что-нибудь для начала игры."
                     )
+        except httpx.TimeoutException as e:
+            logger.error(f"Timeout sending initial GM message: {e}")
+            await callback.message.edit_text(
+                "⏱️ Превышено время ожидания. Напишите что-нибудь для начала игры."
+            )
         except Exception as e:
             logger.error(f"Error sending initial GM message: {e}", exc_info=True)
             await callback.message.edit_text(
-                "⏳ Игра создана! ГМ готовит для вас приключение...\n"
-                "Напишите свое первое действие, чтобы начать!"
+                f"❌ Ошибка: {str(e)[:100]}\n\nНапишите что-нибудь для начала игры."
             )
-        
-        await callback.answer("Добро пожаловать!")
         
     except Exception as e:
         logger.error(f"Error starting new game: {e}", exc_info=True)

@@ -49,10 +49,9 @@ class PlexMemBot:
         # Include menu router
         self.dp.include_router(menu_router)
         
-        # Register game handlers
-        self.dp.message.register(self.handle_game_message, GameStates.IN_GAME, F.text)
-        
-        # Register command handlers (available in game)
+        # Register command handlers FIRST (priority over game messages)
+        self.dp.message.register(self.cmd_menu, Command("menu"))
+        self.dp.message.register(self.cmd_menu, Command("start"))  # /start тоже открывает меню
         self.dp.message.register(self.cmd_retry, Command("retry"))
         self.dp.message.register(self.cmd_undo, Command("undo"))
         self.dp.message.register(self.cmd_stats, Command("stats"))
@@ -60,7 +59,9 @@ class PlexMemBot:
         self.dp.message.register(self.cmd_session, Command("session"))
         self.dp.message.register(self.cmd_cost, Command("cost"))
         self.dp.message.register(self.cmd_help, Command("help"))
-        self.dp.message.register(self.cmd_menu, Command("menu"))
+        
+        # Register game message handler LAST (catches all other text in game state)
+        self.dp.message.register(self.handle_game_message, GameStates.IN_GAME, F.text)
         
         # Store last message for retry
         self.last_user_messages = {}
