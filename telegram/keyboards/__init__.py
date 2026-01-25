@@ -7,7 +7,8 @@ from .inline import (
     get_save_slots_keyboard,
     get_load_slots_keyboard,
     get_settings_keyboard,
-    get_back_to_menu_keyboard
+    get_back_to_menu_keyboard,
+    get_help_keyboard
 )
 
 __all__ = [
@@ -18,6 +19,7 @@ __all__ = [
     'get_save_slots_keyboard',
     'get_load_slots_keyboard',
     'get_settings_keyboard',
-    'get_back_to_menu_keyboard'
+    'get_back_to_menu_keyboard',
+    'get_help_keyboard'
 ]
 

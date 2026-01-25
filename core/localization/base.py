@@ -148,6 +148,26 @@ class BaseLocalization(ABC):
         """Help/info message."""
         pass
     
+    @abstractmethod
+    def get_help_page(self, page: int) -> str:
+        """Get help page by number (1-3)."""
+        pass
+    
+    @abstractmethod
+    def get_help_about_game(self) -> str:
+        """Help page 1: About the game."""
+        pass
+    
+    @abstractmethod
+    def get_help_bot_control(self) -> str:
+        """Help page 2: Bot control."""
+        pass
+    
+    @abstractmethod
+    def get_help_game_rules(self) -> str:
+        """Help page 3: Game mechanics."""
+        pass
+    
     # Additional game messages
     @abstractmethod
     def get_initial_game_message(self, world_id: str) -> str:

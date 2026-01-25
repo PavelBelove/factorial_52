@@ -164,3 +164,28 @@ def get_back_to_menu_keyboard() -> InlineKeyboardMarkup:
     ])
     return keyboard
 
+
+def get_help_keyboard(current_page: int = 1) -> InlineKeyboardMarkup:
+    """
+    Help keyboard with page navigation.
+    
+    Args:
+        current_page: Current page number (1-3)
+    """
+    buttons = []
+    
+    # Navigation buttons
+    nav_buttons = []
+    if current_page > 1:
+        nav_buttons.append(InlineKeyboardButton(text="⬅️ Назад", callback_data=f"help:page:{current_page - 1}"))
+    if current_page < 3:
+        nav_buttons.append(InlineKeyboardButton(text="Вперёд ➡️", callback_data=f"help:page:{current_page + 1}"))
+    
+    if nav_buttons:
+        buttons.append(nav_buttons)
+    
+    # Back to menu
+    buttons.append([InlineKeyboardButton(text="◀️ В главное меню", callback_data="back_to_menu")])
+    
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+

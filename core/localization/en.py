@@ -103,6 +103,18 @@ class EnglishLocalization(BaseLocalization):
     def get_help_message(self) -> str:
         return "TODO: Translation needed"
     
+    def get_help_page(self, page: int) -> str:
+        return "TODO: Translation needed"
+    
+    def get_help_about_game(self) -> str:
+        return "TODO: Translation needed"
+    
+    def get_help_bot_control(self) -> str:
+        return "TODO: Translation needed"
+    
+    def get_help_game_rules(self) -> str:
+        return "TODO: Translation needed"
+    
     def get_initial_game_message(self, world_id: str) -> str:
         return "TODO: Translation needed"
     

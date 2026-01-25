@@ -20,7 +20,8 @@ from telegram.keyboards import (
     get_save_slots_keyboard,
     get_load_slots_keyboard,
     get_settings_keyboard,
-    get_back_to_menu_keyboard
+    get_back_to_menu_keyboard,
+    get_help_keyboard
 )
 from core.config import settings, get_localization, world_manager
 from core.database.db_manager import DatabaseManager
@@ -259,6 +260,26 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
             )
             db.create_quant(new_session.id, quant)
         
+        # Добавляем системный квант с правилами игры
+        from core.models import Quant, QuantType
+        rules_quant = Quant(
+            id="правила_игры",
+            type=QuantType.setting,
+            synopsis="Правила игровой механики Факториал 52",
+            body={
+                "описание": "Игровая механика основана на колоде из 52 карт. Персонаж имеет 4 характеристики: Сила (♠), Магия (♥), Стойкость (♦), Ловкость (♣). Для проверок вне боя тянутся 2 карты, результат = (сумма номиналов * 10) + характеристика + бонусы. В бою также используются 2 карты, черные для атаки, красные для защиты. Урон = атака - защита. Особые комбинации: два туза = невероятный успех, две двойки = катастрофа (только для игроков). За успех +1 к характеристике. Инвентарь расширен по сравнению с оффлайн версией.",
+                "инструкция_для_гм": "В первом сообщении скажи игроку, что правила и механики игры описаны в системном кванте 'правила_игры', но если интересно - можешь рассказать подробнее, или игрок может почитать их через меню бота. Не перегружай первое сообщение правилами, лучше сразу перейди к созданию персонажа и началу приключения.",
+                "характеристики": "Сила (♠): ближний бой, физическая сила, воля, запугивание. Магия (♥): магическая защита, колдовство, мудрость, общение. Стойкость (♦): физическая защита, выносливость, харизма, торговля. Ловкость (♣): дальний бой, магические атаки, акробатика, меткость, скрытность.",
+                "масти_в_бою": "♠ - бонус к ближним атакам, ♥ - бонус к магической защите, ♦ - бонус к физической защите, ♣ - бонус к дальним атакам и магическим атакам"
+            },
+            links={},
+            aliases=["правила", "механики", "система игры"],
+            created_at=0,
+            updated_at=0,
+            is_game=True
+        )
+        db.create_quant(new_session.id, rules_quant)
+        
         # Load initial summary
         initial_summary = world_manager.get_initial_summary(world_id)
         if initial_summary:
@@ -277,10 +298,42 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
         await state.update_data(session_id=new_session.id, world_id=world_id)
         await state.set_state(GameStates.IN_GAME)
         
-        # Send game start message
-        start_msg = loc.get_initial_game_message(world_id)
-        await callback.message.edit_text(start_msg)
-        await callback.answer("Игра началась!")
+        # Отправляем первый запрос к ГМ от имени игрока
+        import httpx
+        api_url = f"http://localhost:8000/game/process"
+        
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    api_url,
+                    json={
+                        "session_id": new_session.id,
+                        "user_input": "Расскажи мне про игру, правила и помоги создать персонажа"
+                    }
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    gm_response = result.get("response", "")
+                    
+                    # Отправляем ответ ГМ игроку
+                    await callback.message.edit_text(
+                        f"🎮 <b>Игра началась!</b>\n\n{gm_response}",
+                        parse_mode="HTML"
+                    )
+                else:
+                    await callback.message.edit_text(
+                        "⏳ Игра создана! ГМ готовит для вас приключение...\n"
+                        "Напишите свое первое действие, чтобы начать!"
+                    )
+        except Exception as e:
+            logger.error(f"Error sending initial GM message: {e}", exc_info=True)
+            await callback.message.edit_text(
+                "⏳ Игра создана! ГМ готовит для вас приключение...\n"
+                "Напишите свое первое действие, чтобы начать!"
+            )
+        
+        await callback.answer("Добро пожаловать!")
         
     except Exception as e:
         logger.error(f"Error starting new game: {e}", exc_info=True)
@@ -509,20 +562,40 @@ async def settings_language(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "help")
 async def help_menu(callback: CallbackQuery, state: FSMContext):
-    """Show help information."""
+    """Show help information - page 1."""
     try:
         user_id = callback.from_user.id
         user = db.get_or_create_user(str(user_id))
         loc = get_localization(user.language)
         
-        text = loc.get_game_rules()
-        keyboard = get_back_to_menu_keyboard()
+        text = loc.get_help_page(1)
+        keyboard = get_help_keyboard(current_page=1)
         
-        await callback.message.edit_text(text, reply_markup=keyboard)
+        await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="HTML")
         await state.set_state(GameStates.HELP)
         await callback.answer()
         
     except Exception as e:
         logger.error(f"Error showing help: {e}", exc_info=True)
+        await callback.answer("Ошибка")
+
+
+@router.callback_query(F.data.startswith("help:page:"))
+async def help_page_navigation(callback: CallbackQuery, state: FSMContext):
+    """Navigate between help pages."""
+    try:
+        page = int(callback.data.split(":")[-1])
+        user_id = callback.from_user.id
+        user = db.get_or_create_user(str(user_id))
+        loc = get_localization(user.language)
+        
+        text = loc.get_help_page(page)
+        keyboard = get_help_keyboard(current_page=page)
+        
+        await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="HTML")
+        await callback.answer()
+        
+    except Exception as e:
+        logger.error(f"Error navigating help pages: {e}", exc_info=True)
         await callback.answer("Ошибка")
 
