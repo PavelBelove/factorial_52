@@ -22,7 +22,7 @@ from telegram.keyboards import (
     get_settings_keyboard,
     get_back_to_menu_keyboard
 )
-from core.config import settings
+from core.config import settings, get_localization, world_manager
 from core.database.db_manager import DatabaseManager
 
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ async def cmd_start(message: Message, state: FSMContext):
             # New user - show language selection
             await state.set_state(GameStates.LANGUAGE_SELECTION)
             
-            loc = settings.available_localizations["ru"]
+            loc = get_localization("ru")
             text = loc.get_language_selection_message()
             keyboard = get_language_keyboard()
             
@@ -112,14 +112,14 @@ async def show_main_menu(message: Message, state: FSMContext, user_id: int):
         user = db.get_or_create_user(str(user_id))
         
         # Get localization
-        loc = settings.available_localizations.get(user.language, settings.available_localizations["ru"])
+        loc = get_localization(user.language)
         
         # Check if user has active game
         active_session = db.get_session_by_platform_id(str(user_id))
         has_active = active_session is not None and active_session.is_active
         
         # Get menu text and keyboard
-        text = loc.get_start_message()
+        text = loc.get_main_menu_message()
         keyboard = get_main_menu_keyboard(has_active_game=has_active)
         
         # Set state
@@ -151,28 +151,13 @@ async def new_game_handler(callback: CallbackQuery, state: FSMContext):
     try:
         user_id = callback.from_user.id
         user = db.get_or_create_user(str(user_id))
-        loc = settings.available_localizations.get(user.language, settings.available_localizations["ru"])
+        loc = get_localization(user.language)
         
         # Get available worlds
-        available_worlds = settings.world_manager.get_available_worlds()
+        available_worlds = world_manager.get_available_worlds(language=user.language)
         
-        # Prepare worlds list with icons
-        worlds_list = []
-        world_icons = {
-            "isekai": "🌸",
-            "cyberpunk": "🤖",
-            "steampunk": "⚙️",
-            "magic_academy": "🔮",
-            "slavic": "🪆",
-            "fallout": "☢️"
-        }
-        
-        for world_id, world_name in available_worlds.items():
-            worlds_list.append({
-                "id": world_id,
-                "name": world_name,
-                "icon": world_icons.get(world_id, "🌍")
-            })
+        # available_worlds уже список словарей с нужными полями
+        worlds_list = available_worlds
         
         text = loc.get_world_selection_message()
         keyboard = get_world_selection_keyboard(worlds_list)
@@ -193,17 +178,28 @@ async def process_world_selection(callback: CallbackQuery, state: FSMContext):
         world_id = callback.data.split(":")[1]
         user_id = callback.from_user.id
         user = db.get_or_create_user(str(user_id))
-        loc = settings.available_localizations.get(user.language, settings.available_localizations["ru"])
+        loc = get_localization(user.language)
         
         # Get world config
-        world_config = settings.world_manager.get_world_config(world_id)
+        world_config = world_manager.get_world_config(world_id)
         if not world_config:
             await callback.answer("Мир не найден")
             return
         
-        # Get world description
-        world_name = world_config.get("name", world_id)
-        world_desc = world_config.get("description", "Описание отсутствует")
+        # Get world description with localization
+        world_name_dict = world_config.get("name", world_id)
+        world_desc_dict = world_config.get("description", "Описание отсутствует")
+        
+        # Extract localized strings
+        if isinstance(world_name_dict, dict):
+            world_name = world_name_dict.get(user.language, world_name_dict.get('ru', world_id))
+        else:
+            world_name = world_name_dict
+            
+        if isinstance(world_desc_dict, dict):
+            world_desc = world_desc_dict.get(user.language, world_desc_dict.get('ru', ''))
+        else:
+            world_desc = world_desc_dict
         
         text = f"**{world_name}**\n\n{world_desc}"
         keyboard = get_world_description_keyboard(world_id)
@@ -235,7 +231,7 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
         
         # Get user
         user = db.get_or_create_user(str(user_id))
-        loc = settings.available_localizations.get(user.language, settings.available_localizations["ru"])
+        loc = get_localization(user.language)
         
         # Deactivate old sessions
         db.deactivate_user_sessions(user.id)
@@ -247,7 +243,7 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
         )
         
         # Load initial quants
-        initial_quants = settings.world_manager.get_initial_quants(world_id)
+        initial_quants = world_manager.get_initial_quants(world_id)
         for quant_data in initial_quants:
             from core.models import Quant, QuantType
             quant = Quant(
@@ -264,7 +260,7 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
             db.create_quant(new_session.id, quant)
         
         # Load initial summary
-        initial_summary = settings.world_manager.get_initial_summary(world_id)
+        initial_summary = world_manager.get_initial_summary(world_id)
         if initial_summary:
             from core.database.models import SummaryDB
             db.create_summary(
@@ -299,7 +295,7 @@ async def continue_game(callback: CallbackQuery, state: FSMContext):
     try:
         user_id = callback.from_user.id
         user = db.get_or_create_user(str(user_id))
-        loc = settings.available_localizations.get(user.language, settings.available_localizations["ru"])
+        loc = get_localization(user.language)
         
         # Get active session
         active_session = db.get_session_by_platform_id(str(user_id))
@@ -331,7 +327,7 @@ async def save_game_menu(callback: CallbackQuery, state: FSMContext):
     try:
         user_id = callback.from_user.id
         user = db.get_or_create_user(str(user_id))
-        loc = settings.available_localizations.get(user.language, settings.available_localizations["ru"])
+        loc = get_localization(user.language)
         
         # Check if there's an active game
         active_session = db.get_session_by_platform_id(str(user_id))
@@ -371,7 +367,7 @@ async def process_save_slot(callback: CallbackQuery, state: FSMContext):
         slot = int(callback.data.split(":")[1])
         user_id = callback.from_user.id
         user = db.get_or_create_user(str(user_id))
-        loc = settings.available_localizations.get(user.language, settings.available_localizations["ru"])
+        loc = get_localization(user.language)
         
         # Get active session
         active_session = db.get_session_by_platform_id(str(user_id))
@@ -402,7 +398,7 @@ async def load_game_menu(callback: CallbackQuery, state: FSMContext):
     try:
         user_id = callback.from_user.id
         user = db.get_or_create_user(str(user_id))
-        loc = settings.available_localizations.get(user.language, settings.available_localizations["ru"])
+        loc = get_localization(user.language)
         
         # Get saved sessions
         saved_sessions = db.get_user_saved_sessions(user.id)
@@ -440,7 +436,7 @@ async def process_load_slot(callback: CallbackQuery, state: FSMContext):
         session_id = int(callback.data.split(":")[1])
         user_id = callback.from_user.id
         user = db.get_or_create_user(str(user_id))
-        loc = settings.available_localizations.get(user.language, settings.available_localizations["ru"])
+        loc = get_localization(user.language)
         
         # Get session
         session = db.get_session_by_id(session_id)
@@ -517,7 +513,7 @@ async def help_menu(callback: CallbackQuery, state: FSMContext):
     try:
         user_id = callback.from_user.id
         user = db.get_or_create_user(str(user_id))
-        loc = settings.available_localizations.get(user.language, settings.available_localizations["ru"])
+        loc = get_localization(user.language)
         
         text = loc.get_game_rules()
         keyboard = get_back_to_menu_keyboard()

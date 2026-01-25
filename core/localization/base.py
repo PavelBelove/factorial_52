@@ -147,4 +147,21 @@ class BaseLocalization(ABC):
     def get_help_message(self) -> str:
         """Help/info message."""
         pass
+    
+    # Additional game messages
+    @abstractmethod
+    def get_initial_game_message(self, world_id: str) -> str:
+        """Message shown when starting a new game."""
+        pass
+    
+    @abstractmethod
+    def get_continue_game_message(self) -> str:
+        """Message shown when continuing a game."""
+        pass
+    
+    @abstractmethod
+    def get_game_rules(self) -> str:
+        """Game rules message."""
+        pass
+
 

@@ -29,7 +29,7 @@ class WorldManager:
         self._config_cache: Dict[str, dict] = {}  # Cache for world configs
         logger.info(f"WorldManager initialized with directory: {self.worlds_dir}")
     
-    async def scan_worlds(self) -> List[str]:
+    def scan_worlds(self) -> List[str]:
         """
         Scan worlds directory and find all available worlds.
         A world is valid if it has a config.json file.
@@ -51,7 +51,7 @@ class WorldManager:
         logger.info(f"Found {len(worlds)} worlds: {worlds}")
         return worlds
     
-    async def get_world_config(self, world_id: str) -> Optional[Dict]:
+    def get_world_config(self, world_id: str) -> Optional[Dict]:
         """
         Get configuration for a specific world.
         Uses cache to avoid repeated file reads.
@@ -90,7 +90,7 @@ class WorldManager:
             logger.error(f"Error loading config for world {world_id}: {e}")
             return None
     
-    async def get_available_worlds(self, language: str = "ru") -> List[Dict]:
+    def get_available_worlds(self, language: str = "ru") -> List[Dict]:
         """
         Get list of available worlds (enabled and with content).
         
@@ -100,11 +100,11 @@ class WorldManager:
         Returns:
             List of world info dicts with keys: id, name, description, icon
         """
-        world_ids = await self.scan_worlds()
+        world_ids = self.scan_worlds()
         available = []
         
         for world_id in world_ids:
-            config = await self.get_world_config(world_id)
+            config = self.get_world_config(world_id)
             if not config:
                 continue
             
@@ -125,7 +125,7 @@ class WorldManager:
         logger.info(f"Found {len(available)} available worlds")
         return available
     
-    async def load_world_initial_data(self, world_id: str, language: str = "ru") -> Optional[Dict]:
+    def load_world_initial_data(self, world_id: str, language: str = "ru") -> Optional[Dict]:
         """
         Load initial game data for a world.
         
@@ -189,7 +189,7 @@ class WorldManager:
         logger.info(f"Loaded initial data for world: {world_id}")
         return data
     
-    async def get_quantizer_instructions(self, world_id: str) -> str:
+    def get_quantizer_instructions(self, world_id: str) -> str:
         """
         Get world-specific instructions for Quantizer agent.
         These are appended to base Quantizer prompt.
@@ -210,6 +210,54 @@ class WorldManager:
                 return f.read().strip()
         except Exception as e:
             logger.error(f"Error reading quantizer instructions for {world_id}: {e}")
+            return ""
+    
+    def get_initial_quants(self, world_id: str) -> List[Dict]:
+        """
+        Get initial quants for a world.
+        
+        Args:
+            world_id: World identifier
+            
+        Returns:
+            List of quant data dicts
+        """
+        quants_file = self.worlds_dir / world_id / "initial_quants.json"
+        if not quants_file.exists():
+            logger.warning(f"Initial quants file not found for {world_id}")
+            return []
+        
+        try:
+            with open(quants_file, 'r', encoding='utf-8') as f:
+                quants = json.load(f)
+            logger.debug(f"Loaded {len(quants)} initial quants for {world_id}")
+            return quants
+        except Exception as e:
+            logger.error(f"Error loading initial quants for {world_id}: {e}")
+            return []
+    
+    def get_initial_summary(self, world_id: str) -> str:
+        """
+        Get initial summary for a world.
+        
+        Args:
+            world_id: World identifier
+            
+        Returns:
+            Summary text or empty string if not found
+        """
+        summary_file = self.worlds_dir / world_id / "initial_summary.md"
+        if not summary_file.exists():
+            logger.warning(f"Initial summary file not found for {world_id}")
+            return ""
+        
+        try:
+            with open(summary_file, 'r', encoding='utf-8') as f:
+                summary = f.read().strip()
+            logger.debug(f"Loaded initial summary for {world_id}")
+            return summary
+        except Exception as e:
+            logger.error(f"Error loading initial summary for {world_id}: {e}")
             return ""
     
     def clear_cache(self):

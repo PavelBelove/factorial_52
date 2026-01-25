@@ -113,3 +113,23 @@ DATA_DIR.mkdir(exist_ok=True)
 LOGS_DIR.mkdir(exist_ok=True)
 WORLDS_DIR.mkdir(exist_ok=True)
 
+# Localization
+LOCALIZATION_DIR = PROJECT_ROOT / "core" / "localization"
+
+# Initialize localizations
+from core.localization.ru import RussianLocalization
+from core.localization.en import EnglishLocalization
+
+_available_localizations = {
+    "ru": RussianLocalization(),
+    "en": EnglishLocalization()
+}
+
+def get_localization(lang_code: str):
+    """Get localization instance by language code."""
+    return _available_localizations.get(lang_code, _available_localizations[settings.default_language])
+
+# World manager
+from core.managers.world_manager import WorldManager
+world_manager = WorldManager(WORLDS_DIR)
+
