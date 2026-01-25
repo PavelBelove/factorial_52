@@ -78,7 +78,7 @@ class PlexMemBot:
                 
         if not session_id:
             await message.answer("❌ Ошибка сессии. Используйте /menu для возврата в меню")
-            return
+                    return
                 
         # Save for retry
         self.last_user_messages[user_id] = message.text
@@ -130,7 +130,7 @@ class PlexMemBot:
                             if idx < len(chunks) - 1:
                                 await asyncio.sleep(0.5)
                     else:
-                        await message.answer(reply, parse_mode=None)
+                    await message.answer(reply, parse_mode=None)
                     
                     logger.info(f"Turn {data['turn_number']} completed for user {user_id}")
                 else:

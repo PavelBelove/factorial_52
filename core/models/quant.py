@@ -18,6 +18,7 @@ class QuantType(str, Enum):
     QUEST = "quest"  # Missions, tasks
     PROMISE = "promise"  # Agreements, intentions, delayed actions ("will do later")
     CONCEPT = "concept"  # Abstract ideas, rules, systems
+    META = "meta"  # Special meta-instructions for GM (character creation, etc.)
     OTHER = "other"  # Uncategorized
 
 

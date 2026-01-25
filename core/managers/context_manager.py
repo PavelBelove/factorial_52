@@ -35,25 +35,27 @@ class ContextManager:
         current_turn: int,
         active_quants: List[Quant],
         system_prompt_parts: Optional[Dict[str, str]] = None,
-        module_data: Optional[Dict[str, Any]] = None
+        module_data: Optional[Dict[str, Any]] = None,
+        world_id: Optional[str] = None
     ) -> List[Dict[str, str]]:
         """
         Build complete context for agent turn.
-        
+
         Args:
             session_id: Session ID
             current_turn: Current turn number
             active_quants: Activated quants for this turn
             system_prompt_parts: Modular system prompt components
             module_data: Optional data from modules (game rules, emotions, etc.)
-        
+            world_id: Optional world ID for world-specific prompts
+
         Returns:
             List of messages for LLM
         """
         messages = []
-        
+
         # 1. System prompt
-        system_prompt = self._build_system_prompt(system_prompt_parts, module_data)
+        system_prompt = self._build_system_prompt(system_prompt_parts, module_data, world_id)
         messages.append({
             "role": "system",
             "content": system_prompt
@@ -113,11 +115,12 @@ class ContextManager:
     def _build_system_prompt(
         self,
         parts: Optional[Dict[str, str]],
-        module_data: Optional[Dict[str, Any]]
+        module_data: Optional[Dict[str, Any]],
+        world_id: Optional[str] = None
     ) -> str:
         """
         Build modular system prompt.
-        
+
         Parts can include:
         - base: Core agent role
         - setting: World/game setting
@@ -127,9 +130,9 @@ class ContextManager:
         """
         if not parts:
             parts = {}
-        
+
         # Default base prompt
-        base = parts.get("base", self._default_base_prompt())
+        base = parts.get("base", self._default_base_prompt(world_id))
         
         prompt_sections = [base]
         
@@ -152,10 +155,20 @@ class ContextManager:
         
         return "\n\n".join(prompt_sections)
     
-    def _default_base_prompt(self) -> str:
+    def _default_base_prompt(self, world_id: Optional[str] = None) -> str:
         """Default base system prompt for GM - loaded from file."""
         try:
-            return get_prompt(PROMPT_GM)
+            # Try to load world-specific GM system prompt first
+            if world_id:
+                world_prompt = settings.world_manager.get_gm_system_prompt(world_id)
+                if world_prompt:
+                    logger.info(f"Using world-specific GM prompt for {world_id}")
+                    return world_prompt
+            
+            # Fallback to default prompt if no world-specific prompt
+            logger.info("Using default GM prompt")
+            base_prompt = get_prompt(PROMPT_GM)
+            return base_prompt
         except FileNotFoundError:
             logger.warning("GM prompt file not found, using fallback")
             # Fallback prompt

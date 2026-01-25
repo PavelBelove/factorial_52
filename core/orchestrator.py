@@ -130,13 +130,14 @@ class TurnOrchestrator:
             }
             logger.info(f"Module data prepared with keys: {list(module_data.keys())}")
         
-        # Step 2: Build context
+        # Step 2: Build context (with world-specific prompts)
         context_messages = self.context_manager.build_context(
             session_id=session_id,
             current_turn=current_turn,
             active_quants=active_quants,
             system_prompt_parts=system_prompt_parts,
-            module_data=module_data
+            module_data=module_data,
+            world_id=db_session.world_id
         )
         logger.debug(f"Context built with {len(context_messages)} messages")
         

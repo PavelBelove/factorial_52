@@ -260,6 +260,30 @@ class WorldManager:
             logger.error(f"Error loading initial summary for {world_id}: {e}")
             return ""
     
+    def get_gm_system_prompt(self, world_id: str) -> str:
+        """
+        Get world-specific GM system prompt.
+
+        Args:
+            world_id: World identifier
+
+        Returns:
+            GM system prompt text or empty string if not found
+        """
+        gm_system_file = self.worlds_dir / world_id / "gm_system.md"
+        if not gm_system_file.exists():
+            logger.debug(f"No world-specific gm_system.md for {world_id}")
+            return ""
+
+        try:
+            with open(gm_system_file, 'r', encoding='utf-8') as f:
+                content = f.read().strip()
+            logger.debug(f"Loaded world-specific GM system prompt for {world_id}")
+            return content
+        except Exception as e:
+            logger.error(f"Error reading gm_system.md for {world_id}: {e}")
+            return ""
+
     def clear_cache(self):
         """Clear configuration cache. Useful for development/testing."""
         self._config_cache.clear()

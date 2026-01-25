@@ -304,17 +304,16 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
         
         # Отправляем первый запрос к ГМ от имени игрока
         import httpx
-        api_url = f"http://localhost:8000/game/process"
-        
+        api_url = f"http://localhost:8000/sessions/{new_session.id}/messages"
+
         logger.info(f"Sending initial GM request for session {new_session.id}")
-        
+
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:
                 response = await client.post(
                     api_url,
                     json={
-                        "session_id": new_session.id,
-                        "user_input": "Объясни правила игры, и давай создадим персонажа"
+                        "message": "Объясни правила игры, и давай создадим персонажа"
                     }
                 )
                 
@@ -322,7 +321,7 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
                 
                 if response.status_code == 200:
                     result = response.json()
-                    gm_response = result.get("response", "")
+                    gm_response = result.get("reply", "")
                     
                     if gm_response:
                         # Отправляем ответ ГМ игроку

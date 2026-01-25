@@ -164,21 +164,22 @@ class QuantizerAgent:
     def _get_quantizer_system_prompt(self, world_id: Optional[str] = None) -> str:
         """
         System prompt for Quantizer - loads from file.
-        If world_id is provided, appends world-specific instructions.
+        If world_id is provided and has specific instructions, uses those instead of default.
         """
         try:
-            from core.utils import get_prompt, PROMPT_QUANTIZER
-            base_prompt = get_prompt(PROMPT_QUANTIZER)
-            
-            # Add world-specific instructions if available
+            # Try to load world-specific instructions first
             if world_id:
                 from core.config import settings
                 world_instructions = settings.world_manager.get_quantizer_instructions(world_id)
                 
                 if world_instructions:
-                    logger.info(f"Adding world-specific Quantizer instructions for world: {world_id}")
-                    base_prompt += f"\n\n# WORLD-SPECIFIC INSTRUCTIONS ({world_id})\n\n{world_instructions}"
+                    logger.info(f"Using world-specific Quantizer instructions for world: {world_id}")
+                    return world_instructions
             
+            # Fallback to default prompt if no world-specific instructions
+            logger.info("Using default Quantizer prompt")
+            from core.utils import get_prompt, PROMPT_QUANTIZER
+            base_prompt = get_prompt(PROMPT_QUANTIZER)
             return base_prompt
             
         except Exception as e:
