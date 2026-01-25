@@ -139,6 +139,31 @@ class GMAgent:
             except json.JSONDecodeError:
                 pass
         
+        # Try extracting "narrative" field from incomplete JSON
+        # This helps when JSON is truncated or malformed
+        narrative_match = re.search(r'"narrative"\s*:\s*"([^"]*(?:\\"[^"]*)*)"', content, re.DOTALL)
+        if narrative_match:
+            try:
+                narrative_text = narrative_match.group(1)
+                # Unescape JSON string
+                narrative_text = narrative_text.replace('\\"', '"').replace('\\n', '\n')
+                logger.info("Extracted 'narrative' field from incomplete JSON")
+                
+                # Try to extract quant_requests too
+                quants_match = re.search(r'"quant_requests"\s*:\s*\[(.*?)\]', content, re.DOTALL)
+                quants = []
+                if quants_match:
+                    quants_str = quants_match.group(1)
+                    quants = re.findall(r'"([^"]+)"', quants_str)
+                
+                return {
+                    "reply": narrative_text,
+                    "quants": quants,
+                    "response_data": {}
+                }
+            except Exception as e:
+                logger.warning(f"Failed to extract narrative from JSON: {e}")
+        
         # Fallback: try to extract from various markdown/text formats
         logger.warning("Could not parse GM response as JSON, using text fallback")
         
