@@ -264,7 +264,7 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
         from core.models import Quant, QuantType
         rules_quant = Quant(
             id="правила_игры",
-            type=QuantType.setting,
+            type=QuantType.CONCEPT,
             synopsis="Правила игровой механики Факториал 52",
             body={
                 "описание": "Игровая механика основана на колоде из 52 карт. Персонаж имеет 4 характеристики: Сила (♠), Магия (♥), Стойкость (♦), Ловкость (♣). Для проверок вне боя тянутся 2 карты, результат = (сумма номиналов * 10) + характеристика + бонусы. В бою также используются 2 карты, черные для атаки, красные для защиты. Урон = атака - защита. Особые комбинации: два туза = невероятный успех, две двойки = катастрофа (только для игроков). За успех +1 к характеристике. Инвентарь расширен по сравнению с оффлайн версией.",
@@ -502,9 +502,10 @@ async def process_load_slot(callback: CallbackQuery, state: FSMContext):
         db.deactivate_user_sessions(user.id)
         
         # Activate loaded session
+        from core.database.models import SessionDB
         from sqlalchemy.orm import Session as DBSession
         with db.get_session() as db_session:
-            session_obj = db_session.query(db.SessionDB).filter_by(id=session_id).first()
+            session_obj = db_session.query(SessionDB).filter_by(id=session_id).first()
             if session_obj:
                 session_obj.is_active = True
                 db_session.commit()
