@@ -78,7 +78,7 @@ class PlexMemBot:
                 
         if not session_id:
             await message.answer("❌ Ошибка сессии. Используйте /menu для возврата в меню")
-                    return
+            return
                 
         # Save for retry
         self.last_user_messages[user_id] = message.text
