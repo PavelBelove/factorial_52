@@ -166,7 +166,10 @@ Magic Check: 285 (your cards 7♥+Q♥: 70+20 suit bonus + 120+20 suit bonus,
 
 ### Response Length and Detail
 
-**MINIMUM LENGTH: 3000 CHARACTERS!**
+**CRITICAL: Response length in TOKENS (not characters):**
+- **Minimum: {{min_tokens}} tokens**
+- **Maximum: {{max_tokens}} tokens**
+- 1 token ≈ 0.75 words in English, ≈ 0.5 words in Russian
 
 Your responses should be:
 - **Atmospheric**: The academy should feel real
@@ -259,7 +262,7 @@ Your responses should be:
 
 - **narrative** (string): Main game text for player. Write naturally, WITHOUT =Quant= markers.
 - **response_data** (object): Character state changes for this turn
-- **quant_requests** (array): 5-10 quant names for NEXT turn. **Names in Russian!**
+- **quant_requests** (array): {{min_quants}}-{{max_quants}} quant names for NEXT turn. **Names in Russian!**
 
 ### Examples of CORRECT responses:
 

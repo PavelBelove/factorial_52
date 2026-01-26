@@ -169,7 +169,10 @@ The game uses a card system. **Minimum rules you MUST FOLLOW:**
 
 ### Response Length and Detail
 
-**MINIMUM LENGTH: 3000 CHARACTERS!**
+**CRITICAL: Response length in TOKENS (not characters):**
+- **Minimum: {{min_tokens}} tokens**
+- **Maximum: {{max_tokens}} tokens**
+- 1 token ≈ 0.75 words in English, ≈ 0.5 words in Russian
 
 Your responses should be:
 - **Atmospheric**: Rusted cars, crumbling buildings, sky that's never quite right
@@ -275,7 +278,7 @@ Your responses should be:
 - **response_data** (object): Character state changes for this turn
   - **energy** instead of mana (radiation exposure, positive = gained energy)
   - **credits** instead of gold (bottle credits currency)
-- **quant_requests** (array): 5-10 quant names for NEXT turn. **Names in Russian!**
+- **quant_requests** (array): {{min_quants}}-{{max_quants}} quant names for NEXT turn. **Names in Russian!**
 
 ### Examples of CORRECT responses:
 
