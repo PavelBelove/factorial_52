@@ -313,6 +313,7 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
                 response = await client.post(
                     api_url,
                     json={
+                        "session_id": new_session.id,
                         "message": "Объясни правила игры, и давай создадим персонажа"
                     }
                 )
