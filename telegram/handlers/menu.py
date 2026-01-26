@@ -381,7 +381,28 @@ async def continue_game(callback: CallbackQuery, state: FSMContext):
         )
         await state.set_state(GameStates.IN_GAME)
         
-        await callback.message.edit_text(loc.get_continue_game_message())
+        # Get last turn to remind player where they left off
+        last_turns = db.get_recent_turns(active_session.id, limit=1)
+        
+        if last_turns:
+            last_turn = last_turns[0]
+            # Truncate if too long (Telegram limit 4096 chars)
+            reply_text = last_turn.agent_reply
+            max_reply_length = 3500  # Leave space for headers
+            if len(reply_text) > max_reply_length:
+                reply_text = reply_text[:max_reply_length] + "..."
+            
+            message = (
+                f"▶️ <b>Игра продолжается</b>\n\n"
+                f"<b>📝 Последний ход #{last_turn.turn_number}:</b>\n\n"
+                f"{reply_text}\n\n"
+                f"─────────────────────\n"
+                f"Напишите свое действие, чтобы продолжить приключение!"
+            )
+        else:
+            message = loc.get_continue_game_message()
+        
+        await callback.message.edit_text(message, parse_mode="HTML")
         await callback.answer()
         
     except Exception as e:
@@ -534,8 +555,29 @@ async def process_load_slot(callback: CallbackQuery, state: FSMContext):
         )
         await state.set_state(GameStates.IN_GAME)
         
+        # Get last turn to remind player where they left off
+        last_turns = db.get_recent_turns(session.id, limit=1)
+        
+        if last_turns:
+            last_turn = last_turns[0]
+            # Truncate if too long (Telegram limit 4096 chars)
+            reply_text = last_turn.agent_reply
+            max_reply_length = 3500  # Leave space for headers
+            if len(reply_text) > max_reply_length:
+                reply_text = reply_text[:max_reply_length] + "..."
+            
+            message = (
+                f"▶️ <b>Игра загружена!</b>\n\n"
+                f"<b>📝 Последний ход #{last_turn.turn_number}:</b>\n\n"
+                f"{reply_text}\n\n"
+                f"─────────────────────\n"
+                f"Напишите свое действие, чтобы продолжить приключение!"
+            )
+        else:
+            message = loc.get_continue_game_message()
+        
         await callback.answer(loc.get_game_loaded_message(session.slot_number))
-        await callback.message.edit_text(loc.get_continue_game_message())
+        await callback.message.edit_text(message, parse_mode="HTML")
         
     except Exception as e:
         logger.error(f"Error loading game: {e}", exc_info=True)
