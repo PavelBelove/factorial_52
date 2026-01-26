@@ -40,6 +40,29 @@ db = DatabaseManager()
 
 # ============= START & LANGUAGE SELECTION =============
 
+async def show_main_menu(message: Message, state: FSMContext, user_id: int):
+    """Show main menu to user."""
+    user = db.get_or_create_user(str(user_id))
+    loc = get_localization(user.language)
+    
+    # Check if user has active session
+    active_session = db.get_session_by_platform_id(str(user_id))
+    
+    # Clear any existing state
+    await state.clear()
+    
+    if active_session and active_session.is_active:
+        # User has active game - show game menu with continue option
+        text = loc.get_main_menu_message()
+        keyboard = get_main_menu_keyboard(has_active_game=True, language=user.language)
+    else:
+        # No active game - show menu without continue option
+        text = loc.get_main_menu_message()
+        keyboard = get_main_menu_keyboard(has_active_game=False, language=user.language)
+    
+    await message.answer(text, reply_markup=keyboard)
+
+
 @router.message(Command("start"))
 async def cmd_start(message: Message, state: FSMContext):
     """
