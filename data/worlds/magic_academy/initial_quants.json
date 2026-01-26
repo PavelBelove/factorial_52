@@ -18,7 +18,7 @@
   },
   {
     "id": "Карточная_Система",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "core card-based RPG system 'Factorial 52!', uses standard 52-card deck for all checks and combat via =Проверки= and =Боевая_Система=",
     "body": {
       "description": "Card-based tabletop RPG system. All actions resolved by drawing cards. No dice needed - only standard 52-card deck.",
@@ -43,7 +43,7 @@
   },
   {
     "id": "Значение_Карт",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "card rank values: 2-10 face value, J=11, Q=12, K=13, A=15; face cards add narrative elements via =Особые_События=",
     "body": {
       "rank_values": {
@@ -74,7 +74,7 @@
   },
   {
     "id": "Система_Мастей",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "four card suits map to =Характеристики=: ♠Spades=Strength, ♥Hearts=Magic, ♦Diamonds=Endurance, ♣Clubs=Agility",
     "body": {
       "suit_mapping": {
@@ -117,7 +117,7 @@
   },
   {
     "id": "Характеристики",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "four character stats from =Система_Мастей=: Сила(♠), Магия(♥), Стойкость(♦), Ловкость(♣); used in =Проверки= and =Боевая_Система=",
     "body": {
       "stats": {
@@ -161,7 +161,7 @@
   },
   {
     "id": "Проверки",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "out-of-combat skill checks using =Карточная_Система=: 2 cards × 10 + stat + =Бонусы_Мастей= vs difficulty threshold",
     "body": {
       "when_to_check": "When outcome is uncertain. Routine studying auto-succeeds. Complex spells, exams, social situations require checks.",
@@ -194,7 +194,7 @@
   },
   {
     "id": "Боевая_Система",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "magical duel resolution via =Карточная_Система=: black cards(♠♣)=attack spells, red cards(♥♦)=defense/shields; damage = attack - defense",
     "body": {
       "duel_context": "Academy duels are common - practice matches, tournaments, honor disputes. Lethal combat rare but possible against monsters or dark mages.",
@@ -225,7 +225,7 @@
   },
   {
     "id": "Бонусы_Мастей",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "suit/color matching bonuses for =Проверки= and =Боевая_Система=: suit match +20, color match +10 (mutually exclusive)",
     "body": {
       "bonus_priority": "Suit match takes precedence over color match. Cannot stack both.",
@@ -245,7 +245,7 @@
   },
   {
     "id": "Особые_События",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "special card combinations for narrative: 2 Aces=magical breakthrough, 2 Twos=catastrophic failure, face cards=plot elements",
     "body": {
       "applies_to": "ONLY player characters, ONLY outside formal duels",
@@ -285,7 +285,7 @@
   },
   {
     "id": "Предметы",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "equipment and magical items tied to =Система_Мастей=: wands, robes, potions, artifacts; bonus = rank × 5 (+10 suit match)",
     "body": {
       "item_mechanics": {
@@ -314,7 +314,7 @@
   },
   {
     "id": "Развитие_Персонажа",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "character progression via =Проверки= success: +1 XP per successful check, at 10 XP: +1 stat, +1 HP, +1 Mana",
     "body": {
       "xp_gain": "Each successful check grants +1 XP to the characteristic used.",
@@ -338,7 +338,7 @@
   },
   {
     "id": "Структура_Академии",
-    "type": "world",
+    "type": "concept",
     "synopsis": "academy hierarchy and organization: years 1-5, =Факультеты=, staff structure, student ranks; affects social =Проверки=",
     "body": {
       "student_years": {
@@ -371,7 +371,7 @@
   },
   {
     "id": "Факультеты",
-    "type": "world",
+    "type": "concept",
     "synopsis": "academy houses/departments with distinct cultures: =Структура_Академии= divisions for housing and identity; rivalry and pride",
     "body": {
       "description": "Students sorted into faculties based on aptitude and preference. Each has dormitory, common room, traditions.",
@@ -412,7 +412,7 @@
   },
   {
     "id": "Магические_Дисциплины",
-    "type": "world",
+    "type": "concept",
     "synopsis": "schools of magic taught at academy: elemental, enchantment, alchemy, naming, divination, etc.; tied to =Характеристики= for casting",
     "body": {
       "core_disciplines": {
@@ -468,7 +468,7 @@
   },
   {
     "id": "Турниры",
-    "type": "world",
+    "type": "concept",
     "synopsis": "magical competitions at academy: dueling tournaments, academic contests, inter-faculty games; prestige and prizes via =Боевая_Система=",
     "body": {
       "tournament_types": {
@@ -505,7 +505,7 @@
   },
   {
     "id": "Тайны_Академии",
-    "type": "world",
+    "type": "concept",
     "synopsis": "hidden secrets and mysteries: forbidden library sections, ancient artifacts, secret societies, dungeon beneath academy",
     "body": {
       "known_mysteries": {
@@ -535,7 +535,7 @@
   },
   {
     "id": "Социальная_Динамика",
-    "type": "world",
+    "type": "concept",
     "synopsis": "social structure at academy: nobles vs commoners, scholarships, cliques, romance; affects =Проверки= with Diamonds stat",
     "body": {
       "class_divide": {

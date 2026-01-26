@@ -1,1 +1,238 @@
-# TODO: Quantizer instructions for this world
+# Quantizer Instructions: Space World
+
+## Key concepts for this world
+
+- **Galactic Factions**: Imperium, Ranger Corps, Free Traders, Pirate Clans, Alien Confederacies
+- **Starships**: Fighters, frigates, cruisers, dreadnoughts - class and capabilities matter
+- **Alien Races**: Humanoids, insectoids, crystalline entities, machine intelligences, precursors
+- **The Frontier**: Uncharted systems, ancient ruins, hyperspace routes, danger and opportunity
+- **Psionics**: Rare gifts, powerful but risky, ancient orders guard the secrets
+
+## Typical quants to create
+
+### NPCs - Spacers
+
+- Include: role (Ranger/Trader/Mercenary/Pilot), ship, reputation, faction ties
+- Example: "Рейнджер_Кассиус" (veteran ranger, patched armor, knows the frontier, owes favors)
+
+### NPCs - Military
+
+- Include: rank, fleet, combat experience, agenda
+- Example: "Капитан_Сторм" (Imperium frigate commander, by-the-book but fair, hunting pirates)
+
+### NPCs - Aliens
+
+- Include: species, role in their society, attitude to humans, unique abilities
+- Example: "Инсектоид_Клик" (hive diplomat, speaks through translator, seeks mutual profit)
+
+### Factions & Organizations
+
+- Include: territory, leadership, goals, relations with others
+- Example: "Гильдия_Торговцев" (free traders, profit above politics, information network)
+
+### Locations
+
+- Space stations and starports
+- Planetary settlements
+- Ancient ruins
+- Hyperspace waypoints
+- Ship interiors
+
+### Ships & Equipment
+
+- Starships (class, weapons, cargo, special systems)
+- Weapons (personal and ship-mounted)
+- Armor and suits (environment, combat)
+- Tech devices (scanners, translators, medical)
+
+### Jobs & Plot Elements
+
+- Cargo runs and their complications
+- Exploration contracts
+- Military operations
+- Pirate encounters
+- Ancient mysteries
+
+## World-specific rules
+
+1. **Track reputation**: With factions, alien races, and individuals
+2. **Ship management**: Fuel, cargo, crew, repairs
+3. **Alien relations**: First contact protocols, translation, cultural differences
+4. **Hyperspace travel**: Route knowledge matters, dangers exist between stars
+5. **Psionics are rare**: Ancient orders, feared and respected
+
+---
+
+## NPC References System
+
+**IMPORTANT: Create vivid character images through cultural references!**
+
+### When to add references:
+
+Add a `reference` field to NPC quants when:
+- Player has interacted with NPC **3 or more times**
+- NPC is important for ongoing story
+- NPC has distinctive personality/appearance
+
+### How to create references:
+
+Reference should be:
+- **Short** (5-15 words max)
+- **Evocative** - instantly activates GM's knowledge of that character
+- **Modified** - note differences from original
+
+**Reference format in body:**
+```json
+{
+  "reference": "Like [Character] from [Work] but [difference]"
+}
+```
+
+### Good reference examples for Space setting:
+
+```json
+{"reference": "Like Han Solo but more professional, less charm"}
+{"reference": "Commander Shepard's determination with Picard's diplomacy"}
+{"reference": "Garrus Vakarian's loyalty with Boba Fett's skills"}
+{"reference": "Commissar Cain's survival instinct without the self-deprecation"}
+{"reference": "Paul Atreides' burden of vision with StarCraft marine grit"}
+{"reference": "Space Ranger archetype - helpful, capable, goes where needed"}
+{"reference": "Like Thane Krios - deadly but philosophical"}
+{"reference": "Tali's tech genius with Zerg research obsession"}
+{"reference": "Inquisitor aesthetic but actually investigating, not executing"}
+{"reference": "Malcolm Reynolds if he joined a proper organization"}
+```
+
+### Reference sources (use these works):
+
+**Space opera core:**
+- Warhammer 40,000 (Space Marines, Inquisitors, Imperial Guard, Rogue Traders, grimdark aesthetic)
+- Space Rangers / Космические Рейнджеры (rangers, free traders, planetary quests, alien races, humor)
+- StarCraft (Terran marines, Protoss honor, military command, desperate battles)
+- Mass Effect (Shepard, crew loyalty, alien races, ancient threats, Citadel politics)
+- Dune (Great Houses, spice trade, prescience, religious orders, political intrigue)
+- Star Wars (Force users, smugglers, bounty hunters, rebellion, redemption)
+- Firefly (frontier life, crew as family, doing the job)
+- Babylon 5 (diplomacy, ancient races, station life)
+
+**Character archetypes:**
+- The veteran ranger (seen too much, still helps)
+- The free trader (profit first, but has a code)
+- The military captain (duty and honor)
+- The alien diplomat (bridge between worlds)
+- The psionic adept (power and isolation)
+- The mercenary (professionals have standards)
+- The explorer (mysteries call)
+- The engineer (ships are life)
+
+### Reference rules:
+
+1. **DON'T copy directly** - always add a twist or difference
+2. **DON'T use obscure references** - stick to known space opera works
+3. **DO combine references** when NPC has mixed traits
+4. **DO use archetypes** - lone gunslinger, noble captain, wise alien
+5. **Space opera authenticity** - epic scope, personal stakes, alien wonders
+
+---
+
+## Examples of good quants
+
+```json
+{
+  "id": "Рейнджер_Кассиус",
+  "type": "npc",
+  "synopsis": "veteran ranger in =Пограничье=, old ship, knows the frontier better than anyone",
+  "body": {
+    "role": "Ranger Corps veteran",
+    "ship": "Modified scout 'Следопыт', 30 years old, still flies",
+    "personality": "Tired but dedicated, dry humor, seen everything, still does the job",
+    "reference": "Like Malcolm Reynolds joined Space Rangers - cynical idealist",
+    "appearance": "Weathered face, patched uniform, old but maintained gear",
+    "reputation": "Reliable, fair, doesn't give up, owes favors across the sector",
+    "secret": "Knows location of precursor archive, waiting for right person to share"
+  },
+  "links": {
+    "Рейнджеры": "veteran member",
+    "Пограничье": "works the frontier",
+    "Звездолёты": "owns scout ship"
+  }
+}
+```
+
+```json
+{
+  "id": "Инсектоид_Посол_Кликс",
+  "type": "npc",
+  "synopsis": "insectoid diplomat at =Станция_Порог=, seeks trade agreements, thinks in swarm terms",
+  "body": {
+    "role": "Hive Confederacy Ambassador",
+    "species": "Insectoid, warrior-diplomat caste",
+    "personality": "Alien logic, values collective benefit, surprisingly honorable",
+    "reference": "Thane Krios's alien dignity with Elcor formal speech patterns",
+    "appearance": "Chitin armor natural, four arms, compound eyes, translator on thorax",
+    "motivation": "Establish trade for resources hive needs, prevent war with Imperium",
+    "quirk": "Always refers to self as 'we', genuinely confused by human individualism"
+  },
+  "links": {
+    "Расы": "Insectoid Confederacy",
+    "Станция_Порог": "stationed here",
+    "Фракции": "diplomatic mission"
+  }
+}
+```
+
+```json
+{
+  "id": "Крейсер_Немезида",
+  "type": "entity",
+  "synopsis": "pirate cruiser in =Пограничье=, converted military ship, feared raider",
+  "body": {
+    "type": "Heavy Cruiser (converted)",
+    "origin": "Former Imperium patrol cruiser, captured in mutiny",
+    "captain": "Known as 'The Admiral', identity unknown",
+    "capabilities": "Military-grade weapons, fighter bay, experienced crew",
+    "reputation": "Takes cargo, rarely kills unless provoked, honors ransoms",
+    "danger": "Imperium bounty, will fight rather than surrender"
+  },
+  "links": {
+    "Пираты": "major pirate asset",
+    "Звездолёты": "heavy cruiser class",
+    "Пограничье": "operates here"
+  }
+}
+```
+
+```json
+{
+  "id": "Станция_Порог",
+  "type": "location",
+  "synopsis": "frontier station at edge of =Пограничье=, neutral ground, all races welcome",
+  "body": {
+    "type": "Space Station / Trade Hub",
+    "location": "Border between Imperium and frontier space",
+    "atmosphere": "Busy, diverse, slightly lawless, opportunity everywhere",
+    "governance": "Station Council, representatives of major factions",
+    "services": "Fuel, repairs, market, jobs board, cantina, information",
+    "rule": "No weapons fire inside. Disputes settled by council or outside"
+  },
+  "links": {
+    "Локации": "major frontier hub",
+    "Фракции": "neutral ground",
+    "Расы": "all welcome"
+  }
+}
+```
+
+## Notes for quantizer
+
+- Be creative but stay within space opera tone
+- Track reputation with different factions
+- Create quants for recurring characters, ships, and locations
+- Link related quants together for context
+- Don't create duplicate quants - update existing ones instead
+- **Add references after 3+ interactions to make NPCs memorable**
+- References help GM maintain consistent character portrayal
+- Space opera = epic scope, personal stakes, alien wonders, adventure
+- Ships are characters too - give them personality
+- Alien is alien - don't just make humans with makeup
+- The galaxy is vast but individuals matter

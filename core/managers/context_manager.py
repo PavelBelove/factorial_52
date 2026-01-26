@@ -7,7 +7,7 @@ from typing import List, Dict, Any, Optional
 
 from core.database.db_manager import DatabaseManager
 from core.models import Quant
-from core.config import settings
+from core.config import settings, world_manager
 from core.utils import get_prompt, PROMPT_GM
 
 logger = logging.getLogger(__name__)
@@ -160,7 +160,7 @@ class ContextManager:
         try:
             # Try to load world-specific GM system prompt first
             if world_id:
-                world_prompt = settings.world_manager.get_gm_system_prompt(world_id)
+                world_prompt = world_manager.get_gm_system_prompt(world_id)
                 if world_prompt:
                     logger.info(f"Using world-specific GM prompt for {world_id}")
                     return world_prompt

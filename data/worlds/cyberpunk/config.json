@@ -5,12 +5,18 @@
     "en": "Cyberpunk"
   },
   "description": {
-    "ru": "Мрачное будущее с высокими технологиями и низким уровнем жизни. Мегакорпорации, киберпротезы, нейронные интерфейсы.",
-    "en": "Dark future with high tech and low life. Megacorporations, cyberware, neural interfaces."
+    "ru": "Мрачное неоновое будущее. Мегакорпорации, киберимпланты, нетраннинг и борьба за выживание на улицах.",
+    "en": "Dark neon future. Megacorps, cyberware, netrunning and street survival."
   },
-  "icon": "🤖",
-  "enabled": false,
-  "has_content": false,
-  "tags": ["sci-fi", "dystopia", "cyberpunk"]
+  "icon": "🌃",
+  "enabled": true,
+  "has_content": true,
+  "features": {
+    "megacorps": true,
+    "cyberware": true,
+    "netrunning": true,
+    "street_gangs": true,
+    "noir_atmosphere": true
+  },
+  "tags": ["sci-fi", "dystopia", "cyberpunk", "noir", "tech"]
 }
-

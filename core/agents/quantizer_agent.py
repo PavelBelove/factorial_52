@@ -169,8 +169,8 @@ class QuantizerAgent:
         try:
             # Try to load world-specific instructions first
             if world_id:
-                from core.config import settings
-                world_instructions = settings.world_manager.get_quantizer_instructions(world_id)
+                from core.config import world_manager
+                world_instructions = world_manager.get_quantizer_instructions(world_id)
                 
                 if world_instructions:
                     logger.info(f"Using world-specific Quantizer instructions for world: {world_id}")

@@ -18,7 +18,7 @@
   },
   {
     "id": "Карточная_Система",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "core card-based RPG system 'Factorial 52!', uses standard 52-card deck for all checks and combat via =Проверки= and =Боевая_Система=",
     "body": {
       "description": "Card-based tabletop RPG system. All actions resolved by drawing cards. No dice needed - only standard 52-card deck.",
@@ -43,7 +43,7 @@
   },
   {
     "id": "Значение_Карт",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "card rank values: 2-10 face value, J=11, Q=12, K=13, A=15; face cards add narrative elements via =Особые_События=",
     "body": {
       "rank_values": {
@@ -74,7 +74,7 @@
   },
   {
     "id": "Система_Мастей",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "four card suits map to =Характеристики=: ♠Spades=Strength, ♥Hearts=Magic, ♦Diamonds=Endurance, ♣Clubs=Agility",
     "body": {
       "suit_mapping": {
@@ -118,7 +118,7 @@
   },
   {
     "id": "Характеристики",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "four character stats from =Система_Мастей=: Сила(♠), Магия(♥), Стойкость(♦), Ловкость(♣); used in =Проверки= and =Боевая_Система=",
     "body": {
       "stats": {
@@ -162,7 +162,7 @@
   },
   {
     "id": "Проверки",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "out-of-combat skill checks using =Карточная_Система=: 2 cards × 10 + stat + =Бонусы_Мастей= vs difficulty threshold",
     "body": {
       "when_to_check": "When outcome is uncertain. Walking through village auto-succeeds. Bargaining with leshiy, tracking upyr, convincing boyar require checks.",
@@ -195,7 +195,7 @@
   },
   {
     "id": "Боевая_Система",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "combat resolution via =Карточная_Система=: black cards(♠♣)=attack, red cards(♥♦)=defense; damage = attack - defense",
     "body": {
       "combat_context": "Combat in Slavic world is brutal and often final. Fight humans (bandits, druzhina, raiders), beasts (wolves, bears), and nechist (upyri, volkolaki).",
@@ -227,7 +227,7 @@
   },
   {
     "id": "Бонусы_Мастей",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "suit/color matching bonuses for =Проверки= and =Боевая_Система=: suit match +20, color match +10 (mutually exclusive)",
     "body": {
       "bonus_priority": "Suit match takes precedence over color match. Cannot stack both.",
@@ -247,7 +247,7 @@
   },
   {
     "id": "Особые_События",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "special card combinations for narrative: 2 Aces=divine blessing, 2 Twos=dark fate, face cards=plot elements; uses =Значение_Карт=",
     "body": {
       "applies_to": "ONLY player characters, significant for spirit encounters",
@@ -288,7 +288,7 @@
   },
   {
     "id": "Предметы",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "equipment tied to =Система_Мастей=: weapons, armor, charms, potions; bonus = rank × 5 (+10 suit match)",
     "body": {
       "item_mechanics": {
@@ -318,7 +318,7 @@
   },
   {
     "id": "Развитие_Персонажа",
-    "type": "rules",
+    "type": "concept",
     "synopsis": "character progression via =Проверки= success: +1 XP per successful check, at 10 XP: +1 stat, +1 HP, +1 Mana",
     "body": {
       "xp_gain": "Each successful check grants +1 XP to the characteristic used.",
@@ -342,7 +342,7 @@
   },
   {
     "id": "Старые_Боги",
-    "type": "world",
+    "type": "concept",
     "synopsis": "Slavic pagan pantheon: Perun (thunder), Veles (magic), Mokosh (fate), Svarog (fire), Morana (death); affects =Характеристики= and blessings",
     "body": {
       "major_gods": {
@@ -400,7 +400,7 @@
   },
   {
     "id": "Нечисть",
-    "type": "world",
+    "type": "concept",
     "synopsis": "Slavic spirits and monsters: forest (leshiy), water (vodyanoy, rusalka), home (domovoy), hostile (upyr, volkolak); requires =Боевая_Система= or bargaining",
     "body": {
       "forest_spirits": {
@@ -458,7 +458,7 @@
   },
   {
     "id": "Общество",
-    "type": "world",
+    "type": "concept",
     "synopsis": "Slavic social structure: knyaz and druzhina (warriors), boyars (nobles), smerdy (peasants), volkhvy (priests); affects social =Проверки=",
     "body": {
       "political_structure": {
@@ -508,7 +508,7 @@
   },
   {
     "id": "Магия_и_Ритуалы",
-    "type": "world",
+    "type": "concept",
     "synopsis": "Slavic magic system: zagovory (word spells), oberegi (charms), rituals; uses =Характеристики= Hearts stat; tied to =Старые_Боги=",
     "body": {
       "magic_types": {
@@ -555,7 +555,7 @@
   },
   {
     "id": "Локации",
-    "type": "world",
+    "type": "concept",
     "synopsis": "typical Slavic world locations: dense forests, villages, hillforts (goroda), sacred groves, cursed places; setting for =Проверки= and encounters",
     "body": {
       "wilderness": {
@@ -607,7 +607,7 @@
   },
   {
     "id": "Конфликты_и_Угрозы",
-    "type": "world",
+    "type": "concept",
     "synopsis": "typical threats in Slavic world: raiders, feuding knyazi, awakening evil, faith conflict; drives plot and =Боевая_Система= encounters",
     "body": {
       "human_threats": {

@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 
-from core.config import settings
+from core.config import settings, world_manager
 from core.database.db_manager import DatabaseManager
 from core.llm.openrouter_client import OpenRouterClient
 from core.orchestrator import TurnOrchestrator
@@ -578,11 +578,11 @@ async def get_inventory(session_id: int):
 async def get_available_worlds():
     """Get list of available worlds."""
     try:
-        worlds = settings.world_manager.get_available_worlds()
+        worlds = world_manager.get_available_worlds()
         
         worlds_list = []
         for world_id, world_name in worlds.items():
-            world_config = settings.world_manager.get_world_config(world_id)
+            world_config = world_manager.get_world_config(world_id)
             worlds_list.append({
                 "id": world_id,
                 "name": world_name,
@@ -606,7 +606,7 @@ async def get_available_worlds():
 async def get_world_config(world_id: str):
     """Get configuration for specific world."""
     try:
-        world_config = settings.world_manager.get_world_config(world_id)
+        world_config = world_manager.get_world_config(world_id)
         
         if not world_config:
             raise HTTPException(

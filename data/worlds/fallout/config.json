@@ -5,12 +5,18 @@
     "en": "Wasteland"
   },
   "description": {
-    "ru": "Постапокалиптический мир после ядерной войны. Радиация, мутанты, борьба за выживание.",
-    "en": "Post-apocalyptic world after nuclear war. Radiation, mutants, struggle for survival."
+    "ru": "Мир после ядерной войны. Радиоактивные пустоши, мутанты, борьба за выживание среди руин цивилизации.",
+    "en": "World after nuclear war. Radioactive wastelands, mutants, survival among civilization ruins."
   },
   "icon": "☢️",
-  "enabled": false,
-  "has_content": false,
-  "tags": ["post-apocalyptic", "survival", "wasteland"]
+  "enabled": true,
+  "has_content": true,
+  "features": {
+    "radiation": true,
+    "mutations": true,
+    "factions": true,
+    "scavenging": true,
+    "survival": true
+  },
+  "tags": ["post-apocalyptic", "survival", "wasteland", "radiation", "mutants"]
 }
-

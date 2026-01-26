@@ -1,16 +1,22 @@
 {
-  "id": "steampunk",
+  "id": "space",
   "name": {
-    "ru": "Стимпанк",
-    "en": "Steampunk"
+    "ru": "Космос",
+    "en": "Space"
   },
   "description": {
-    "ru": "Эпоха пара и механизмов. Воздушные корабли, паровые машины, викторианская эстетика.",
-    "en": "Age of steam and mechanisms. Airships, steam engines, Victorian aesthetics."
+    "ru": "Бескрайний космос. Звездолёты, инопланетные расы, галактические империи и пиратские флотилии. Исследуй неизведанное.",
+    "en": "Endless space. Starships, alien races, galactic empires and pirate fleets. Explore the unknown."
   },
-  "icon": "🎩",
-  "enabled": false,
-  "has_content": false,
-  "tags": ["steampunk", "victorian", "adventure"]
+  "icon": "🚀",
+  "enabled": true,
+  "has_content": true,
+  "features": {
+    "starships": true,
+    "alien_races": true,
+    "galactic_factions": true,
+    "space_combat": true,
+    "planetary_exploration": true
+  },
+  "tags": ["sci-fi", "space-opera", "starships", "aliens", "exploration"]
 }
-

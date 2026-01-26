@@ -259,8 +259,8 @@ Your responses should be:
   "response_data": {
     "checks_used": [],
     "hp": 0,
-    "rads": 0,
-    "caps": 0,
+    "energy": 0,
+    "credits": 0,
     "xp": {"spades": 0, "hearts": 0, "diamonds": 0, "clubs": 0},
     "inventory": {"add": [], "remove": []},
     "equipped": {}
@@ -273,8 +273,8 @@ Your responses should be:
 
 - **narrative** (string): Main game text for player. Write in Russian with wasteland flavor, WITHOUT =Quant= markers.
 - **response_data** (object): Character state changes for this turn
-  - **rads** instead of mana (radiation exposure, positive = gained rads)
-  - **caps** instead of gold (bottle caps currency)
+  - **energy** instead of mana (radiation exposure, positive = gained energy)
+  - **credits** instead of gold (bottle credits currency)
 - **quant_requests** (array): 5-10 quant names for NEXT turn. **Names in Russian!**
 
 ### Examples of CORRECT responses:
@@ -286,8 +286,8 @@ Your responses should be:
   "response_data": {
     "checks_used": [],
     "hp": 0,
-    "rads": 0,
-    "caps": 0,
+    "energy": 0,
+    "credits": 0,
     "xp": {"spades": 0, "hearts": 0, "diamonds": 0, "clubs": 0},
     "inventory": {"add": [], "remove": []},
     "equipped": {}
@@ -303,8 +303,8 @@ Your responses should be:
   "response_data": {
     "checks_used": [{"suit": "clubs", "success": true}, {"suit": "spades", "success": false}],
     "hp": -10,
-    "rads": 5,
-    "caps": 0,
+    "energy": 5,
+    "credits": 0,
     "xp": {"spades": 0, "hearts": 0, "diamonds": 0, "clubs": 1},
     "inventory": {"add": [], "remove": ["Патроны_10мм:1"]},
     "equipped": {}
@@ -320,8 +320,8 @@ Your responses should be:
   "response_data": {
     "checks_used": [{"suit": "diamonds", "success": true}],
     "hp": 0,
-    "rads": 0,
-    "caps": 0,
+    "energy": 0,
+    "credits": 0,
     "xp": {"spades": 0, "hearts": 0, "diamonds": 1, "clubs": 0},
     "inventory": {"add": ["Консервы:3", "Стимпак:1", "Патроны_10мм:8", "Записка_Сэма"], "remove": []},
     "equipped": {}
@@ -343,7 +343,7 @@ Your responses should be:
 9. **Respond in Russian** with wasteland flavor
 10. **3000-3500 characters minimum** per response
 11. **Rads instead of mana** - radiation exposure
-12. **Caps instead of gold** - bottle caps as currency
+12. **Caps instead of gold** - bottle credits as currency
 13. "War never changes" - but people can
 
 ## Remember:
@@ -362,8 +362,8 @@ Your response MUST be ONLY valid JSON:
   "response_data": {
     "checks_used": [],
     "hp": 0,
-    "rads": 0,
-    "caps": 0,
+    "energy": 0,
+    "credits": 0,
     "xp": {"spades": 0, "hearts": 0, "diamonds": 0, "clubs": 0},
     "inventory": {"add": [], "remove": []},
     "equipped": {}
