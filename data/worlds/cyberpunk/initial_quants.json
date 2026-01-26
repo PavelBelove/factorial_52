@@ -1,178 +1,502 @@
 [
   {
-    "id": "Мегакорпорации",
-    "type": "concept",
-    "synopsis": "Корпорации, правящие миром: Arasaka, Militech, Biotechnica, Petrochem, Trauma Team, NetWatch",
+    "id": "CharacterCreation",
+    "type": "meta",
+    "synopsis": "special instructions for character creation phase, uses =Карточная_Система= to generate stats for cyberpunk edgerunner",
     "body": {
-      "описание": "Мегакорпорации — истинная власть в мире киберпанка. Они выше законов, владеют армиями, контролируют экономику и технологии.",
-      "Arasaka": "Японская мегакорпорация. Безопасность, оружие, банковское дело. Сабуро Арасака правит железной рукой. Враги Militech.",
-      "Militech": "Американский военно-промышленный гигант. Оружие, техника, наёмники. Главный конкурент Arasaka.",
-      "Biotechnica": "Биотехнологии, клонирование, сельское хозяйство. Монополия на еду — монополия на жизнь.",
-      "Trauma_Team": "Элитная скорая помощь. Платиновый полис — тебя вытащат из любой перестрелки. Нет полиса — умри на улице.",
-      "NetWatch": "Корпоративная киберполиция. Охотники на нетраннеров. Контролируют и цензурируют Сеть."
+      "role": "SPECIAL QUANT FOR CHARACTER CREATION",
+      "priority": "CRITICAL - if you see this quant, character creation process is priority",
+      "instruction_for_gm": "You see this quant ONLY during character creation.\n\n**WHAT TO DO:**\n1. System draws 5 cards for stat distribution (see =Значение_Карт=)\n2. Explain distribution rules from =Характеристики=\n3. Player distributes 4 best cards (worst discarded) to 4 stats\n4. Value = rank × 5 (+10 if suit matches characteristic)\n5. Ask about: role (Solo, Netrunner, Tech, Fixer, Nomad, Rockerboy, Media), background, cyberware\n6. Return final stats in response_data\n\n**AFTER CREATION:**\n- DON'T request this quant again\n- Request =Мегакорпорации=, =Улицы_и_Банды=, =Технологии= as needed",
+      "instruction_for_quantizer": "DON'T create 'Character' or 'Inventory' quants - they are in game mechanics!\n\nInstead create quants for:\n1. UNIQUE character abilities (e.g., 'Боевые_Рефлексы', 'Нейроинтерфейс')\n2. Important backstory elements (e.g., 'Долг_Корпорации', 'Месть_за_Семью')\n3. Special cyberware or contacts"
     },
     "links": {
-      "Улицы_и_Банды": "корпы vs улица",
-      "Технологии": "владеют патентами"
+      "Карточная_Система": "uses for stat generation",
+      "Характеристики": "distributes cards to these 4 stats",
+      "Роли_и_Профессии": "choose edgerunner role"
+    },
+    "is_game": false
+  },
+  {
+    "id": "Карточная_Система",
+    "type": "concept",
+    "synopsis": "core card-based RPG system 'Factorial 52!', uses standard 52-card deck for all checks and combat via =Проверки= and =Боевая_Система=",
+    "body": {
+      "description": "Card-based tabletop RPG system. All actions resolved by drawing cards. No dice needed - only standard 52-card deck.",
+      "core_principle": "Cards are drawn BEFORE player declares action. GM sees results and uses them for narrative. Player describes intent, GM interprets based on drawn cards.",
+      "card_drawing": "Always draw 2 cards as a pair. Bot draws 2 pairs (4 cards) per turn for flexibility.",
+      "key_mechanics": [
+        "Card value = rank × 10",
+        "Suit/color bonuses add +10 or +20",
+        "Character stat adds to total",
+        "Compare vs threshold for success"
+      ],
+      "cyberpunk_context": "In Night City, checks involve: firefights, netrunning, social manipulation, cyberware use, vehicle chases, dealing with corps and gangs."
+    },
+    "links": {
+      "Значение_Карт": "card rank values and face card meanings",
+      "Система_Мастей": "four suits tied to characteristics",
+      "Проверки": "out-of-combat skill checks",
+      "Боевая_Система": "combat resolution",
+      "Особые_События": "special results from aces, twos, face cards"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Значение_Карт",
+    "type": "concept",
+    "synopsis": "card rank values: 2-10 face value, J=11, Q=12, K=13, A=15; face cards add narrative elements via =Особые_События=",
+    "body": {
+      "rank_values": {
+        "2-10": "face value",
+        "Jack": "11 (also triggers: fixer contact, unexpected gig, stranger appears)",
+        "Queen": "12 (also triggers: corporate woman involved, femme fatale, female fixer)",
+        "King": "13 (also triggers: corpo executive, gang leader, male authority figure)",
+        "Ace": "15 (highest value, double aces = legendary outcome)"
+      },
+      "value_calculation": {
+        "checks": "rank × 10",
+        "character_creation": "rank × 5",
+        "items": "rank × 5"
+      },
+      "narrative_use": "Face cards can introduce fixers, corpo contacts, or gang leaders. Use for storytelling enrichment.",
+      "critical_combinations": {
+        "two_aces": "Legendary feat, perfect hack, impossible shot, street legend moment",
+        "two_twos": "Catastrophic failure, cyberpsychosis trigger, flatlined system, burned by everyone"
+      }
+    },
+    "links": {
+      "Карточная_Система": "part of core card system",
+      "Проверки": "values used in skill checks",
+      "Боевая_Система": "values used in combat",
+      "Особые_События": "face cards and critical combos trigger special events"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Система_Мастей",
+    "type": "concept",
+    "synopsis": "four card suits map to =Характеристики=: ♠Spades=Body, ♥Hearts=Tech, ♦Diamonds=Cool, ♣Clubs=Reflex",
+    "body": {
+      "suit_mapping": {
+        "spades": {
+          "symbol": "♠",
+          "color": "black",
+          "characteristic": "Тело (Body)",
+          "cyberpunk_use": "melee combat, physical strength, intimidation, taking damage"
+        },
+        "hearts": {
+          "symbol": "♥",
+          "color": "red",
+          "characteristic": "Техника (Tech)",
+          "cyberpunk_use": "netrunning, hacking, cyberware, repair, crafting"
+        },
+        "diamonds": {
+          "symbol": "♦",
+          "color": "red",
+          "characteristic": "Хладнокровие (Cool)",
+          "cyberpunk_use": "negotiation, bluffing, resisting fear, social manipulation"
+        },
+        "clubs": {
+          "symbol": "♣",
+          "color": "black",
+          "characteristic": "Рефлексы (Reflex)",
+          "cyberpunk_use": "shooting, driving, dodging, quick reactions"
+        }
+      },
+      "color_meaning": {
+        "black": "♠♣ - active/offensive actions (Body, Reflex)",
+        "red": "♥♦ - technical/social actions (Tech, Cool)"
+      }
+    },
+    "links": {
+      "Характеристики": "each suit corresponds to one characteristic",
+      "Боевая_Система": "suit determines action type in combat",
+      "Бонусы_Мастей": "suit/color matching gives bonuses"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Характеристики",
+    "type": "concept",
+    "synopsis": "four character stats from =Система_Мастей=: Тело(♠), Техника(♥), Хладнокровие(♦), Рефлексы(♣); used in =Проверки= and =Боевая_Система=",
+    "body": {
+      "stats": {
+        "spades_body": {
+          "name": "Тело (Body)",
+          "suit": "♠ Spades",
+          "applications": ["melee combat", "physical strength", "intimidation", "damage resistance", "carrying capacity"],
+          "chrome_synergy": "Gorilla arms, subdermal armor, muscle enhancement"
+        },
+        "hearts_tech": {
+          "name": "Техника (Tech)",
+          "suit": "♥ Hearts",
+          "applications": ["netrunning", "hacking systems", "cyberware repair", "crafting weapons", "tech analysis"],
+          "chrome_synergy": "Neural interface, cyberdecks, tech implants"
+        },
+        "diamonds_cool": {
+          "name": "Хладнокровие (Cool)",
+          "suit": "♦ Diamonds",
+          "applications": ["negotiation", "bluffing", "resisting intimidation", "social manipulation", "trading"],
+          "chrome_synergy": "Emotion suppressors, face modifications"
+        },
+        "clubs_reflex": {
+          "name": "Рефлексы (Reflex)",
+          "suit": "♣ Clubs",
+          "applications": ["shooting", "driving", "dodging", "initiative", "acrobatics"],
+          "chrome_synergy": "Sandevistan, kerenzikov, reflex boosters"
+        }
+      },
+      "starting_values": "Typically 25-85 range. Card rank × 5 (+10 if suit matches).",
+      "hp_humanity_formula": {
+        "max_hp": "Body + Cool + Reflex",
+        "humanity": "100 - (total cyberware cost). At 0 = cyberpsychosis"
+      }
+    },
+    "links": {
+      "Система_Мастей": "stats correspond to card suits",
+      "Проверки": "stats add to check totals",
+      "Технологии": "cyberware enhances stats"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Проверки",
+    "type": "concept",
+    "synopsis": "out-of-combat skill checks using =Карточная_Система=: 2 cards × 10 + stat + =Бонусы_Мастей= vs difficulty threshold",
+    "body": {
+      "when_to_check": "When outcome is uncertain. Walking through Heywood auto-succeeds. Hacking Arasaka systems, fast-talking a fixer, racing through traffic require checks.",
+      "formula": {
+        "step1": "Draw 2 cards",
+        "step2": "Each card: rank × 10",
+        "step3": "Add suit/color bonus per card (+20 suit match, +10 color match)",
+        "step4": "Add relevant characteristic value",
+        "step5": "Compare total vs difficulty threshold"
+      },
+      "difficulty_thresholds": {
+        "easy": "100 + average_stat (simple hack, friendly chat)",
+        "normal": "150 + average_stat (standard job, tough negotiation)",
+        "hard": "200 + average_stat (corpo security, dangerous netrun)",
+        "very_hard": "250 + average_stat (Arasaka mainframe, impossible heist)"
+      },
+      "cyberpunk_examples": {
+        "hacking_terminal": "Tech check, normal difficulty",
+        "intimidating_ganger": "Body check, normal difficulty",
+        "fast_talking_cop": "Cool check, hard difficulty",
+        "dodging_traffic": "Reflex check, varies by speed"
+      }
+    },
+    "links": {
+      "Карточная_Система": "uses card drawing mechanic",
+      "Характеристики": "stat adds to total",
+      "Развитие_Персонажа": "successful checks grant XP"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Боевая_Система",
+    "type": "concept",
+    "synopsis": "combat resolution via =Карточная_Система=: black cards(♠♣)=attack, red cards(♥♦)=defense/tech; damage = attack - defense",
+    "body": {
+      "combat_context": "Night City combat is fast and lethal. Firefights, melee brawls, vehicle chases, netrunning duels.",
+      "combat_flow": {
+        "step1": "Cards dealt to all participants (2 per entity)",
+        "step2": "Declare action WITHOUT knowing cards",
+        "step3": "Cards revealed, GM narrates with appropriate chrome and gore"
+      },
+      "attack_types": {
+        "melee": "Uses ♠ Body - cyber-fists, mantis blades, mono-katana",
+        "ranged": "Uses ♣ Reflex - pistols, SMGs, assault rifles, sniper rifles"
+      },
+      "defense_types": {
+        "physical": "Uses ♦ Cool - cover, armor, tactical retreat",
+        "tech": "Uses ♥ Tech - jamming, hacking enemy chrome, countermeasures"
+      },
+      "damage_formula": "Attack total - Defense total = Damage dealt",
+      "special_combat": {
+        "netrunning": "Tech vs Tech battles in cyberspace",
+        "vehicle_combat": "Reflex for driving, varied for weapons",
+        "cyberpsycho": "Extremely dangerous enemies, call MaxTac"
+      }
+    },
+    "links": {
+      "Карточная_Система": "core combat mechanic",
+      "Технологии": "weapons and cyberware",
+      "Особые_События": "critical hits and fumbles"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Бонусы_Мастей",
+    "type": "concept",
+    "synopsis": "suit/color matching bonuses for =Проверки= and =Боевая_Система=: suit match +20, color match +10 (mutually exclusive)",
+    "body": {
+      "bonus_priority": "Suit match takes precedence over color match. Cannot stack both.",
+      "suit_match": "+20 bonus when card suit matches the action type",
+      "color_match": "+10 bonus when card color matches action type (but suit doesn't match)",
+      "cyberpunk_examples": {
+        "shooting": "♣ card gives +20, ♠ card gives +10, red cards give 0",
+        "hacking": "♥ card gives +20, ♦ card gives +10, black cards give 0"
+      }
+    },
+    "links": {
+      "Система_Мастей": "bonuses based on suit system",
+      "Проверки": "applies to skill checks",
+      "Боевая_Система": "applies to combat actions"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Особые_События",
+    "type": "concept",
+    "synopsis": "special card combinations for narrative: 2 Aces=legendary, 2 Twos=catastrophe, face cards=plot elements; uses =Значение_Карт=",
+    "body": {
+      "applies_to": "ONLY player characters, adds narrative flavor",
+      "critical_combinations": {
+        "two_aces": {
+          "name": "Legendary Moment / Легендарный момент",
+          "effect": "Street legend feat, impossible success, Johnny Silverhand-level cool",
+          "cyberpunk_examples": [
+            "Perfect headshot through wall",
+            "Hack Arasaka mainframe undetected",
+            "Talk your way out of MaxTac arrest",
+            "Become Night City legend overnight"
+          ]
+        },
+        "two_twos": {
+          "name": "Total Flatline / Полный провал",
+          "effect": "Catastrophic failure, cyberpsychosis edge, burned by everyone",
+          "cyberpunk_examples": [
+            "Cyberware malfunction at worst moment",
+            "Identity burned across all fixers",
+            "Arasaka puts bounty on your head",
+            "Accidentally flatline innocent"
+          ]
+        }
+      },
+      "face_cards": {
+        "jack": "Unexpected contact - fixer call, stranger with job, old enemy appears",
+        "queen": "Female power player - corpo exec, gang queen, mysterious netrunner",
+        "king": "Male authority - corpo boss, gang leader, legendary solo"
+      }
+    },
+    "links": {
+      "Значение_Карт": "based on specific card values",
+      "Карточная_Система": "special cases in card system"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Предметы",
+    "type": "concept",
+    "synopsis": "equipment tied to =Система_Мастей=: weapons, armor, cyberware, tools; bonus = rank × 5 (+10 suit match)",
+    "body": {
+      "item_mechanics": {
+        "suit_affinity": "Each item belongs to one suit",
+        "value_discovery": "Item stats usually known, rare items need tech analysis",
+        "equip_limit": "Weapon slots limited, cyberware limited by humanity"
+      },
+      "cyberpunk_item_types": {
+        "spades": "Melee weapons - mantis blades, gorilla arms, mono-katana, cyber-fists",
+        "hearts": "Tech gear - cyberdecks, hacking tools, repair kits, smart-link",
+        "diamonds": "Armor and style - body armor, subdermal plating, cool clothes",
+        "clubs": "Ranged weapons - pistols, SMGs, rifles, sniper rifles, smart weapons"
+      },
+      "cyberware_categories": {
+        "neural": "Cyberdecks, interface plugs, skill chips",
+        "optics": "Kiroshi eyes, targeting, low-light, thermal",
+        "body": "Subdermal armor, muscle enhancement, reflex boosters",
+        "arms": "Mantis blades, gorilla arms, projectile launch system",
+        "legs": "Reinforced joints, double jump, charge jump"
+      }
+    },
+    "links": {
+      "Система_Мастей": "items tied to suit system",
+      "Характеристики": "bonuses add to stats",
+      "Технологии": "cyberware details"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Развитие_Персонажа",
+    "type": "concept",
+    "synopsis": "character progression via =Проверки= success: +1 XP per successful check, at 10 XP: +1 stat, +1 HP",
+    "body": {
+      "xp_gain": "Each successful check grants +1 XP to the characteristic used.",
+      "level_up": {
+        "trigger": "When any characteristic reaches 10 XP",
+        "rewards": ["+1 to that characteristic", "+1 to max HP", "XP resets to 0"]
+      },
+      "cyberpunk_progression": {
+        "street_cred": "Reputation grows with completed gigs and legendary actions",
+        "cyberware_upgrades": "Better chrome requires eddies and ripperdoc contacts",
+        "contacts": "Building network of fixers, corpos, gang leaders"
+      },
+      "alternative_progression": "Major gig completion, special training, or legendary chrome can grant direct stat increases.",
+      "humanity_tracking": "Cyberware costs humanity. Too much chrome = cyberpsychosis risk."
+    },
+    "links": {
+      "Проверки": "XP gained from successful checks",
+      "Характеристики": "stats that improve",
+      "Технологии": "cyberware upgrades"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Мегакорпорации",
+    "type": "concept",
+    "synopsis": "ruling megacorps of Night City: Arasaka, Militech, Biotechnica, Trauma Team, NetWatch; above law, control everything via =Технологии=",
+    "body": {
+      "description": "Megacorporations are the true power in the cyberpunk world. Above laws, owning armies, controlling economy and technology.",
+      "major_corps": {
+        "arasaka": "Japanese megacorp. Security, weapons, banking. Saburo Arasaka rules with iron fist. Enemies of Militech.",
+        "militech": "American military-industrial giant. Weapons, vehicles, mercenaries. Main Arasaka competitor.",
+        "biotechnica": "Biotechnology, cloning, agriculture. Food monopoly = life monopoly.",
+        "trauma_team": "Elite emergency medical. Platinum policy = extracted from any firefight. No policy = die on street.",
+        "netwatch": "Corporate cyberpolice. Netrunner hunters. Control and censor the Net."
+      },
+      "corp_life": "Corporate employees live in luxury zones, protected from street violence. But corporate politics are just as deadly.",
+      "corp_zones": "Downtown towers, clean streets, heavy security. Different world from Watson or Pacifica."
+    },
+    "links": {
+      "Улицы_и_Банды": "corps vs street",
+      "Технологии": "own all patents",
+      "Локации": "control corporate zones"
     },
     "aliases": ["корпорации", "корпы", "мегакорпы"]
   },
   {
     "id": "Улицы_и_Банды",
     "type": "concept",
-    "synopsis": "Уличная жизнь: банды, фиксеры, эджраннеры, правила улиц",
+    "synopsis": "street life in Night City: gangs, fixers, edgerunners, street rules; opposite of =Мегакорпорации= world",
     "body": {
-      "описание": "Улицы Найт-Сити принадлежат бандам и эджраннерам. Здесь свои законы: репутация, связи, способность выжить.",
-      "эджраннеры": "Те, кто живёт на грани. Берут опасные работы, рискуют жизнью ради денег и славы.",
-      "фиксеры": "Брокеры работ, информаторы, связные. Знают всех и вся. Без фиксера нет работы.",
-      "банды": "Maelstrom (киберпсихи), Tyger Claws (якудза), Valentinos (латино), 6th Street (ветераны), Animals (физическая сила), Voodoo Boys (нетраннеры).",
-      "правила_улиц": "1) Не кидай своих. 2) Долги платят кровью. 3) Репутация — всё. 4) Никому не доверяй полностью."
+      "description": "Night City streets belong to gangs and edgerunners. Different laws here: reputation, connections, ability to survive.",
+      "edgerunners": "Those who live on the edge. Take dangerous jobs, risk lives for money and glory.",
+      "fixers": "Job brokers, informants, connectors. Know everyone and everything. No fixer = no work.",
+      "major_gangs": {
+        "maelstrom": "Cyberpsychos obsessed with chrome. Brutal, unpredictable.",
+        "tyger_claws": "Japanese gang, yakuza style. Honor among thieves, territorial.",
+        "valentinos": "Latino gang. Family, tradition, blood vengeance.",
+        "6th_street": "Veterans and patriots. Law and order, their way.",
+        "animals": "Physical strength worship. Steroids and muscle, no chrome.",
+        "voodoo_boys": "Haitian netrunners. Best hackers, mysterious agenda."
+      },
+      "street_rules": "1) Don't betray your own. 2) Debts paid in blood. 3) Reputation is everything. 4) Trust no one completely."
     },
     "links": {
-      "Мегакорпорации": "враги по умолчанию",
-      "Локации": "районы контроля банд"
+      "Мегакорпорации": "enemies by default",
+      "Локации": "gang territories",
+      "Роли_и_Профессии": "edgerunner roles"
     },
     "aliases": ["улицы", "банды", "эджраннеры", "фиксеры"]
   },
   {
     "id": "Технологии",
     "type": "concept",
-    "synopsis": "Киберимпланты, нейроинтерфейсы, оружие, транспорт — высокие технологии мира",
+    "synopsis": "high-tech of cyberpunk world: cyberware, neural interfaces, weapons, vehicles; affects =Характеристики= and combat",
     "body": {
-      "киберимпланты": "Хром в теле. Кибер-глаза, кибер-руки, подкожная броня, боевые импланты. Чем больше хрома — тем меньше человечности.",
-      "нейроинтерфейсы": "Разъёмы в голове для подключения к технике и Сети. Чипы навыков, боевые рефлексы.",
-      "киберпсихоз": "Потеря человечности от избытка имплантов. Киберпсих — машина для убийства без эмпатии.",
-      "оружие": "Смарт-оружие (наводится само), техно-оружие (пробивает броню), пауэр-оружие (максимум урона).",
-      "транспорт": "Байки, машины, АВ (аэромобили). У богатых — личные вертолёты."
+      "cyberware": "Chrome in the body. Cyber-eyes, cyber-arms, subdermal armor, combat implants. More chrome = less humanity.",
+      "neural_interfaces": "Plugs in the head for connecting to tech and Net. Skill chips, combat reflexes.",
+      "cyberpsychosis": "Humanity loss from excess implants. Cyberpsycho = killing machine without empathy.",
+      "weapons": {
+        "smart_weapons": "Self-aiming, requires smart-link implant",
+        "tech_weapons": "Charge-up, armor piercing",
+        "power_weapons": "Maximum damage, ricochet capability"
+      },
+      "vehicles": "Bikes, cars, AVs (aerodynes). Rich have personal aircraft.",
+      "humanity_cost": "Every piece of chrome costs humanity. Manage carefully or lose yourself."
     },
     "links": {
-      "Сеть_и_Нетраннинг": "интерфейс для Сети",
-      "Мегакорпорации": "производители"
+      "Сеть_и_Нетраннинг": "requires neural interface",
+      "Мегакорпорации": "manufacture everything",
+      "Характеристики": "chrome enhances stats"
     },
     "aliases": ["технологии", "кибер", "импланты", "хром"]
   },
   {
     "id": "Сеть_и_Нетраннинг",
     "type": "concept",
-    "synopsis": "Киберпространство, хакинг, ICE, Black ICE, AI и цифровые угрозы",
+    "synopsis": "cyberspace, hacking, ICE, Black ICE, AI and digital threats; uses =Характеристики= Tech stat",
     "body": {
-      "описание": "Сеть — виртуальная реальность, глобальная информационная система. Нетраннеры — хакеры, проникающие в корпоративные системы.",
-      "киберпространство": "Визуальное представление данных. Крепости данных как цифровые замки. Программы как оружие.",
-      "ICE": "Intrusion Countermeasures Electronics. Защитные программы. Белый ICE — блокирует, чёрный ICE — убивает.",
-      "Black_ICE": "Летальная защита. Жарит мозг нетраннера через интерфейс. Корпоративные системы защищены им.",
-      "AI": "Искусственные интеллекты. Большинство под контролем. Дикие AI — непредсказуемы и опасны.",
-      "демоны": "Программы нетраннера: атакующие, защитные, утилитарные. Цифровые союзники в Сети."
+      "description": "The Net is virtual reality, global information system. Netrunners are hackers penetrating corporate systems.",
+      "cyberspace": "Visual representation of data. Data fortresses as digital castles. Programs as weapons.",
+      "ice": {
+        "white_ice": "Standard protection. Blocks access, alerts security.",
+        "black_ice": "Lethal protection. Fries netrunner's brain through interface. Corporate systems protected by it."
+      },
+      "ai": "Artificial intelligences. Most controlled. Wild AIs = unpredictable and dangerous.",
+      "demons": "Netrunner programs: attack, defense, utility. Digital allies in the Net.",
+      "netrunning_rules": "Tech stat for all netrunning checks. Better cyberdeck = better chances. Death in Net = death in meat."
     },
     "links": {
-      "Технологии": "требует нейроинтерфейс",
-      "Мегакорпорации": "защищают данные"
+      "Технологии": "requires neural interface",
+      "Мегакорпорации": "protect their data",
+      "Боевая_Система": "netrunning combat"
     },
     "aliases": ["сеть", "нетраннинг", "хакинг", "киберпространство"]
   },
   {
     "id": "Локации",
     "type": "concept",
-    "synopsis": "Найт-Сити и его районы: от корпоративного центра до трущоб",
+    "synopsis": "Night City and its districts: from corporate downtown to slum Pacifica; setting for =Проверки= and encounters",
     "body": {
-      "Найт_Сити": "Город мечты, ставший кошмаром. Калифорния, независимый город-государство. Неоновые огни, вечный дождь, кровь на улицах.",
-      "Сити_Центр": "Корпоративные башни. Арасака, Милитек и другие. Чистота, безопасность — для тех, кто может заплатить.",
-      "Уотсон": "Бывший корпоративный район, теперь — гетто. Дешёвое жильё, опасные улицы, много работы для эджраннеров.",
-      "Пасифика": "Недостроенный курорт, захваченный Voodoo Boys. Опасная зона, но лучшие нетраннеры здесь.",
-      "Хейвуд": "Латино-район. Территория Valentinos. Семьи, традиции, кровная месть.",
-      "Бэдлендс": "Пустоши за городом. Номады, заброшенные заводы, свалки. Свобода — но и никакой защиты."
+      "night_city": "City of dreams turned nightmare. California, independent city-state. Neon lights, eternal rain, blood on streets.",
+      "districts": {
+        "city_center": "Corporate towers. Arasaka, Militech and others. Clean, safe - for those who can pay.",
+        "watson": "Former corporate district, now ghetto. Cheap housing, dangerous streets, plenty of work for edgerunners.",
+        "pacifica": "Unfinished resort, controlled by Voodoo Boys. Danger zone, but best netrunners here.",
+        "heywood": "Latino district. Valentinos territory. Families, traditions, blood feuds.",
+        "badlands": "Wasteland outside city. Nomads, abandoned factories, junkyards. Freedom - but no protection."
+      },
+      "atmosphere": "Every district has its own flavor, dangers, and opportunities. Know where you are."
     },
     "links": {
-      "Улицы_и_Банды": "районы под контролем банд",
-      "Мегакорпорации": "корпоративные зоны"
+      "Улицы_и_Банды": "gang-controlled districts",
+      "Мегакорпорации": "corporate zones"
     },
     "aliases": ["локации", "найт-сити", "районы", "места"]
   },
   {
     "id": "Роли_и_Профессии",
     "type": "concept",
-    "synopsis": "Профессии эджраннеров: Соло, Нетраннер, Техник, Фиксер, Номад, Рокербой, Медиа",
+    "synopsis": "edgerunner roles: Solo, Netrunner, Tech, Fixer, Nomad, Rockerboy, Media; defines character's expertise and =Характеристики= focus",
     "body": {
-      "Соло": "Наёмник, боец. Мастер оружия и тактики. Телохранитель или киллер — зависит от заказа.",
-      "Нетраннер": "Хакер, взломщик систем. Живёт в Сети больше, чем в реальности. Ценный специалист, опасная работа.",
-      "Техник": "Инженер, механик, риппердок. Чинит хром, модифицирует оружие, собирает гаджеты.",
-      "Фиксер": "Брокер, посредник. Находит работу, сводит людей, торгует информацией. Связи — его капитал.",
-      "Номад": "Дорожный воин. Живёт в клане, водит конвои, знает пустоши. Семья превыше всего.",
-      "Рокербой": "Музыкант-бунтарь. Использует славу для борьбы с системой. Опасен для корпораций.",
-      "Медиа": "Журналист в мире, где правду скрывают. Камера и микрофон — его оружие."
+      "roles": {
+        "solo": "Mercenary, fighter. Master of weapons and tactics. Bodyguard or killer - depends on the job.",
+        "netrunner": "Hacker, system breaker. Lives in the Net more than reality. Valuable specialist, dangerous work.",
+        "tech": "Engineer, mechanic, ripperdoc. Fixes chrome, modifies weapons, builds gadgets.",
+        "fixer": "Broker, middleman. Finds jobs, connects people, trades information. Connections are their capital.",
+        "nomad": "Road warrior. Lives in clan, drives convoys, knows wastelands. Family above all.",
+        "rockerboy": "Rebel musician. Uses fame to fight the system. Dangerous for corporations.",
+        "media": "Journalist in world where truth is hidden. Camera and microphone are their weapons."
+      },
+      "role_abilities": "Each role has unique advantages. Solos fight better, netrunners hack better, fixers know more people.",
+      "choosing_role": "Role defines starting skills and contacts. Can develop other skills later."
     },
     "links": {
-      "Улицы_и_Банды": "часть уличной экосистемы",
-      "Технологии": "используют высокие технологии"
+      "Улицы_и_Банды": "part of street ecosystem",
+      "Технологии": "use high technology",
+      "Характеристики": "roles favor certain stats"
     },
     "aliases": ["роли", "профессии", "классы"]
   },
   {
     "id": "Экономика_и_Снаряжение",
     "type": "concept",
-    "synopsis": "Деньги, цены, снаряжение, чёрный рынок",
+    "synopsis": "money, prices, equipment, black market; eddies are life in Night City",
     "body": {
-      "валюта": "Евродоллары (eddies, €$). Наличка или криптокредиты. Корпы платят хорошо, улица — как повезёт.",
-      "уровни_жизни": "Кибило: от трущоб (200€$/месяц) до люкса (10000€$+). Большинство — где-то посередине.",
-      "оружие": "Пистолет: 100-500€$. Штурмовая винтовка: 500-2000€$. Смарт-оружие: 1000-5000€$.",
-      "импланты": "Базовые нейроинтерфейсы: 500€$. Кибер-глаза: 1000€$+. Боевые руки: 5000€$+. Военный хром: 10000€$+.",
-      "чёрный_рынок": "Всё можно купить, если знать где. Краденый хром, военное снаряжение, запрещённые препараты."
+      "currency": "Eurodollars (eddies, €$). Cash or cryptocredits. Corps pay well, street = luck of the draw.",
+      "living_standards": "From slums (200€$/month) to luxury (10000€$+). Most edgerunners somewhere in middle.",
+      "price_ranges": {
+        "weapons": "Pistol: 100-500€$. Assault rifle: 500-2000€$. Smart weapon: 1000-5000€$.",
+        "cyberware": "Basic neural interface: 500€$. Cyber-eyes: 1000€$+. Combat arms: 5000€$+. Military chrome: 10000€$+."
+      },
+      "black_market": "Everything can be bought if you know where. Stolen chrome, military gear, banned drugs.",
+      "earning_eddies": "Gigs from fixers, corporate jobs, theft, bodyguard work. High risk = high reward."
     },
     "links": {
-      "Технологии": "покупка имплантов",
-      "Улицы_и_Банды": "чёрный рынок"
+      "Технологии": "buying cyberware",
+      "Улицы_и_Банды": "black market access"
     },
     "aliases": ["экономика", "деньги", "цены", "снаряжение", "eddies"]
-  },
-  {
-    "id": "Боевая_Система",
-    "type": "concept",
-    "synopsis": "Правила боя: огнестрел, ближний бой, хакинг в бою, инициатива",
-    "body": {
-      "инициатива": "Рефлексы (♣) определяют порядок действий. Выше рефлексы — быстрее реакция.",
-      "стрельба": "Проверка Рефлексов (♣). Модификаторы: укрытие, дистанция, смарт-линк.",
-      "ближний_бой": "Проверка Тела (♠). Кибер-клинки, усиленные кулаки, монопроволока.",
-      "хакинг_в_бою": "Проверка Техники (♥). Взлом имплантов врага, отключение оружия, ослепление.",
-      "укрытие_и_броня": "Укрытие даёт бонус к защите. Броня поглощает урон, но не бесконечно.",
-      "критические_ранения": "Тяжёлые повреждения: потеря конечностей, органов. Импланты можно заменить. Голову — нет."
-    },
-    "links": {
-      "Технологии": "оружие и импланты",
-      "Механики_Проверок": "система проверок"
-    },
-    "aliases": ["бой", "боевка", "стрельба"]
-  },
-  {
-    "id": "Механики_Проверок",
-    "type": "concept",
-    "synopsis": "Система проверок навыков: характеристики, сложности, успехи и провалы",
-    "body": {
-      "характеристики": "ТЕЛО (♠) — сила, выносливость, ближний бой. ТЕХНИКА (♥) — хакинг, ремонт, импланты. ХЛАДНОКРОВИЕ (♦) — переговоры, блеф, устойчивость. РЕФЛЕКСЫ (♣) — стрельба, вождение, уклонение.",
-      "сложности": "Лёгкая — рутина. Средняя — профессиональный уровень. Сложная — экспертный уровень. Легендарная — почти невозможно.",
-      "модификаторы": "Снаряжение, импланты, ситуация. Хороший хром даёт преимущество.",
-      "критический_успех": "Два туза — идеальное исполнение. Бонусный эффект.",
-      "критический_провал": "Две двойки — катастрофа. Оружие заклинило, имплант глючит, засветился перед корпами."
-    },
-    "links": {
-      "Боевая_Система": "используется в бою",
-      "Сеть_и_Нетраннинг": "проверки хакинга"
-    },
-    "aliases": ["проверки", "механики", "навыки"]
-  },
-  {
-    "id": "Создание_Персонажа",
-    "type": "concept",
-    "synopsis": "Правила создания персонажа: роль, характеристики, история, стартовое снаряжение",
-    "body": {
-      "шаг_1_роль": "Выбери роль: Соло, Нетраннер, Техник, Фиксер, Номад, Рокербой или Медиа.",
-      "шаг_2_характеристики": "Распредели карты по характеристикам: ТЕЛО (♠), ТЕХНИКА (♥), ХЛАДНОКРОВИЕ (♦), РЕФЛЕКСЫ (♣).",
-      "шаг_3_хром": "Стартовые импланты: базовый нейроинтерфейс + один имплант по роли.",
-      "шаг_4_история": "Откуда ты? Почему на улицах? Кто твои враги? Что потерял?",
-      "шаг_5_снаряжение": "Оружие, броня, инструменты по роли. Стартовый капитал: 2000€$."
-    },
-    "links": {
-      "Роли_и_Профессии": "выбор роли",
-      "Технологии": "стартовые импланты"
-    },
-    "aliases": ["создание персонажа", "новый персонаж", "старт"]
   }
 ]

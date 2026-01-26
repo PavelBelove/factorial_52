@@ -43,7 +43,27 @@ class DatabaseManager:
         
         # Create tables
         Base.metadata.create_all(bind=self.engine)
-    
+
+        # Run simple migrations for new columns
+        self._run_migrations()
+
+    def _run_migrations(self):
+        """Add new columns to existing tables if they don't exist."""
+        from sqlalchemy import inspect, text
+        inspector = inspect(self.engine)
+
+        # Check users table for new settings columns
+        if "users" in inspector.get_table_names():
+            existing_columns = [col["name"] for col in inspector.get_columns("users")]
+
+            with self.engine.connect() as conn:
+                if "difficulty" not in existing_columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN difficulty VARCHAR(20) DEFAULT 'normal'"))
+                    conn.commit()
+                if "content_filter" not in existing_columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN content_filter VARCHAR(20) DEFAULT 'safe'"))
+                    conn.commit()
+
     def get_session(self) -> Session:
         """Get database session."""
         return self.SessionLocal()
@@ -732,4 +752,54 @@ class DatabaseManager:
         with self.get_session() as session:
             user = session.query(UserDB).filter(UserDB.id == user_id).first()
             return user.current_world if user else "isekai"
+
+    def set_user_difficulty(self, user_id: int, difficulty: str):
+        """Set user's difficulty preference (easy/normal/hard)."""
+        if difficulty not in ("easy", "normal", "hard"):
+            difficulty = "normal"
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            if user:
+                user.difficulty = difficulty
+                session.commit()
+
+    def get_user_difficulty(self, user_id: int) -> str:
+        """Get user's difficulty preference."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            return user.difficulty if user and user.difficulty else "normal"
+
+    def set_user_content_filter(self, user_id: int, content_filter: str):
+        """Set user's content filter preference (safe/romantic/adult)."""
+        if content_filter not in ("safe", "romantic", "adult"):
+            content_filter = "safe"
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            if user:
+                user.content_filter = content_filter
+                session.commit()
+
+    def get_user_content_filter(self, user_id: int) -> str:
+        """Get user's content filter preference."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            return user.content_filter if user and user.content_filter else "safe"
+
+    def get_user_settings(self, user_id: int) -> dict:
+        """Get all user settings as dict."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            if user:
+                return {
+                    "language": user.language or "ru",
+                    "difficulty": user.difficulty or "normal",
+                    "content_filter": user.content_filter or "safe",
+                    "current_world": user.current_world or "isekai"
+                }
+            return {
+                "language": "ru",
+                "difficulty": "normal",
+                "content_filter": "safe",
+                "current_world": "isekai"
+            }
 

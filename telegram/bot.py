@@ -107,7 +107,21 @@ class PlexMemBot:
                 
                 if response.status_code == 200:
                     data = response.json()
-                    reply = f"🎲 Ход #{data['turn_number']}\n\n{data['reply']}"
+                    
+                    # Extract only narrative if reply contains JSON
+                    reply_text = data['reply']
+                    
+                    # Try to parse as JSON and extract narrative
+                    import json as json_module
+                    try:
+                        if reply_text.strip().startswith('{'):
+                            parsed = json_module.loads(reply_text)
+                            if 'narrative' in parsed:
+                                reply_text = parsed['narrative']
+                    except:
+                        pass  # If not JSON, use as is
+                    
+                    reply = f"🎲 Ход #{data['turn_number']}\n\n{reply_text}"
                     
                     # Split long messages
                     if len(reply) > 4000:

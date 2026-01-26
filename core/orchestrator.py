@@ -82,7 +82,11 @@ class TurnOrchestrator:
         db_session = self.db.get_session_by_id(session_id)
         if not db_session:
             raise ValueError(f"Session {session_id} not found")
-        
+
+        # Get user settings for prompts and mechanics
+        user_settings = self.db.get_user_settings(db_session.user_id)
+        logger.info(f"User settings: difficulty={user_settings['difficulty']}, filter={user_settings['content_filter']}")
+
         # Increment turn number
         current_turn = db_session.current_turn + 1
         logger.info(f"Turn number: {current_turn}")
@@ -108,19 +112,20 @@ class TurnOrchestrator:
             logger.info("Drawing cards and calculating mechanics")
             cards_data = self.mechanics_manager.draw_cards_for_turn()
             logger.debug(f"Cards drawn: {cards_data['pairs']}")
-            
-            thresholds = self.mechanics_manager.calculate_thresholds(session_id)
-            logger.debug(f"Thresholds calculated: {list(thresholds.keys())}")
-            
-            checks = self.mechanics_manager.calculate_all_checks(session_id, cards_data)
+
+            difficulty = user_settings.get("difficulty", "normal")
+            thresholds = self.mechanics_manager.calculate_thresholds(session_id, difficulty)
+            logger.debug(f"Thresholds calculated: {list(thresholds.keys())} (difficulty={difficulty})")
+
+            checks = self.mechanics_manager.calculate_all_checks(session_id, cards_data, difficulty)
             logger.debug(f"Checks calculated: {len(checks)} checks")
-            
+
             combat = self.mechanics_manager.calculate_all_combat_options(session_id, cards_data)
             logger.debug(f"Combat options calculated: {len(combat)} options")
-            
+
             character_state = self.mechanics_manager.get_character_state(session_id)
             logger.debug(f"Character state: HP={character_state.get('hp')}/{character_state.get('max_hp')}, Mana={character_state.get('mana')}/{character_state.get('max_mana')}")
-            
+
             module_data = {
                 "cards": cards_data,
                 "thresholds": thresholds,
@@ -129,15 +134,16 @@ class TurnOrchestrator:
                 "character": character_state
             }
             logger.info(f"Module data prepared with keys: {list(module_data.keys())}")
-        
-        # Step 2: Build context (with world-specific prompts)
+
+        # Step 2: Build context (with world-specific prompts and user settings)
         context_messages = self.context_manager.build_context(
             session_id=session_id,
             current_turn=current_turn,
             active_quants=active_quants,
             system_prompt_parts=system_prompt_parts,
             module_data=module_data,
-            world_id=db_session.world_id
+            world_id=db_session.world_id,
+            user_settings=user_settings
         )
         logger.debug(f"Context built with {len(context_messages)} messages")
         

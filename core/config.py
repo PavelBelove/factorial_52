@@ -82,6 +82,12 @@ class Settings(BaseSettings):
     prompt_use_templates: bool = True  # Enable Jinja2 templating in prompts
     # Future template variables: {difficulty}, {content_policy}, {game_style}, {world_setting}
     
+    # GM Response constraints
+    gm_response_max_tokens: int = 1000  # Maximum tokens for GM response (not characters!)
+    gm_response_min_tokens: int = 300   # Minimum tokens for GM response
+    gm_quants_min_request: int = 3      # Minimum quants GM should request for next turn
+    gm_quants_max_request: int = 10     # Maximum quants GM should request for next turn
+    
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
@@ -128,6 +134,17 @@ _available_localizations = {
 def get_localization(lang_code: str):
     """Get localization instance by language code."""
     return _available_localizations.get(lang_code, _available_localizations[settings.default_language])
+
+
+def get_prompt_template_vars() -> dict:
+    """Get template variables for prompt substitution."""
+    return {
+        "max_tokens": settings.gm_response_max_tokens,
+        "min_tokens": settings.gm_response_min_tokens,
+        "min_quants": settings.gm_quants_min_request,
+        "max_quants": settings.gm_quants_max_request,
+        # Future: difficulty, content_policy, game_style will be added here
+    }
 
 # World manager
 from core.managers.world_manager import WorldManager

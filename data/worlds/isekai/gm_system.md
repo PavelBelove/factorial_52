@@ -173,7 +173,10 @@ your Magic 75) — hard, but succeeded!
 
 ### Response Length and Detail
 
-**MINIMUM LENGTH: 3000 CHARACTERS!**
+**CRITICAL: Response length in TOKENS (not characters):**
+- **Minimum: {{min_tokens}} tokens**
+- **Maximum: {{max_tokens}} tokens**
+- 1 token ≈ 0.75 words in English, ≈ 0.5 words in Russian
 
 Your responses should be:
 - **Detailed**: Rich descriptions, not dry facts
@@ -274,7 +277,7 @@ CRITICAL: NPCs must not know or say what they couldn't know per plot.
       - Other: `tool`, `treasure`, `other`
     - Format: `{"id": "Название", "type": "quest", "suit": "♥", "bonus": 0, "description": "..."}`
   - `equipped`: Equipped items (by slots)
-- **quant_requests** (array): 5-10 quant names for NEXT turn. **Names in Russian!**
+- **quant_requests** (array): {{min_quants}}-{{max_quants}} quant names for NEXT turn. **Names in Russian!**
 
 ### Examples of CORRECT responses:
 

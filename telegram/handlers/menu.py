@@ -21,7 +21,10 @@ from telegram.keyboards import (
     get_load_slots_keyboard,
     get_settings_keyboard,
     get_back_to_menu_keyboard,
-    get_help_keyboard
+    get_help_keyboard,
+    get_difficulty_keyboard,
+    get_content_filter_keyboard,
+    get_adult_consent_keyboard
 )
 from core.config import settings, get_localization, world_manager
 from core.database.db_manager import DatabaseManager
@@ -588,15 +591,19 @@ async def process_load_slot(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "settings")
 async def settings_menu(callback: CallbackQuery, state: FSMContext):
-    """Show settings menu."""
+    """Show settings menu with current values."""
     try:
-        keyboard = get_settings_keyboard()
-        text = "⚙️ Настройки"
-        
-        await callback.message.edit_text(text, reply_markup=keyboard)
+        user_id = callback.from_user.id
+        user = db.get_or_create_user(str(user_id))
+        current_settings = db.get_user_settings(user.id)
+
+        keyboard = get_settings_keyboard(current_settings)
+        text = "⚙️ **Настройки**\n\nВыберите параметр для изменения:"
+
+        await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
         await state.set_state(GameStates.SETTINGS_MENU)
         await callback.answer()
-        
+
     except Exception as e:
         logger.error(f"Error showing settings: {e}", exc_info=True)
         await callback.answer("Ошибка")
@@ -607,14 +614,147 @@ async def settings_language(callback: CallbackQuery, state: FSMContext):
     """Show language settings."""
     try:
         keyboard = get_language_keyboard()
-        text = "Выберите язык / Choose language:"
-        
-        await callback.message.edit_text(text, reply_markup=keyboard)
+        text = "🌐 **Язык интерфейса и игры**\n\nВыберите язык / Choose language:"
+
+        await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
         await state.set_state(GameStates.LANGUAGE_SETTINGS)
         await callback.answer()
-        
+
     except Exception as e:
         logger.error(f"Error showing language settings: {e}", exc_info=True)
+        await callback.answer("Ошибка")
+
+
+@router.callback_query(F.data == "settings:difficulty")
+async def settings_difficulty(callback: CallbackQuery, state: FSMContext):
+    """Show difficulty settings."""
+    try:
+        user_id = callback.from_user.id
+        user = db.get_or_create_user(str(user_id))
+        current = db.get_user_difficulty(user.id)
+
+        keyboard = get_difficulty_keyboard(current)
+        text = (
+            "🎮 **Сложность игры**\n\n"
+            "Влияет на пороги проверок:\n"
+            "• 😊 Лёгкая — пороги снижены\n"
+            "• ⚔️ Обычная — стандартный баланс\n"
+            "• 💀 Сложная — пороги повышены"
+        )
+
+        await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
+        await state.set_state(GameStates.SETTINGS_MENU)
+        await callback.answer()
+
+    except Exception as e:
+        logger.error(f"Error showing difficulty settings: {e}", exc_info=True)
+        await callback.answer("Ошибка")
+
+
+@router.callback_query(F.data.startswith("set_difficulty:"))
+async def process_difficulty_selection(callback: CallbackQuery, state: FSMContext):
+    """Process difficulty selection."""
+    try:
+        difficulty = callback.data.split(":")[1]
+        user_id = callback.from_user.id
+        user = db.get_or_create_user(str(user_id))
+
+        db.set_user_difficulty(user.id, difficulty)
+
+        diff_names = {"easy": "Лёгкая", "normal": "Обычная", "hard": "Сложная"}
+        await callback.answer(f"Сложность: {diff_names.get(difficulty, difficulty)}")
+
+        # Return to settings
+        await settings_menu(callback, state)
+
+    except Exception as e:
+        logger.error(f"Error setting difficulty: {e}", exc_info=True)
+        await callback.answer("Ошибка")
+
+
+@router.callback_query(F.data == "settings:content")
+async def settings_content(callback: CallbackQuery, state: FSMContext):
+    """Show content filter settings."""
+    try:
+        user_id = callback.from_user.id
+        user = db.get_or_create_user(str(user_id))
+        current = db.get_user_content_filter(user.id)
+
+        keyboard = get_content_filter_keyboard(current)
+        text = (
+            "🔒 **Фильтр контента**\n\n"
+            "Определяет уровень взрослого контента:\n"
+            "• 🛡️ Безопасный — без эротики\n"
+            "• 💕 16+ — лёгкая романтика\n"
+            "• 🔞 18+ — взрослый контент"
+        )
+
+        await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
+        await state.set_state(GameStates.SETTINGS_MENU)
+        await callback.answer()
+
+    except Exception as e:
+        logger.error(f"Error showing content settings: {e}", exc_info=True)
+        await callback.answer("Ошибка")
+
+
+@router.callback_query(F.data.startswith("set_content:"))
+async def process_content_selection(callback: CallbackQuery, state: FSMContext):
+    """Process content filter selection."""
+    try:
+        content_filter = callback.data.split(":")[1]
+        user_id = callback.from_user.id
+        user = db.get_or_create_user(str(user_id))
+
+        # For adult content, show consent dialog first
+        if content_filter == "adult":
+            text = (
+                "⚠️ **ВНИМАНИЕ: Взрослый контент (18+)**\n\n"
+                "Нажимая «Подтверждаю», вы подтверждаете что:\n\n"
+                "• Вам исполнилось 18 лет\n"
+                "• Просмотр такого контента легален в вашей юрисдикции\n"
+                "• Вы добровольно и осознанно снимаете ограничение на эротический контент\n"
+                "• Вы понимаете, что игра может содержать откровенные сексуальные сцены\n\n"
+                "**Это решение можно изменить в настройках в любой момент.**"
+            )
+            keyboard = get_adult_consent_keyboard()
+            await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
+            await callback.answer()
+            return
+
+        # For safe/romantic, set directly
+        db.set_user_content_filter(user.id, content_filter)
+
+        filter_names = {"safe": "Безопасный", "romantic": "16+", "adult": "18+"}
+        await callback.answer(f"Фильтр: {filter_names.get(content_filter, content_filter)}")
+
+        # Return to settings
+        await settings_menu(callback, state)
+
+    except Exception as e:
+        logger.error(f"Error setting content filter: {e}", exc_info=True)
+        await callback.answer("Ошибка")
+
+
+@router.callback_query(F.data.startswith("confirm_adult:"))
+async def process_adult_consent(callback: CallbackQuery, state: FSMContext):
+    """Process adult content consent confirmation."""
+    try:
+        confirmed = callback.data.split(":")[1] == "yes"
+        user_id = callback.from_user.id
+        user = db.get_or_create_user(str(user_id))
+
+        if confirmed:
+            db.set_user_content_filter(user.id, "adult")
+            await callback.answer("Фильтр 18+ активирован")
+        else:
+            await callback.answer("Отменено")
+
+        # Return to settings
+        await settings_menu(callback, state)
+
+    except Exception as e:
+        logger.error(f"Error processing adult consent: {e}", exc_info=True)
         await callback.answer("Ошибка")
 
 

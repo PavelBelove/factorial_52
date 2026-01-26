@@ -148,11 +148,76 @@ def get_load_slots_keyboard(saved_sessions: List[Dict]) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-def get_settings_keyboard() -> InlineKeyboardMarkup:
-    """Settings menu keyboard."""
+def get_settings_keyboard(current_settings: dict = None) -> InlineKeyboardMarkup:
+    """Settings menu keyboard with current values."""
+    if not current_settings:
+        current_settings = {"language": "ru", "difficulty": "normal", "content_filter": "safe"}
+
+    # Format current values
+    lang_map = {"ru": "🇷🇺 RU", "en": "🇬🇧 EN"}
+    diff_map = {"easy": "😊 Лёгкая", "normal": "⚔️ Обычная", "hard": "💀 Сложная"}
+    filter_map = {"safe": "🛡️ Безопасный", "romantic": "💕 16+", "adult": "🔞 18+"}
+
+    lang_val = lang_map.get(current_settings.get("language", "ru"), "🇷🇺 RU")
+    diff_val = diff_map.get(current_settings.get("difficulty", "normal"), "⚔️ Обычная")
+    filter_val = filter_map.get(current_settings.get("content_filter", "safe"), "🛡️ Безопасный")
+
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🌐 Язык", callback_data="settings:language")],
+        [InlineKeyboardButton(text=f"🌐 Язык: {lang_val}", callback_data="settings:language")],
+        [InlineKeyboardButton(text=f"🎮 Сложность: {diff_val}", callback_data="settings:difficulty")],
+        [InlineKeyboardButton(text=f"🔒 Контент: {filter_val}", callback_data="settings:content")],
         [InlineKeyboardButton(text="◀️ Назад", callback_data="back_to_menu")]
+    ])
+    return keyboard
+
+
+def get_difficulty_keyboard(current: str = "normal") -> InlineKeyboardMarkup:
+    """Difficulty selection keyboard."""
+    buttons = []
+
+    options = [
+        ("easy", "😊 Лёгкая", "Пороги снижены, проверки проще"),
+        ("normal", "⚔️ Обычная", "Стандартный баланс"),
+        ("hard", "💀 Сложная", "Пороги повышены, каждая проверка — вызов"),
+    ]
+
+    for value, label, desc in options:
+        marker = "✅ " if value == current else ""
+        buttons.append([InlineKeyboardButton(
+            text=f"{marker}{label}",
+            callback_data=f"set_difficulty:{value}"
+        )])
+
+    buttons.append([InlineKeyboardButton(text="◀️ Назад", callback_data="settings")])
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def get_content_filter_keyboard(current: str = "safe") -> InlineKeyboardMarkup:
+    """Content filter selection keyboard."""
+    buttons = []
+
+    options = [
+        ("safe", "🛡️ Безопасный", "Без эротики, романтика за кадром"),
+        ("romantic", "💕 16+", "Лёгкая романтика и эротика"),
+        ("adult", "🔞 18+", "Взрослый контент без ограничений"),
+    ]
+
+    for value, label, desc in options:
+        marker = "✅ " if value == current else ""
+        buttons.append([InlineKeyboardButton(
+            text=f"{marker}{label}",
+            callback_data=f"set_content:{value}"
+        )])
+
+    buttons.append([InlineKeyboardButton(text="◀️ Назад", callback_data="settings")])
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def get_adult_consent_keyboard() -> InlineKeyboardMarkup:
+    """Adult content consent confirmation keyboard."""
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Подтверждаю", callback_data="confirm_adult:yes")],
+        [InlineKeyboardButton(text="❌ Отмена", callback_data="confirm_adult:no")]
     ])
     return keyboard
 

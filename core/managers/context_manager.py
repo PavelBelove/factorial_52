@@ -36,7 +36,8 @@ class ContextManager:
         active_quants: List[Quant],
         system_prompt_parts: Optional[Dict[str, str]] = None,
         module_data: Optional[Dict[str, Any]] = None,
-        world_id: Optional[str] = None
+        world_id: Optional[str] = None,
+        user_settings: Optional[Dict[str, str]] = None
     ) -> List[Dict[str, str]]:
         """
         Build complete context for agent turn.
@@ -48,6 +49,7 @@ class ContextManager:
             system_prompt_parts: Modular system prompt components
             module_data: Optional data from modules (game rules, emotions, etc.)
             world_id: Optional world ID for world-specific prompts
+            user_settings: User preferences (language, content_filter, difficulty)
 
         Returns:
             List of messages for LLM
@@ -55,7 +57,7 @@ class ContextManager:
         messages = []
 
         # 1. System prompt
-        system_prompt = self._build_system_prompt(system_prompt_parts, module_data, world_id)
+        system_prompt = self._build_system_prompt(system_prompt_parts, module_data, world_id, user_settings)
         messages.append({
             "role": "system",
             "content": system_prompt
@@ -116,7 +118,8 @@ class ContextManager:
         self,
         parts: Optional[Dict[str, str]],
         module_data: Optional[Dict[str, Any]],
-        world_id: Optional[str] = None
+        world_id: Optional[str] = None,
+        user_settings: Optional[Dict[str, str]] = None
     ) -> str:
         """
         Build modular system prompt.
@@ -131,8 +134,8 @@ class ContextManager:
         if not parts:
             parts = {}
 
-        # Default base prompt
-        base = parts.get("base", self._default_base_prompt(world_id))
+        # Default base prompt (with user settings for language and content filter)
+        base = parts.get("base", self._default_base_prompt(world_id, user_settings))
         
         prompt_sections = [base]
         
@@ -155,20 +158,46 @@ class ContextManager:
         
         return "\n\n".join(prompt_sections)
     
-    def _default_base_prompt(self, world_id: Optional[str] = None) -> str:
-        """Default base system prompt for GM - loaded from file."""
+    def _default_base_prompt(
+        self,
+        world_id: Optional[str] = None,
+        user_settings: Optional[Dict[str, str]] = None
+    ) -> str:
+        """Default base system prompt for GM - loaded from file with dynamic settings."""
         try:
+            # Extract settings
+            language = user_settings.get("language", "ru") if user_settings else "ru"
+            content_filter = user_settings.get("content_filter", "safe") if user_settings else "safe"
+
             # Try to load world-specific GM system prompt first
             if world_id:
                 from core.config import world_manager
-                world_prompt = world_manager.get_gm_system_prompt(world_id)
+                world_prompt = world_manager.get_gm_system_prompt(
+                    world_id,
+                    language=language,
+                    content_filter=content_filter
+                )
                 if world_prompt:
-                    logger.info(f"Using world-specific GM prompt for {world_id}")
+                    logger.info(f"Using world-specific GM prompt for {world_id} (lang={language}, filter={content_filter})")
+                    
+                    # Apply template variables
+                    from core.config import get_prompt_template_vars
+                    template_vars = get_prompt_template_vars()
+                    for key, value in template_vars.items():
+                        world_prompt = world_prompt.replace(f"{{{{{key}}}}}", str(value))
+                    
                     return world_prompt
-            
+
             # Fallback to default prompt if no world-specific prompt
             logger.info("Using default GM prompt")
             base_prompt = get_prompt(PROMPT_GM)
+            
+            # Apply template variables
+            from core.config import get_prompt_template_vars
+            template_vars = get_prompt_template_vars()
+            for key, value in template_vars.items():
+                base_prompt = base_prompt.replace(f"{{{{{key}}}}}", str(value))
+            
             return base_prompt
         except FileNotFoundError:
             logger.warning("GM prompt file not found, using fallback")

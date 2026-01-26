@@ -25,7 +25,11 @@ class UserDB(Base):
     # User preferences
     language = Column(String(10), default="ru")  # User's language preference
     current_world = Column(String(50), default="isekai")  # Last selected world
-    
+
+    # Game settings
+    difficulty = Column(String(20), default="normal")  # easy, normal, hard
+    content_filter = Column(String(20), default="safe")  # safe, romantic, adult
+
     # Relationships
     sessions = relationship("SessionDB", back_populates="user", cascade="all, delete-orphan")
 

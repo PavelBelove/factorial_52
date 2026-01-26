@@ -208,27 +208,28 @@ class MechanicsManager:
     # CALCULATIONS
     # =========================================================================
     
-    def calculate_thresholds(self, session_id: int) -> Dict[str, Any]:
+    def calculate_thresholds(self, session_id: int, difficulty: str = "normal") -> Dict[str, Any]:
         """Calculate difficulty thresholds for all suits"""
         char = self.get_character(session_id)
         if not char:
             return {}
-        
-        return calculations.calculate_thresholds(char)
-    
+
+        return calculations.calculate_thresholds(char, difficulty)
+
     def calculate_all_checks(
         self,
         session_id: int,
-        cards_data: Dict[str, Any]
+        cards_data: Dict[str, Any],
+        difficulty: str = "normal"
     ) -> Dict[str, Any]:
         """Calculate all possible checks for all pairs and all suits"""
         char = self.get_character(session_id)
         if not char:
             return {}
-        
-        thresholds = self.calculate_thresholds(session_id)
+
+        thresholds = self.calculate_thresholds(session_id, difficulty)
         card_pairs = cards_data["_card_objects"]
-        
+
         return calculations.calculate_all_checks(card_pairs, char, thresholds)
     
     def calculate_all_combat_options(
