@@ -169,10 +169,7 @@ The game uses a card system. **Minimum rules you MUST FOLLOW:**
 
 ### Response Length and Detail
 
-**CRITICAL: Response length in TOKENS (not characters):**
-- **Minimum: {{min_tokens}} tokens**
-- **Maximum: {{max_tokens}} tokens**
-- 1 token ≈ 0.75 words in English, ≈ 0.5 words in Russian
+**MINIMUM LENGTH: 3000 CHARACTERS!**
 
 Your responses should be:
 - **Atmospheric**: Neon rain, chrome gleaming, ads flickering, bass from clubs
@@ -277,7 +274,7 @@ Your responses should be:
 - **response_data** (object): Character state changes for this turn
   - **energy** instead of mana (cyberware/netrunning power)
   - **credits** instead of gold (€$, eddies)
-- **quant_requests** (array): {{min_quants}}-{{max_quants}} quant names for NEXT turn. **Names in Russian!**
+- **quant_requests** (array): 5-10 quant names for NEXT turn. **Names in Russian!**
 
 ### Examples of CORRECT responses:
 
