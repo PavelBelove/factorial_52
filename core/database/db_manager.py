@@ -3,6 +3,7 @@ Database Manager - handles all database operations.
 Designed to be easily migrated from SQLite to PostgreSQL.
 """
 import json
+import logging
 from typing import List, Optional, Dict, Any
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker, Session
@@ -11,6 +12,8 @@ from sqlalchemy.pool import StaticPool
 from core.config import settings
 from core.database.models import Base, UserDB, SessionDB, QuantDB, TurnDB, SummaryDB, CharacterDB
 from core.models import Quant, QuantType, SessionType
+
+logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:
@@ -351,6 +354,7 @@ class DatabaseManager:
         """
         Delete the last turn from the session and decrement current_turn.
         Also clears requested_quants from the previous turn to prevent stale quants.
+        Also deletes summaries that include the deleted turn to prevent context conflicts.
         Returns True if deleted, False if no turns exist.
         Used for /undo and /retry functionality.
         """
@@ -362,6 +366,9 @@ class DatabaseManager:
             
             if not db_session or db_session.current_turn == 0:
                 return False
+            
+            # Get last turn number before deletion
+            deleted_turn_number = db_session.current_turn
             
             # Get last turn
             last_turn = session.query(TurnDB).filter(
@@ -375,6 +382,18 @@ class DatabaseManager:
                 
                 # Decrement current_turn
                 db_session.current_turn -= 1
+                
+                # Delete summaries that include the deleted turn
+                # This prevents outdated summaries from confusing the GM
+                from core.database.models import SummaryDB
+                outdated_summaries = session.query(SummaryDB).filter(
+                    SummaryDB.session_id == session_id,
+                    SummaryDB.turns_end >= deleted_turn_number
+                ).all()
+                
+                for summary in outdated_summaries:
+                    logger.info(f"Deleting outdated summary (turns {summary.turns_start}-{summary.turns_end}) after undo to turn {db_session.current_turn}")
+                    session.delete(summary)
                 
                 # Clear requested_quants from the NEW last turn (previous turn)
                 # This prevents stale quants from confusing GM on retry
