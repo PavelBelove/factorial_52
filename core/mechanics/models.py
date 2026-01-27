@@ -44,11 +44,11 @@ class Card:
     def face_meaning(self) -> Optional[str]:
         """Special meaning for face cards (only in peaceful time)"""
         if self.rank == 11:  # Jack
-            return "Неожиданный поворот или появление NPC"
+            return "Unexpected plot twist or NPC appearance"
         elif self.rank == 12:  # Queen
-            return "Влияние женского персонажа/энергии"
+            return "Female character/energy influence"
         elif self.rank == 13:  # King
-            return "Влияние мужского персонажа/энергии"
+            return "Male character/energy influence"
         return None
     
     @property
@@ -207,9 +207,9 @@ class CardPair(BaseModel):
 
 class SpecialEvent(str, Enum):
     """Special events from cards (only in peaceful time)"""
-    JACK_TWIST = "Валет: Неожиданный поворот или появление NPC"
-    QUEEN_FEMALE = "Дама: Влияние женского персонажа/энергии"
-    KING_MALE = "Король: Влияние мужского персонажа/энергии"
-    DOUBLE_ACES = "Два туза: Божественный успех!"
-    DOUBLE_TWOS = "Две двойки: Катастрофа!"
+    JACK_TWIST = "Jack: Unexpected plot twist or NPC appearance"
+    QUEEN_FEMALE = "Queen: Female character/energy influence"
+    KING_MALE = "King: Male character/energy influence"
+    DOUBLE_ACES = "Two Aces: Divine success!"
+    DOUBLE_TWOS = "Two Twos: Catastrophe!"
 

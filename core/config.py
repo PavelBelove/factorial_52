@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     
     # Summarizer configuration
     summary_append_threshold: int = 2000  # Characters threshold for append mode
-    summary_max_length: int = 5000  # Maximum summary length before forced rewrite
+    summary_max_length: int = 20000  # Maximum summary length before forced rewrite ("drying")
     
     # Quantizer configuration
     quantizer_max_commands: int = 15  # Maximum commands per Quantizer execution
@@ -84,7 +84,7 @@ class Settings(BaseSettings):
     
     # GM Response constraints
     gm_response_max_tokens: int = 1000  # Maximum tokens for GM response (not characters!)
-    gm_response_min_tokens: int = 300   # Minimum tokens for GM response
+    gm_response_min_tokens: int = 700   # Minimum tokens for GM response
     gm_quants_min_request: int = 3      # Minimum quants GM should request for next turn
     gm_quants_max_request: int = 10     # Maximum quants GM should request for next turn
     

@@ -490,6 +490,17 @@ class TurnOrchestrator:
                     mode="rewrite"
                 )
                 
+                # Delete all old summaries before saving compressed one
+                old_summaries = self.db.get_all_summaries(session_id)
+                for old_summary in old_summaries:
+                    from core.database.models import SummaryDB
+                    with self.db.get_session() as db_session:
+                        summary_obj = db_session.query(SummaryDB).filter_by(id=old_summary.id).first()
+                        if summary_obj:
+                            db_session.delete(summary_obj)
+                            db_session.commit()
+                    logger.info(f"Deleted old summary (turns {old_summary.turns_start}-{old_summary.turns_end}) before rewrite")
+                
                 # Save as full rewrite
                 if turns_data:
                     self.db.create_summary(
@@ -538,7 +549,20 @@ class TurnOrchestrator:
                     mode="append"
                 )
                 
-                # Save summary
+                # Delete old summaries before saving new one
+                # Since append mode returns FULL cumulative summary,
+                # we only need the latest one
+                old_summaries = self.db.get_all_summaries(session_id)
+                for old_summary in old_summaries:
+                    from core.database.models import SummaryDB
+                    with self.db.get_session() as db_session:
+                        summary_obj = db_session.query(SummaryDB).filter_by(id=old_summary.id).first()
+                        if summary_obj:
+                            db_session.delete(summary_obj)
+                            db_session.commit()
+                    logger.info(f"Deleted old summary (turns {old_summary.turns_start}-{old_summary.turns_end})")
+                
+                # Save new summary
                 if turns_data:
                     self.db.create_summary(
                         session_id=session_id,

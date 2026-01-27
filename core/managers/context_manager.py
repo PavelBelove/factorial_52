@@ -211,41 +211,44 @@ class ContextManager:
 """
     
     def _get_summary(self, session_id: int) -> str:
-        """Get combined summary text."""
-        summaries = self.db.get_all_summaries(session_id)
+        """
+        Get summary text.
         
-        if not summaries:
+        Since summarizer in append mode returns full cumulative summary,
+        we only need the LATEST summary (which already contains all history).
+        """
+        latest_summary = self.db.get_latest_summary(session_id)
+        
+        if not latest_summary:
             return ""
         
-        # Combine all summaries
-        summary_parts = [s.summary_text for s in summaries]
-        return "\n\n---\n\n".join(summary_parts)
+        return latest_summary.summary_text
     
     def _format_quants(self, quants: List[Quant]) -> str:
         """Format quants for context."""
         if not quants:
             return ""
-        
+
         formatted = []
         for quant in quants:
             quant_str = f"## {settings.quant_marker}{quant.id}{settings.quant_marker}\n"
-            quant_str += f"**Тип:** {quant.type.value}\n\n"
-            
+            quant_str += f"**Type:** {quant.type.value}\n\n"
+
             # Body
             if quant.body:
-                quant_str += "**Содержание:**\n"
+                quant_str += "**Content:**\n"
                 for key, value in quant.body.items():
                     quant_str += f"- {key}: {value}\n"
                 quant_str += "\n"
-            
+
             # Links
             if quant.links:
-                quant_str += "**Связи:**\n"
+                quant_str += "**Links:**\n"
                 for link_id, relation in quant.links.items():
                     quant_str += f"- {settings.quant_marker}{link_id}{settings.quant_marker}: {relation}\n"
-            
+
             formatted.append(quant_str)
-        
+
         return "\n".join(formatted)
     
     def _get_recent_turns(
@@ -359,19 +362,19 @@ class ContextManager:
     def _format_character_creation(self, creation_data: Dict[str, Any]) -> str:
         """Format character creation data for GM context"""
         instructions = creation_data["instructions"]
-        
-        return f"""# 🎲 Создание персонажа (система "Факториал 52!")
+
+        return f"""# 🎲 Character Creation (Factorial 52! system)
 
 {instructions}
 
 ---
 
-**Инструкция для ГМ:**
-1. Покажи игроку карты и объясни правила (текст выше)
-2. Дождись его выбора:
-   - Если хочет распределить сам - пусть скажет какую карту куда
-   - Если просит "оптимально" - распредели по совпадениям мастей
-3. После распределения верни в `response_data`:
+**GM Instructions:**
+1. Show player the cards and explain rules (text above - in player's language)
+2. Wait for player's choice:
+   - If wants to assign manually - let them say which card to which stat
+   - If asks "optimal" - assign by suit matches
+3. After assignment, return in `response_data`:
 
 ```json
 {{
@@ -385,15 +388,15 @@ class ContextManager:
 }}
 ```
 
-**Расчет характеристик:**
-- Значение = номинал карты × 5
-- Если масть карты = масть характеристики, добавь +10
+**Stat calculation:**
+- Value = card rank × 5
+- If card suit = stat suit, add +10
 
-**Пример:**
-Карта 7♠ на Силу (♠): 7×5 + 10 = 45
-Карта 7♠ на Магию (♥): 7×5 + 0 = 35
+**Example:**
+Card 7♠ to Strength (♠): 7×5 + 10 = 45
+Card 7♠ to Magic (♥): 7×5 + 0 = 35
 
-**НЕ запрашивай кванты "Character" или "Inventory"** - это теперь отдельная система!
+**DO NOT request "Character" or "Inventory" quants** - they are in game mechanics now!
 """
     
     def _format_mechanics(self, module_data: Dict[str, Any]) -> str:
@@ -405,18 +408,18 @@ class ContextManager:
         checks = module_data["checks"]
         combat = module_data["combat"]
         logger.debug(f"Character stats: spades={char['spades']}, hearts={char['hearts']}, diamonds={char['diamonds']}, clubs={char['clubs']}")
-        
+
         # Format cards
         pairs_str = []
         for pair in cards["pairs"]:
             cards_str = " + ".join(pair["cards"])
-            pairs_str.append(f"Пара {pair['pair']}: {cards_str}")
-        
+            pairs_str.append(f"Pair {pair['pair']}: {cards_str}")
+
         # Format special events
         special_events_str = ""
         if cards["special_events"]:
-            special_events_str = "\n🎴 **Особые события (только вне боя):**\n" + "\n".join([f"- {event}" for event in cards["special_events"]])
-        
+            special_events_str = "\n🎴 **Special events (peaceful time only):**\n" + "\n".join([f"- {event}" for event in cards["special_events"]])
+
         # Format inventory (compact)
         inventory_str = ""
         if char["inventory"]:
@@ -424,89 +427,85 @@ class ContextManager:
             not_equipped = [item["id"] for item in char["inventory"] if not item.get("equipped")]
             inventory_lines = []
             if equipped:
-                inventory_lines.append(f"✅ Надето: {', '.join(equipped)}")
+                inventory_lines.append(f"Equipped: {', '.join(equipped)}")
             if not_equipped:
-                inventory_lines.append(f"📦 В сумке: {', '.join(not_equipped)}")
+                inventory_lines.append(f"Bag: {', '.join(not_equipped)}")
             inventory_str = "\n".join(inventory_lines)
         else:
-            inventory_str = "Пусто"
-        
-        # Format checks with FULL BREAKDOWN from pair 1
+            inventory_str = "Empty"
+
+        # Format thresholds ONCE (same for all suits - based on average stat)
+        # Get thresholds from any suit (they're all the same)
+        any_suit_thresholds = thresholds["spades"]
+        thresholds_str = f"Easy {any_suit_thresholds['easy']} | Normal {any_suit_thresholds['normal']} | Hard {any_suit_thresholds['hard']} | Very Hard {any_suit_thresholds['very_hard']}"
+
+        # Format checks with FULL BREAKDOWN from pair 1 (no thresholds per line)
         pair1_checks = checks["pair_1"]
         checks_str = []
         for suit in ["spades", "hearts", "diamonds", "clubs"]:
             check = pair1_checks[suit]
             total = check["total"]
-            easy_thresh = thresholds[suit]["easy"]
-            hard_thresh = thresholds[suit]["hard"]
             suit_icon = {"spades": "♠", "hearts": "♥", "diamonds": "♦", "clubs": "♣"}[suit]
-            
+
             # Show breakdown: card1 + card2 + stat
             card1_base = check['card1']['base']
             card1_bonus = check['card1']['bonus']
             card2_base = check['card2']['base']
             card2_bonus = check['card2']['bonus']
             stat = check['stat_value']
-            
+
             card1_str = f"{card1_base}+{card1_bonus}" if card1_bonus > 0 else str(card1_base)
             card2_str = f"{card2_base}+{card2_bonus}" if card2_bonus > 0 else str(card2_base)
-            breakdown = f"({card1_str} + {card2_str} + {stat} стат)"
-            
-            checks_str.append(f"{suit_icon}: {total} {breakdown} → легко {easy_thresh}, сложно {hard_thresh}")
-        
+            breakdown = f"({card1_str} + {card2_str} + {stat} stat)"
+
+            checks_str.append(f"{suit_icon}: {total} {breakdown}")
+
         # Format combat (show only best options from pair 1)
         pair1_combat = combat["pair_1"]
         melee_total = pair1_combat["melee_attack"]["total"]
         ranged_total = pair1_combat["ranged_attack"]["total"]
         phys_def_total = pair1_combat["physical_defense"]["total"]
         magic_def_total = pair1_combat["magic_defense"]["total"]
-        
+
         mechanics_text = f"""# 🎲 Game Mechanics
 
 ## Character
 **HP**: {char['hp']}/{char['max_hp']} | **Mana**: {char['mana']}/{char['max_mana']} | **Gold**: {char['gold']}
 
-**Stats** (average: {char['average']}):
-♠ Strength: {char['spades']} | ♥ Magic: {char['hearts']} | ♦ Stamina: {char['diamonds']} | ♣ Agility: {char['clubs']}
+**Stats** (avg: {char['average']}):
+♠ STR: {char['spades']} | ♥ MAG: {char['hearts']} | ♦ STA: {char['diamonds']} | ♣ AGI: {char['clubs']}
 
-## 🎴 Cards (player DOESN'T see them, drawn randomly)
+## 🎴 Cards (hidden from player)
 {chr(10).join(pairs_str)}{special_events_str}
 
-## 🎯 Pre-calculated Checks (pair 1)
+## 🎯 Checks (pair 1)
+**Thresholds:** {thresholds_str}
 {chr(10).join(checks_str)}
 
-## ⚔️ Pre-calculated Combat (pair 1)
+## ⚔️ Combat (pair 1)
 Attack: melee {melee_total} | ranged {ranged_total}
 Defense: physical {phys_def_total} | magical {magic_def_total}
-Combo: available (uses same cards)
 
 ## 🎒 Inventory ({len(char['inventory'])}/20)
 {inventory_str}
 
 ---
 **Instructions:**
-1. All calculations ALREADY DONE - just pick appropriate result
+1. Calculations DONE - pick appropriate result
 2. Describe action narratively using ready values
-3. In `response_data` specify changes and which checks were used:
+3. In `response_data` specify changes:
 ```json
 {{
   "checks_used": [{{"suit": "spades", "success": true}}],
-  "hp": -15,
-  "mana": -10,
-  "gold": 100,
-  "inventory": {{
-    "add": [{{"id": "Меч", "type": "weapon", "suit": "♠", "bonus": 25, "description": "..."}}],
-    "remove": ["Старый_меч"]
-  }},
-  "equip": ["Меч"]
+  "hp": -15, "mana": -10, "gold": 100,
+  "inventory": {{"add": [...], "remove": ["id"]}}
 }}
 ```
-4. Special events (face cards) use ONLY in peaceful time
-5. In combat face cards NOT counted
+4. Special events ONLY in peaceful time, NOT in combat
 """
-        
+
         # Log the formatted mechanics for debugging
         logger.info(f"Formatted mechanics block:\n{mechanics_text}")
-        
+
         return mechanics_text
 
