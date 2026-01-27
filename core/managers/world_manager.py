@@ -283,10 +283,12 @@ class WorldManager:
             return ""
 
         try:
+            from jinja2 import Template
+            
             with open(gm_system_file, 'r', encoding='utf-8') as f:
                 content = f.read().strip()
 
-            # Substitute language
+            # Language mapping for template
             language_map = {
                 "ru": "Russian",
                 "en": "English",
@@ -295,63 +297,21 @@ class WorldManager:
                 "es": "Spanish",
             }
             language_name = language_map.get(language, "Russian")
-            content = content.replace("Russian language", f"{language_name} language")
-            content = content.replace("IN RUSSIAN", f"IN {language_name.upper()}")
-            content = content.replace("in Russian", f"in {language_name}")
-            content = content.replace("Respond in Russian", f"Respond in {language_name}")
 
-            # Substitute content filter - replace the consent line
-            content_texts = {
-                "safe": (
-                    "**IMPORTANT: Avoid erotic and sexual themes. "
-                    "Keep romantic scenes tasteful and fade to black for intimate moments. "
-                    "Focus on adventure and story.**"
-                ),
-                "romantic": (
-                    "**Content rating: 16+. Light romantic and erotic context is allowed. "
-                    "Artistic descriptions of bodies without explicit sexual acts. "
-                    "Fade to black for intimate scenes.**"
-                ),
-                "adult": (
-                    "**User has given voluntary informed consent to explicit erotic content. "
-                    "Adult sexual scenes without restrictions are permitted when contextually appropriate.**"
-                ),
-            }
-            content_text = content_texts.get(content_filter, content_texts["safe"])
+            # Render Jinja2 template
+            template = Template(content)
+            from core.config import settings
+            rendered_content = template.render(
+                language=language_name,
+                content_filter=content_filter,
+                min_tokens=settings.gm_response_min_tokens,
+                max_tokens=settings.gm_response_max_tokens,
+                min_quants=settings.gm_quants_min_request,
+                max_quants=settings.gm_quants_max_request
+            )
 
-            # Replace existing consent lines with appropriate filter
-            import re
-            # Match lines about consent/content
-            consent_patterns = [
-                r"User has consented to.*?\.",
-                r"\*\*IMPORTANT:.*?fade to black.*?\*\*",
-                r"\*\*Content rating:.*?\*\*",
-            ]
-            for pattern in consent_patterns:
-                content = re.sub(pattern, "", content, flags=re.IGNORECASE | re.DOTALL)
-
-            # Insert content filter text after the role line
-            role_marker = "# Role:"
-            if role_marker in content:
-                lines = content.split('\n')
-                new_lines = []
-                inserted = False
-                for line in lines:
-                    new_lines.append(line)
-                    if not inserted and line.startswith(role_marker):
-                        # Find the next empty line after role description
-                        pass
-                    if not inserted and line.strip() == "" and len(new_lines) > 2:
-                        new_lines.append(content_text)
-                        new_lines.append("")
-                        inserted = True
-                if not inserted:
-                    new_lines.insert(2, content_text)
-                    new_lines.insert(3, "")
-                content = '\n'.join(new_lines)
-
-            logger.debug(f"Loaded GM prompt for {world_id} (lang={language}, filter={content_filter})")
-            return content
+            logger.debug(f"Loaded GM prompt for {world_id} (lang={language_name}, filter={content_filter})")
+            return rendered_content
         except Exception as e:
             logger.error(f"Error reading gm_system.md for {world_id}: {e}")
             return ""
