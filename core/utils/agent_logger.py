@@ -48,32 +48,14 @@ def log_agent_call(
                 f.write(f"TURN: {turn_number}\n")
             f.write("=" * 80 + "\n\n")
             
-            # Context - show both formatted and RAW JSON
-            f.write("CONTEXT (Input to LLM):\n")
-            f.write("=" * 80 + "\n\n")
-            
-            # Formatted view (readable)
-            f.write("### FORMATTED VIEW ###\n\n")
-            for i, msg in enumerate(context, 1):
-                f.write(f"[Message {i}] Role: {msg.get('role', 'unknown')}\n")
-                f.write("-" * 80 + "\n")
-                content = msg.get('content', '')
-                # Truncate very long content
-                if len(content) > 10000:
-                    f.write(content[:10000] + f"\n... [truncated, {len(content)} total chars]\n")
-                else:
-                    f.write(content + "\n")
-                f.write("\n")
-            
-            # RAW JSON view
-            f.write("\n" + "=" * 80 + "\n")
-            f.write("### RAW JSON (Full context as sent to API) ###\n")
+            # Context - RAW JSON ONLY (exactly as sent to API)
+            f.write("CONTEXT (Input to LLM - RAW JSON):\n")
+            f.write("=" * 80 + "\n")
             f.write(json.dumps(context, ensure_ascii=False, indent=2))
+            f.write("\n" + "=" * 80 + "\n")
             
-            f.write("\n\n" + "=" * 80 + "\n")
-            
-            # Response
-            f.write("\nRESPONSE (Output from LLM):\n")
+            # Response - RAW JSON with metadata at top
+            f.write("\nRESPONSE (Output from API - RAW JSON):\n")
             f.write("=" * 80 + "\n")
             
             if isinstance(response, dict):
@@ -83,17 +65,16 @@ def log_agent_call(
                 
                 # Print metadata first if present
                 if usage or cost:
-                    f.write("\n### API METADATA ###\n")
+                    f.write("\n=== API METADATA ===\n")
                     if usage:
                         f.write(f"Tokens: {usage.get('prompt_tokens', 'N/A')} prompt + "
                                f"{usage.get('completion_tokens', 'N/A')} completion = "
                                f"{usage.get('total_tokens', 'N/A')} total\n")
                     if cost:
                         f.write(f"Cost: ${cost:.6f}\n")
-                    f.write("\n")
+                    f.write("===================\n\n")
                 
                 # Pretty print full response
-                f.write("### FULL RESPONSE (RAW JSON) ###\n")
                 f.write(json.dumps(response, ensure_ascii=False, indent=2))
             elif isinstance(response, str):
                 f.write(response)
