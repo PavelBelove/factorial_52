@@ -163,52 +163,29 @@ class ContextManager:
         world_id: Optional[str] = None,
         user_settings: Optional[Dict[str, str]] = None
     ) -> str:
-        """Default base system prompt for GM - loaded from file with dynamic settings."""
-        try:
-            # Extract settings
-            language = user_settings.get("language", "ru") if user_settings else "ru"
-            content_filter = user_settings.get("content_filter", "safe") if user_settings else "safe"
+        """Load world-specific GM system prompt with dynamic settings."""
+        # Extract settings
+        language = user_settings.get("language", "ru") if user_settings else "ru"
+        content_filter = user_settings.get("content_filter", "safe") if user_settings else "safe"
 
-            # Try to load world-specific GM system prompt first
-            if world_id:
-                from core.config import world_manager
-                world_prompt = world_manager.get_gm_system_prompt(
-                    world_id,
-                    language=language,
-                    content_filter=content_filter
-                )
-                if world_prompt:
-                    logger.info(f"Using world-specific GM prompt for {world_id} (lang={language}, filter={content_filter})")
-                    
-                    # Apply template variables
-                    from core.config import get_prompt_template_vars
-                    template_vars = get_prompt_template_vars()
-                    for key, value in template_vars.items():
-                        world_prompt = world_prompt.replace(f"{{{{{key}}}}}", str(value))
-                    
-                    return world_prompt
-
-            # Fallback to default prompt if no world-specific prompt
-            logger.info("Using default GM prompt")
-            base_prompt = get_prompt(PROMPT_GM)
-            
-            # Apply template variables
-            from core.config import get_prompt_template_vars
-            template_vars = get_prompt_template_vars()
-            for key, value in template_vars.items():
-                base_prompt = base_prompt.replace(f"{{{{{key}}}}}", str(value))
-            
-            return base_prompt
-        except FileNotFoundError:
-            logger.warning("GM prompt file not found, using fallback")
-            # Fallback prompt
-            return """# Роль: Гейм-мастер
-
-Ты - гейм-мастер текстовой RPG.
-
-Ответ в формате JSON:
-{"reply": "текст", "quants": ["квант1", "квант2"]}
-"""
+        # ALWAYS use world-specific prompt
+        if not world_id:
+            logger.error("No world_id provided for GM prompt!")
+            raise ValueError("world_id is required for GM prompt")
+        
+        from core.config import world_manager
+        world_prompt = world_manager.get_gm_system_prompt(
+            world_id,
+            language=language,
+            content_filter=content_filter
+        )
+        
+        if not world_prompt:
+            logger.error(f"Failed to load GM prompt for world {world_id}")
+            raise FileNotFoundError(f"GM prompt not found for world {world_id}")
+        
+        logger.info(f"Loaded GM prompt for {world_id} (lang={language}, filter={content_filter})")
+        return world_prompt
     
     def _get_summary(self, session_id: int) -> str:
         """
