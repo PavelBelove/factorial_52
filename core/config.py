@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     raw_turns_keep: int = 5  # How many raw turns to keep after summarization (trimmed to this after summarizer runs)
     raw_turns_max: int = 10  # When raw turns >= this, trigger Summarizer (then trim to raw_turns_keep)
     
+    # Quants management
+    quants_synopsis_window: int = 30  # How many turns back to show quants synopsis for GM/Quantizer
+    
     # Summarizer configuration
     summary_append_threshold: int = 2000  # Characters threshold for append mode
     summary_max_length: int = 20000  # Maximum summary length before forced rewrite ("drying")

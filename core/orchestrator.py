@@ -246,10 +246,22 @@ class TurnOrchestrator:
         recent_turns = self.db.get_recent_turns(session_id, limit=1)
         
         if not recent_turns or not recent_turns[0].requested_quants:
-            # No quants requested on previous turn - return empty list
-            # (GM will work with summary and recent turns only)
-            logger.info("No quants requested on previous turn")
-            return []
+            # No quants requested on previous turn
+            # Return character + recent quants as fallback (minimum context)
+            logger.warning("No quants requested on previous turn - using fallback (character + recent)")
+            
+            # Get character quant (always important)
+            all_quants = self.memory_manager.get_all_quants(session_id)
+            fallback_quants = [q for q in all_quants if q.type == "npc" and "пол" in q.id.lower()]
+            
+            # Add most recently updated quants (up to 10 total)
+            recent_quants = sorted(all_quants, key=lambda q: q.updated_at, reverse=True)[:10]
+            for q in recent_quants:
+                if q not in fallback_quants:
+                    fallback_quants.append(q)
+            
+            logger.info(f"Fallback: returning {len(fallback_quants)} quants: {[q.id for q in fallback_quants]}")
+            return fallback_quants
         
         # Get requested quants
         requested_names = recent_turns[0].requested_quants
