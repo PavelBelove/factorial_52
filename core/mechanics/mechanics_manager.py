@@ -433,8 +433,18 @@ class MechanicsManager:
         """
         import re
         
-        # Graceful item creation with fallback
-        try:
+        # Handle both formats: string or dict
+        if isinstance(item_data, str):
+            # GM returned just item name - create minimal item
+            item_id = item_data
+            sanitized_data = {
+                'id': item_id,
+                'type': 'item',  # generic type
+                'bonus': 0,
+                'description': f"Added by GM: {item_id}",
+                'suit': None
+            }
+        elif isinstance(item_data, dict):
             # Sanitize item data
             sanitized_data = item_data.copy()
             
@@ -447,14 +457,20 @@ class MechanicsManager:
                 sanitized_data['bonus'] = 0
             if 'description' not in sanitized_data:
                 sanitized_data['description'] = ''
-            
+        else:
+            logger.error(f"Invalid item_data type: {type(item_data)}, value: {item_data}")
+            changes_log.append(f"Invalid item data format")
+            return
+        
+        # Graceful item creation with fallback
+        try:
             new_item = Item(**sanitized_data)
             
         except Exception as e:
-            logger.error(f"Failed to create item from data: {item_data}")
+            logger.error(f"Failed to create item from data: {sanitized_data}")
             logger.error(f"Validation error: {e}")
-            logger.warning(f"Skipping invalid item: {item_data.get('id', 'unknown')}")
-            changes_log.append(f"Item validation failed: {item_data.get('id', 'unknown')}")
+            logger.warning(f"Skipping invalid item: {sanitized_data.get('id', 'unknown')}")
+            changes_log.append(f"Item validation failed: {sanitized_data.get('id', 'unknown')}")
             return
         
         # Check for exact duplicate (all fields match)
