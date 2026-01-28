@@ -248,9 +248,15 @@ class GMAgent:
             raise ValueError("GM response must be a dict")
         
         # MAP new field names to expected names
-        # Prolog prompt uses: narrative, quant_requests, response_data
+        # GM prompt uses: gm_narrative, quant_requests, response_data
         # System expects: reply, quants, response_data
-        if "narrative" in data and "reply" not in data:
+        
+        # ALWAYS prefer gm_narrative or narrative over reply field
+        # (reply might contain full JSON dump, which is wrong)
+        if "gm_narrative" in data:
+            data["reply"] = data.pop("gm_narrative")
+            logger.debug("Mapped 'gm_narrative' -> 'reply'")
+        elif "narrative" in data:
             data["reply"] = data.pop("narrative")
             logger.debug("Mapped 'narrative' -> 'reply'")
         

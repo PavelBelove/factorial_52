@@ -126,7 +126,7 @@ class PlexMemBot:
                     # Split long messages
                     if len(reply) > 4000:
                         header = f"🎲 Ход #{data['turn_number']}\n\n"
-                        content = data['reply']
+                        content = reply_text  # Use extracted narrative, not raw reply!
                         chunk_size = 3900
                         
                         chunks = []
