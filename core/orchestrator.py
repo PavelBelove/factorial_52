@@ -265,7 +265,7 @@ class TurnOrchestrator:
         
         # Get requested quants
         requested_names = recent_turns[0].requested_quants
-        logger.info(f"Retrieving {len(requested_names)} requested quants")
+        logger.info(f"Retrieving {len(requested_names)} requested quants: {requested_names}")
         
         # Retrieve from memory with fuzzy matching
         quants = self.memory_manager.get_quants_by_names(
@@ -274,6 +274,17 @@ class TurnOrchestrator:
             fuzzy=True
         )
         
+        # Fallback: if NO quants found (e.g. GM requested non-existent quants)
+        if not quants:
+            logger.warning(f"NO quants found for requested names! Providing fallback context.")
+            all_quants = self.memory_manager.get_all_quants(session_id)
+            
+            # Return most recently updated quants (up to 10)
+            fallback_quants = sorted(all_quants, key=lambda q: q.updated_at or q.created_at or 0, reverse=True)[:10]
+            logger.info(f"Fallback: returning {len(fallback_quants)} quants: {[q.id for q in fallback_quants]}")
+            return fallback_quants
+        
+        logger.info(f"Found {len(quants)} quants: {[q.id for q in quants]}")
         return quants
     
     async def _translate_turn(
@@ -371,14 +382,38 @@ class TurnOrchestrator:
             
             # Get context for quantizer
             summary_text = self.context_manager._get_summary(session_id)
+            
+            # Get synopsis list (for navigation)
+            synopsis_list = self.memory_manager.get_recent_quants_synopsis(session_id, current_turn)
+            logger.info(f"Quantizer: synopsis list has {len(synopsis_list)} chars")
+            
+            # Get recent turns (prefer translated JSON)
+            import json
             recent_turns_db = self.db.get_recent_turns(session_id, limit=20)
-            recent_turns = [
-                {
-                    "user_message": t.user_message,
-                    "agent_reply": t.agent_reply
-                }
-                for t in reversed(recent_turns_db)
-            ]
+            recent_turns = []
+            for t in reversed(recent_turns_db):
+                if t.translated_json:
+                    try:
+                        # Use translated English JSON
+                        translated = json.loads(t.translated_json)
+                        recent_turns.append({
+                            "user_message": f"Turn {translated.get('turn', '?')}: {translated.get('player_action', '')}",
+                            "agent_reply": translated.get('gm_narrative', '')
+                        })
+                    except (json.JSONDecodeError, KeyError):
+                        # Fallback to raw Russian
+                        recent_turns.append({
+                            "user_message": t.user_message,
+                            "agent_reply": t.agent_reply
+                        })
+                else:
+                    # No translation - use raw Russian
+                    recent_turns.append({
+                        "user_message": t.user_message,
+                        "agent_reply": t.agent_reply
+                    })
+            
+            logger.info(f"Quantizer: {len(recent_turns)} turns in context")
             
             # Run quantizer with world_id for world-specific instructions
             commands = await self.quantizer_agent.process_memory_updates(
@@ -386,6 +421,7 @@ class TurnOrchestrator:
                 summary_text=summary_text,
                 recent_turns=recent_turns,
                 active_quants=active_quants,
+                synopsis_list=synopsis_list,
                 current_turn=current_turn,
                 world_id=world_id
             )

@@ -41,6 +41,7 @@ class QuantizerAgent:
         summary_text: str,
         recent_turns: List[Dict[str, str]],
         active_quants: List[Quant],
+        synopsis_list: str,
         current_turn: int,
         world_id: Optional[str] = None
     ) -> Dict[str, Any]:
@@ -51,6 +52,7 @@ class QuantizerAgent:
             summary_text: Current session summary
             recent_turns: Recent conversation turns
             active_quants: Currently active quants
+            synopsis_list: Synopsis of recent quants for navigation
             current_turn: Current turn number
             world_id: World ID for world-specific instructions (optional)
         
@@ -69,6 +71,7 @@ class QuantizerAgent:
             summary_text,
             recent_turns,
             active_quants,
+            synopsis_list,
             current_turn
         )
         
@@ -111,6 +114,7 @@ class QuantizerAgent:
         summary_text: str,
         recent_turns: List[Dict[str, str]],
         active_quants: List[Quant],
+        synopsis_list: str,
         current_turn: int
     ) -> str:
         """Build context for quantizer."""
@@ -119,6 +123,10 @@ class QuantizerAgent:
         # Summary
         if summary_text:
             context_parts.append(f"# История сессии (краткая)\n\n{summary_text[:1000]}...")
+        
+        # Synopsis list (navigation)
+        if synopsis_list:
+            context_parts.append(f"# Доступные кванты (недавно обновленные)\n\n{synopsis_list}")
         
         # Active quants
         if active_quants:

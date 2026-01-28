@@ -602,8 +602,8 @@ class MemoryManager:
         min_turn = max(0, current_turn - window)
         recent_quants = [
             q for q in all_quants
-            if (q.updated_at and q.updated_at >= min_turn) or 
-               (q.created_at and q.created_at >= min_turn)
+            if (q.updated_at is not None and q.updated_at >= min_turn) or 
+               (q.created_at is not None and q.created_at >= min_turn)
         ]
         
         if not recent_quants:
