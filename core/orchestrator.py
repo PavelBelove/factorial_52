@@ -309,22 +309,26 @@ class TurnOrchestrator:
             )
             
             if translated_json:
-                # Save to database
-                import json
-                json_str = json.dumps(translated_json, ensure_ascii=False)
-                self.db.update_turn_translation(session_id, turn_number, json_str)
+                # Extract content and cost
+                content = translated_json.get('content', '')
+                translator_cost = translated_json.get('cost', 0.0)
                 
-                # Extract cost if available
-                translator_cost = translated_json.get('cost', 0.0) if isinstance(translated_json, dict) else 0.0
-                if translator_cost > 0:
-                    self.db.update_turn_costs(
-                        session_id=session_id,
-                        turn_number=turn_number,
-                        cost_translator=translator_cost
-                    )
-                    logger.info(f"Translator: turn {turn_number} translated, cost ${translator_cost:.6f}")
+                if content:
+                    # Save RAW text to database (no JSON parsing!)
+                    self.db.update_turn_translation(session_id, turn_number, content)
+                    
+                    # Save cost
+                    if translator_cost > 0:
+                        self.db.update_turn_costs(
+                            session_id=session_id,
+                            turn_number=turn_number,
+                            cost_translator=translator_cost
+                        )
+                        logger.info(f"Translator: turn {turn_number} translated, cost ${translator_cost:.6f}")
+                    else:
+                        logger.info(f"Translator: turn {turn_number} translated and saved")
                 else:
-                    logger.info(f"Translator: turn {turn_number} translated and saved")
+                    logger.warning(f"Translator: empty content for turn {turn_number}")
             else:
                 logger.warning(f"Translator: failed to translate turn {turn_number}")
                 
@@ -387,25 +391,17 @@ class TurnOrchestrator:
             synopsis_list = self.memory_manager.get_recent_quants_synopsis(session_id, current_turn)
             logger.info(f"Quantizer: synopsis list has {len(synopsis_list)} chars")
             
-            # Get recent turns (prefer translated JSON)
-            import json
+            # Get recent turns (prefer translated English text)
             recent_turns_db = self.db.get_recent_turns(session_id, limit=20)
             recent_turns = []
             for t in reversed(recent_turns_db):
                 if t.translated_json:
-                    try:
-                        # Use translated English JSON
-                        translated = json.loads(t.translated_json)
-                        recent_turns.append({
-                            "user_message": f"Turn {translated.get('turn', '?')}: {translated.get('player_action', '')}",
-                            "agent_reply": translated.get('gm_narrative', '')
-                        })
-                    except (json.JSONDecodeError, KeyError):
-                        # Fallback to raw Russian
-                        recent_turns.append({
-                            "user_message": t.user_message,
-                            "agent_reply": t.agent_reply
-                        })
+                    # Use RAW translated text (JSON-like structure, no parsing!)
+                    # LLM understands it even with syntax errors
+                    recent_turns.append({
+                        "user_message": f"Turn {t.turn_number}:",
+                        "agent_reply": t.translated_json  # RAW text, no parsing
+                    })
                 else:
                     # No translation - use raw Russian
                     recent_turns.append({

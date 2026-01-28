@@ -31,7 +31,11 @@ class TranslatorAgent:
         turn_number: int
     ) -> Optional[Dict[str, Any]]:
         """
-        Translate and compress one turn to English JSON.
+        Translate and compress one turn to English JSON-like text.
+        
+        NOTE: Returns RAW text in JSON-like format, NOT parsed JSON!
+        LLM agents understand structured text even with syntax errors.
+        This is for token efficiency, not for machine parsing.
         
         Args:
             player_action: Player's action in Russian
@@ -39,7 +43,7 @@ class TranslatorAgent:
             turn_number: Turn number
         
         Returns:
-            Structured English JSON or None if translation fails
+            Dict with 'content' (raw text) and 'cost', or None if translation fails
         """
         try:
             # Build translation prompt
@@ -88,38 +92,34 @@ class TranslatorAgent:
                 logger.error("Translator: content empty after cleanup")
                 return None
             
-            translated = json.loads(content)
+            # DON'T parse JSON - just return raw text!
+            # LLM agents understand JSON-like structure even with syntax errors
+            # This is for token efficiency, not for machine parsing
             
-            # Validate structure (minimal requirements)
-            required_fields = ["turn"]
-            if not all(field in translated for field in required_fields):
-                logger.error(f"Translator: missing required fields. Got: {list(translated.keys())}")
-                return None
-            
-            # Add cost info
+            # Extract cost info from API response
+            cost = 0.0
             if "usage" in response:
-                translated["cost"] = response["usage"].get("cost", 0.0)
+                cost = response["usage"].get("cost", 0.0)
             
             # Log agent call for debugging
             log_agent_call(
                 agent_name="translator",
                 context=messages,
-                response=translated,
+                response=content,  # Raw text, not parsed
                 turn_number=turn_number
             )
             
             logger.info(
                 f"Translated turn {turn_number}: "
                 f"{len(player_action)} + {len(gm_response)} RU chars -> "
-                f"{len(json.dumps(translated, ensure_ascii=False))} EN chars"
+                f"{len(content)} EN chars (compression: {100 - int(len(content) * 100 / (len(player_action) + len(gm_response)))}%)"
             )
             
-            return translated
-            
-        except json.JSONDecodeError as e:
-            logger.error(f"Translator: failed to parse JSON: {e}")
-            logger.debug(f"Content was: {content[:200]}...")
-            return None
+            # Return raw text with cost metadata
+            return {
+                "content": content,
+                "cost": cost
+            }
         except Exception as e:
             logger.error(f"Translator: error translating turn: {e}")
             return None

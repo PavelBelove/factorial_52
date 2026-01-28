@@ -234,11 +234,9 @@ class ContextManager:
         current_turn: int
     ) -> List[Dict[str, str]]:
         """
-        Get recent turns (prefer translated JSON when available).
+        Get recent turns (prefer translated text when available).
         Returns RAW_TURNS_MIN to RAW_TURNS_MAX most recent turns.
         """
-        import json
-        
         # Get recent turns (up to max)
         turns = self.db.get_recent_turns(
             session_id,
@@ -248,41 +246,16 @@ class ContextManager:
         # Reverse to chronological order
         turns.reverse()
         
-        # Convert to dict format, using translated JSON when available
+        # Convert to dict format, using translated text when available
         result = []
         for turn in turns:
             if turn.translated_json:
-                try:
-                    # Parse translated JSON
-                    translated = json.loads(turn.translated_json)
-                    
-                    # Format as compact English context
-                    user_msg = f"Turn {translated.get('turn', '?')}: {translated.get('player', '')}"
-                    gm_msg = translated.get('gm_summary', '')
-                    
-                    # Add key info if present
-                    if translated.get('key_events'):
-                        gm_msg += f"\nEvents: {', '.join(translated['key_events'])}"
-                    if translated.get('changes'):
-                        changes = translated['changes']
-                        change_parts = []
-                        for k, v in changes.items():
-                            if v:
-                                change_parts.append(f"{k}:{v}")
-                        if change_parts:
-                            gm_msg += f"\nChanges: {', '.join(change_parts)}"
-                    
-                    result.append({
-                        "user_message": user_msg,
-                        "agent_reply": gm_msg
-                    })
-                except (json.JSONDecodeError, KeyError) as e:
-                    logger.warning(f"Failed to parse translated_json for turn {turn.turn_number}: {e}")
-                    # Fallback to raw
-                    result.append({
-                        "user_message": turn.user_message,
-                        "agent_reply": turn.agent_reply
-                    })
+                # Use RAW translated text (JSON-like structure, no parsing!)
+                # LLM understands it even with syntax errors - this is for token efficiency
+                result.append({
+                    "user_message": f"Turn {turn.turn_number}:",
+                    "agent_reply": turn.translated_json  # RAW text, no JSON parsing
+                })
             else:
                 # No translation yet - use raw (Russian)
                 result.append({
