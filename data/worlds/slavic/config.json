@@ -1,21 +1,22 @@
 {
   "id": "slavic",
   "name": {
-    "ru": "Славянское Фэнтези",
-    "en": "Slavic Fantasy"
+    "ru": "Земля Духов",
+    "en": "Land of Spirits"
   },
   "description": {
-    "ru": "Мир славянской мифологии. Волхвы и ведьмы, лесные духи и водяные, древние боги и нечисть, богатыри и княжеские дружины.",
-    "en": "World of Slavic mythology. Sorcerers and witches, forest spirits and water demons, ancient gods and monsters, bogatyrs and princely retinues."
+    "ru": "Где лешие бродят по борам, волхвы хранят древние тайны, а данное слово тяжелее меча. Старые боги не забыли. Ты — помнишь?",
+    "en": "Where leshiy walk the forests, volkhvy guard ancient secrets, and a given word weighs heavier than steel. The Old Gods haven't forgotten. Have you?"
   },
-  "icon": "🐻",
+  "icon": "🌲",
   "enabled": true,
   "has_content": true,
   "features": {
-    "pagan_gods": true,
-    "nature_spirits": true,
-    "witchcraft": true,
-    "princely_politics": true
+    "old_gods_active": true,
+    "spirits_everywhere": true,
+    "honor_binding": true,
+    "dark_folklore": true,
+    "blood_and_oath": true
   },
-  "tags": ["fantasy", "slavic", "mythology", "dark", "nature"]
+  "tags": ["slavic", "fantasy", "folklore", "spirits", "honor", "dark"]
 }

@@ -1,22 +1,22 @@
 {
   "id": "cyberpunk",
   "name": {
-    "ru": "Киберпанк",
-    "en": "Cyberpunk"
+    "ru": "Найт-Сити 2077",
+    "en": "Night City 2077"
   },
   "description": {
-    "ru": "Мрачное неоновое будущее. Мегакорпорации, киберимпланты, нетраннинг и борьба за выживание на улицах.",
-    "en": "Dark neon future. Megacorps, cyberware, netrunning and street survival."
+    "ru": "Неоновые улицы, где хром встречается с плотью. Корпорации владеют небом, улица — всем остальным. Каждое решение оставляет след. Твоя история начинается на грани.",
+    "en": "Neon streets where chrome meets flesh. Corps own the sky, the street owns everything else. Every choice leaves a mark. Your story starts on the edge."
   },
   "icon": "🌃",
   "enabled": true,
   "has_content": true,
   "features": {
-    "megacorps": true,
-    "cyberware": true,
-    "netrunning": true,
-    "street_gangs": true,
-    "noir_atmosphere": true
+    "neon_noir": true,
+    "chrome_and_flesh": true,
+    "net_and_street": true,
+    "corps_vs_edge": true,
+    "survival_noir": true
   },
-  "tags": ["sci-fi", "dystopia", "cyberpunk", "noir", "tech"]
+  "tags": ["cyberpunk", "noir", "dystopia", "chrome", "survival"]
 }

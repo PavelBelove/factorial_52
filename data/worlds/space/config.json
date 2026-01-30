@@ -1,22 +1,22 @@
 {
   "id": "space",
   "name": {
-    "ru": "Космос",
-    "en": "Space"
+    "ru": "Предел",
+    "en": "The Frontier"
   },
   "description": {
-    "ru": "Бескрайний космос. Звездолёты, инопланетные расы, галактические империи и пиратские флотилии. Исследуй неизведанное.",
-    "en": "Endless space. Starships, alien races, galactic empires and pirate fleets. Explore the unknown."
+    "ru": "Звёзды раскинулись бесконечно, а ты — между Империумом и неизведанным. Каждый прыжок — риск. Каждая встреча — выбор. Космос не прощает, но награждает смелых.",
+    "en": "Stars stretch endless, and you stand between Imperium and unknown. Each jump — risk. Each encounter — choice. Space forgives nothing, but rewards the bold."
   },
   "icon": "🚀",
   "enabled": true,
   "has_content": true,
   "features": {
-    "starships": true,
-    "alien_races": true,
-    "galactic_factions": true,
-    "space_combat": true,
-    "planetary_exploration": true
+    "space_opera": true,
+    "alien_encounters": true,
+    "frontier_exploration": true,
+    "cosmic_scale": true,
+    "personal_stakes": true
   },
-  "tags": ["sci-fi", "space-opera", "starships", "aliens", "exploration"]
+  "tags": ["space", "opera", "frontier", "aliens", "exploration"]
 }

@@ -125,7 +125,7 @@ async def show_main_menu(message: Message, state: FSMContext, user_id: int, edit
         
         # Get menu text and keyboard
         text = loc.get_main_menu_message()
-        keyboard = get_main_menu_keyboard(has_active_game=has_active)
+        keyboard = get_main_menu_keyboard(has_active_game=has_active, loc=loc)
         
         # Set state
         await state.set_state(GameStates.MAIN_MENU)
@@ -166,7 +166,7 @@ async def new_game_handler(callback: CallbackQuery, state: FSMContext):
         worlds_list = available_worlds
         
         text = loc.get_world_selection_message()
-        keyboard = get_world_selection_keyboard(worlds_list)
+        keyboard = get_world_selection_keyboard(worlds_list, loc)
         
         await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(GameStates.WORLD_SELECTION)
@@ -208,7 +208,7 @@ async def process_world_selection(callback: CallbackQuery, state: FSMContext):
             world_desc = world_desc_dict
         
         text = f"**{world_name}**\n\n{world_desc}"
-        keyboard = get_world_description_keyboard(world_id)
+        keyboard = get_world_description_keyboard(world_id, loc)
         
         # Save selected world to state
         await state.update_data(selected_world=world_id)
@@ -444,8 +444,8 @@ async def save_game_menu(callback: CallbackQuery, state: FSMContext):
                 "saved_at": session.saved_at.isoformat() if session.saved_at else None
             })
         
-        text = "Выберите слот для сохранения:"
-        keyboard = get_save_slots_keyboard(saves_list)
+        text = loc.get_save_menu_message()
+        keyboard = get_save_slots_keyboard(saves_list, loc)
         
         await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(GameStates.SAVE_MENU)
@@ -513,8 +513,8 @@ async def load_game_menu(callback: CallbackQuery, state: FSMContext):
                 "saved_at": session.saved_at.isoformat() if session.saved_at else None
             })
         
-        text = "Выберите сохранение для загрузки:"
-        keyboard = get_load_slots_keyboard(saves_list)
+        text = loc.get_load_menu_message()
+        keyboard = get_load_slots_keyboard(saves_list, loc)
         
         await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(GameStates.LOAD_MENU)
@@ -597,12 +597,13 @@ async def settings_menu(callback: CallbackQuery, state: FSMContext):
     try:
         user_id = callback.from_user.id
         user = db.get_or_create_user(str(user_id))
+        loc = get_localization(user.language)
         current_settings = db.get_user_settings(user.id)
 
-        keyboard = get_settings_keyboard(current_settings)
-        text = "⚙️ **Настройки**\n\nВыберите параметр для изменения:"
+        keyboard = get_settings_keyboard(current_settings, loc)
+        text = loc.get_settings_menu_message()
 
-        await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
+        await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(GameStates.SETTINGS_MENU)
         await callback.answer()
 
@@ -633,18 +634,13 @@ async def settings_difficulty(callback: CallbackQuery, state: FSMContext):
     try:
         user_id = callback.from_user.id
         user = db.get_or_create_user(str(user_id))
+        loc = get_localization(user.language)
         current = db.get_user_difficulty(user.id)
 
-        keyboard = get_difficulty_keyboard(current)
-        text = (
-            "🎮 **Сложность игры**\n\n"
-            "Влияет на пороги проверок:\n"
-            "• 😊 Лёгкая — пороги снижены\n"
-            "• ⚔️ Обычная — стандартный баланс\n"
-            "• 💀 Сложная — пороги повышены"
-        )
+        keyboard = get_difficulty_keyboard(current, loc)
+        text = loc.get_difficulty_settings_message()
 
-        await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
+        await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(GameStates.SETTINGS_MENU)
         await callback.answer()
 
@@ -680,18 +676,13 @@ async def settings_content(callback: CallbackQuery, state: FSMContext):
     try:
         user_id = callback.from_user.id
         user = db.get_or_create_user(str(user_id))
+        loc = get_localization(user.language)
         current = db.get_user_content_filter(user.id)
 
-        keyboard = get_content_filter_keyboard(current)
-        text = (
-            "🔒 **Фильтр контента**\n\n"
-            "Определяет уровень взрослого контента:\n"
-            "• 🛡️ Безопасный — без эротики\n"
-            "• 💕 16+ — лёгкая романтика\n"
-            "• 🔞 18+ — взрослый контент"
-        )
+        keyboard = get_content_filter_keyboard(current, loc)
+        text = loc.get_content_filter_settings_message()
 
-        await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
+        await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(GameStates.SETTINGS_MENU)
         await callback.answer()
 
@@ -707,20 +698,13 @@ async def process_content_selection(callback: CallbackQuery, state: FSMContext):
         content_filter = callback.data.split(":")[1]
         user_id = callback.from_user.id
         user = db.get_or_create_user(str(user_id))
+        loc = get_localization(user.language)
 
         # For adult content, show consent dialog first
         if content_filter == "adult":
-            text = (
-                "⚠️ **ВНИМАНИЕ: Взрослый контент (18+)**\n\n"
-                "Нажимая «Подтверждаю», вы подтверждаете что:\n\n"
-                "• Вам исполнилось 18 лет\n"
-                "• Просмотр такого контента легален в вашей юрисдикции\n"
-                "• Вы добровольно и осознанно снимаете ограничение на эротический контент\n"
-                "• Вы понимаете, что игра может содержать откровенные сексуальные сцены\n\n"
-                "**Это решение можно изменить в настройках в любой момент.**"
-            )
-            keyboard = get_adult_consent_keyboard()
-            await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
+            text = loc.get_adult_content_consent_message()
+            keyboard = get_adult_consent_keyboard(loc)
+            await callback.message.edit_text(text, reply_markup=keyboard)
             await callback.answer()
             return
 
@@ -771,7 +755,7 @@ async def help_menu(callback: CallbackQuery, state: FSMContext):
         loc = get_localization(user.language)
         
         text = loc.get_help_page(1)
-        keyboard = get_help_keyboard(current_page=1)
+        keyboard = get_help_keyboard(current_page=1, loc=loc)
         
         await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="HTML")
         await state.set_state(GameStates.HELP)
@@ -792,7 +776,7 @@ async def help_page_navigation(callback: CallbackQuery, state: FSMContext):
         loc = get_localization(user.language)
         
         text = loc.get_help_page(page)
-        keyboard = get_help_keyboard(current_page=page)
+        keyboard = get_help_keyboard(current_page=page, loc=loc)
         
         await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="HTML")
         await callback.answer()

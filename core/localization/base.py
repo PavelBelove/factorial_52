@@ -142,6 +142,47 @@ class BaseLocalization(ABC):
         """Settings menu button labels."""
         pass
     
+    @abstractmethod
+    def get_difficulty_settings_message(self) -> str:
+        """Difficulty settings message."""
+        pass
+    
+    @abstractmethod
+    def get_content_filter_settings_message(self) -> str:
+        """Content filter settings message."""
+        pass
+    
+    # Keyboard labels
+    @abstractmethod
+    def get_difficulty_label(self, difficulty: str) -> str:
+        """Get difficulty label (easy/normal/hard)."""
+        pass
+    
+    @abstractmethod
+    def get_content_filter_label(self, filter_type: str) -> str:
+        """Get content filter label (safe/romantic/adult)."""
+        pass
+    
+    @abstractmethod
+    def get_confirm_button(self) -> str:
+        """'Confirm' button text."""
+        pass
+    
+    @abstractmethod
+    def get_back_page_button(self) -> str:
+        """'Back' navigation button text."""
+        pass
+    
+    @abstractmethod
+    def get_forward_page_button(self) -> str:
+        """'Forward' navigation button text."""
+        pass
+    
+    @abstractmethod
+    def get_adult_content_consent_message(self) -> str:
+        """Adult content consent confirmation message."""
+        pass
+    
     # Help
     @abstractmethod
     def get_help_message(self) -> str:
@@ -150,22 +191,27 @@ class BaseLocalization(ABC):
     
     @abstractmethod
     def get_help_page(self, page: int) -> str:
-        """Get help page by number (1-3)."""
+        """Get help page by number (1-4)."""
         pass
     
     @abstractmethod
-    def get_help_about_game(self) -> str:
-        """Help page 1: About the game."""
+    def get_help_about_book(self) -> str:
+        """Help page 1: About 52! World."""
+        pass
+    
+    @abstractmethod
+    def get_help_character_creation(self) -> str:
+        """Help page 2: Character creation."""
+        pass
+    
+    @abstractmethod
+    def get_help_mechanics(self) -> str:
+        """Help page 3: Game mechanics."""
         pass
     
     @abstractmethod
     def get_help_bot_control(self) -> str:
-        """Help page 2: Bot control."""
-        pass
-    
-    @abstractmethod
-    def get_help_game_rules(self) -> str:
-        """Help page 3: Game mechanics."""
+        """Help page 4: Bot control."""
         pass
     
     # Additional game messages

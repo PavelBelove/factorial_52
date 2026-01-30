@@ -1,22 +1,22 @@
 {
   "id": "isekai",
   "name": {
-    "ru": "Исекай",
-    "en": "Isekai"
+    "ru": "Иной Мир",
+    "en": "Another World"
   },
   "description": {
-    "ru": "Типичный мир аниме-исекай. Фэнтези-мир с магией, гильдией авантюристов, системой уровней. Классическое перерождение в новом мире с уникальными способностями.",
-    "en": "Typical anime-isekai world. Fantasy world with magic, adventurer's guild, level system. Classic rebirth in new world with unique abilities."
+    "ru": "Магия реальна, боги ходят среди смертных, а прошлая жизнь — лишь воспоминание. Новый мир не ждал героя. Он ждал того, кто выживет.",
+    "en": "Magic is real, gods walk among mortals, and your past life is just memory. The new world didn't wait for a hero. It waited for someone who'd survive."
   },
-  "icon": "🌟",
+  "icon": "🗡️",
   "enabled": true,
   "has_content": true,
   "features": {
-    "magic_system": true,
-    "level_system": true,
-    "guilds": true,
-    "multiple_races": true
+    "isekai_journey": true,
+    "magic_discovery": true,
+    "adventurer_life": true,
+    "gods_and_monsters": true,
+    "second_chance": true
   },
-  "tags": ["fantasy", "anime", "magic", "adventure"]
+  "tags": ["isekai", "fantasy", "adventure", "magic", "reincarnation"]
 }
-

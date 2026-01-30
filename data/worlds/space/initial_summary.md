@@ -1,58 +1,79 @@
-# Space World - Initial Context
+# Предел - Where Stars Call
 
-## World References (for GM internal knowledge activation)
+## Genre DNA (Internal Reference)
 
-This is a space opera world. Use your knowledge of these works for tone, atmosphere, and conventions:
+Space opera with personal stakes. Draw from:
 
-- **Warhammer 40,000** - Grimdark far future, gothic space cathedrals, Space Marines, Inquisition, Chaos corruption, xenos threats, "In the grim darkness of the far future, there is only war"
-- **Space Rangers (Космические Рейнджеры)** - Russian space game, free traders, rangers keeping peace, planetary quests, humor amid danger, diverse alien races, modular ships
-- **StarCraft** - Military sci-fi, Terran grit, Protoss honor, Zerg swarm, desperate battles, commanders and heroes
-- **Mass Effect** - Galactic civilization, Citadel races, ancient threats, crew loyalty, tough choices, exploration and combat
-- **Dune** - Desert planet intrigue, spice trade, great houses, religious orders, political manipulation, prescience
-- **Star Wars** - Space fantasy, Force users, galactic conflict, smugglers and bounty hunters, ancient orders, redemption arcs
+- **Warhammer 40K** - Grimdark epic scale, Imperium vastness, rogue traders, ancient threats
+- **Space Rangers** - Frontier exploration, rangers helping sectors, alien races, humor amid danger
+- **Mass Effect** - Crew loyalty, alien diversity, Citadel politics, ancient mysteries, personal choices
+- **Star Wars** - Frontier spirit, diverse species, Force as metaphor for psi, redemption arcs
+- **Firefly** - Ship as home, crew as family, frontier life, doing jobs, staying flying
+- **Dune** - Political intrigue, spice trade metaphor, prescience themes, Great Houses
+- **StarCraft** - Military campaigns, Terran grit, Protoss honor, desperate battles
 
-## World Features
+## The Frontier
 
 **The Galaxy:**
-- Thousands of colonized worlds
-- Multiple spacefaring civilizations
-- Ancient ruins of precursor races
-- Hyperspace/warp travel between systems
-- Frontier zones beyond central authority
+- **Imperium** - Human empire, bureaucratic, military, expansionist
+- **The Frontier** - Edge of known space, wild, opportunities, dangers
+- **Alien space** - Confederacies, hives, crystalline entities, machine intelligences
+- **Hyperspace routes** - Lanes between stars, some charted, many unknown
+- **Stations** - Trade hubs, neutral ground, melting pots
 
-**Major Factions:**
-- Galactic Imperium (human-dominated central authority)
-- Free Traders Guild (merchants, smugglers, opportunists)
-- Ranger Corps (peacekeepers, explorers, problem-solvers)
-- Pirate Clans (raiders, outcasts, freedom fighters)
-- Alien Confederacies (various xeno civilizations)
-- Ancient Orders (psi-users, techno-priests, secret societies)
+**Powers:**
+- **Ranger Corps** - Frontier peacekeepers, help where needed, veteran rangers legendary
+- **Imperium Fleet** - Military might, by-the-book, expanding borders
+- **Free Traders** - Commerce, information, neutral by profit
+- **Corsairs** - Pirates, raiders, some honorable, most desperate
+- **Alien Confederacies** - Species alliances, different from humans fundamentally
 
-**Alien Races:**
-- Humanoid species (cultural diversity)
-- Insectoid hives (collective intelligence)
-- Crystalline entities (energy-based)
-- Ancient races (precursors, often mysterious)
-- Machine intelligences (AI civilizations)
+**The Void:**
+- Hyperspace travel - fold space, risks turbulence, nav errors fatal
+- Ship management - fuel, repairs, crew, cargo all matter
+- Alien first contact - protocols exist, don't always help
+- Cosmic phenomena - neutron stars, black holes, anomalies
+- Psionic potential - rare, feared, powerful, ancient orders guard secrets
 
-**Technology:**
-- Starships (from fighters to dreadnoughts)
-- Energy weapons and shields
-- Power armor and combat suits
-- AI and robotics
-- Psionic abilities (rare but powerful)
-- Hyperspace navigation
+## Frontier Philosophy
 
-**Economy:**
-- Credits (universal currency)
-- Rare materials and artifacts
-- Information and data
-- Cargo hauling and trade routes
-- Mercenary contracts
+This isn't power fantasy. This is **survival at cosmic scale**.
 
-**Tone:**
-Epic adventure with personal stakes. Galaxy is vast but individuals matter. Technology is powerful but has limits. Alien is alien - not just humans with makeup. Space is beautiful and deadly. Every world is different. Heroes make choices that echo across systems.
+**Key Truths:**
+- **Space doesn't forgive** - One mistake, vacuum claims you, no second chances
+- **Stats show vulnerability** - Low HP = injured, Low fuel = stranded, Low rep = alone in void
+- **Probability isn't mechanics** - It's universe testing where you break, квантовые шансы
+- **Every jump risks** - Hyperspace turbulent, pirates ambush, systems fail
+- **Aliens are ALIEN** - Not humans in makeup, truly different minds, cultures, logic
+- **Ships are home** - More than transport, your world in void, protect them
+- **Crew matters** - Lone wolves die, teams survive, loyalty earned not bought
+
+**Not about:**
+- Optimal builds
+- Best ship collecting
+- Perfect navigation
+- Winning galaxy
+
+**About:**
+- Surviving impossible odds
+- Choices across light-years
+- Finding humanity among aliens
+- Keeping flying when universe says stop
+
+## Tone
+
+**Space opera literature:**
+Stars endless. Stations gleaming against void. Ships diverse - sleek frigates, battered traders, organic alien vessels. Hyperspace shimmer. Crew on bridge watching sensors. Aliens thinking differently - insectoid hive-mind, crystalline patience, machine logic. Rangers helping because it's right. Traders seeking profit. Fleet expanding territory. Corsairs taking what they can. Ancient ruins whispering secrets. Personal stakes against cosmic scale.
+
+**Prose style:**
+Epic yet intimate. Let void speak. Stars call. Engines hum. Aliens are truly other. Choices echo across sectors. Scale massive but YOU matter.
 
 ## Starting Point
 
-Player is a spacer - pilot, ranger, trader, mercenary, or seeker. The galaxy is open, jobs are plentiful, and adventure waits at every starport. Pick a ship, pick a crew, pick a direction. The stars are calling...
+You're in the Frontier. Maybe ranger - veteran, patched ship, helping because someone has to. Maybe trader - profit first but have standards. Maybe fleet deserter - ran for reasons, skills remain. Maybe alien - trying to understand humans, succeed where others failed.
+
+Ship's yours - maybe old scout, maybe trader vessel, maybe salvaged fighter. Fuel's manageable. Reputation's building. The Frontier stretches endless.
+
+Stations need help. Pirates need stopping. Traders need escorts. Aliens need mediators. Imperium expands. Ancient ruins hide secrets. And somewhere among stars, your choices will echo.
+
+**The stars are calling. Will you answer?**

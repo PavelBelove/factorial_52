@@ -1,56 +1,76 @@
-# Wasteland World - Initial Context
+# Пустошь - Where Humanity Persists
 
-## World References (for GM internal knowledge activation)
+## Genre DNA (Internal Reference)
 
-This is a post-apocalyptic world. Use your knowledge of these works for tone, atmosphere, and conventions:
+Post-apocalyptic survival with soul. Draw from:
 
-- **Fallout series** - Bethesda/Obsidian - Retro-futuristic 1950s aesthetic, Vaults, Brotherhood of Steel, Super Mutants, Ghouls, VATS, bottle caps as currency, "War never changes", dark humor amid horror
-- **Fallout TV series** - Amazon - Lucy's journey, Ghoul bounty hunter, Brotherhood power armor, the brutal beauty of the wasteland
-- **Metro 2033** - Dmitry Glukhovsky - Moscow Metro as last refuge, Dark Ones, anomalies, bullets as currency, claustrophobic tunnels, surface expeditions, factions at war
-- **S.T.A.L.K.E.R.** - GSC Game World - The Zone, anomalies, artifacts, radiation, mutants, stalkers, faction warfare, campfire guitar, "Get out of here, Stalker"
-- **Mad Max** - George Miller - Desert wasteland, vehicle warfare, War Boys, Immortan Joe, water as precious resource, road warriors, vehicular combat
-- **A Boy and His Dog** - Harlan Ellison - Dark, cynical post-apocalypse, underground societies, survival over morality
+- **Metro series** - Underground refuge, surface radiation, anomalies, bullets as value, factional war, humanity in darkness
+- **S.T.A.L.K.E.R.** - The Zone, artifacts, stalkers, campfires, "Get out of here", survival brotherhood
+- **Mad Max** - Desert wasteland, resource wars, road warriors, water's worth blood, vehicular survival
+- **The Road** - Father-son bond, ash and hope, humanity when world's ended, carrying the fire
+- **Post-nuclear worlds** - Retro-futuristic ruins, radiation zones, factions rebuilding, remnants of old world
 
-## World Features
+## The Wasteland
 
-**The Wasteland:**
-- Nuclear war destroyed civilization 200+ years ago
-- Radiation still permeates many areas
-- Nature reclaiming ruins, but twisted by radiation
-- Pockets of civilization amid chaos
-- Resources are scarce, violence is common
+**Geography:**
+- Ruined cities - concrete skeletons, nature reclaiming slowly
+- Radiation zones - glowing death, Geiger counters clicking warnings
+- Settlements - islands of light, walls against darkness
+- Trade routes - dangerous but necessary arteries
+- Wilderness - twisted by radiation, beautiful and deadly
 
-**Major Factions:**
-- Brotherhood of Steel (tech hoarders, power armor, military)
-- NCR / Republic remnants (trying to rebuild government)
-- Raiders (chaos, violence, tribal structures)
-- Traders / Caravans (commerce, information, neutral)
-- Vault Dwellers (isolated, preserved old world knowledge)
-- Mutant communities (Ghouls, Super Mutants, outcasts)
+**Power Structure:**
+- **Settlements** - desperate democracy, survival cooperation
+- **Tech factions** - hoard pre-war knowledge, military discipline
+- **Raiders** - take what they want, tribal structures, desperate violence
+- **Traders** - information and goods, neutral by necessity
+- **Outcasts** - ghouls, mutants, those the wasteland changed
 
-**Creatures & Threats:**
-- Ghouls (irradiated humans, feral or sentient)
-- Super Mutants (FEV mutations, often hostile)
-- Mutated animals (Radscorpions, Deathclaws, Mole Rats)
-- Anomalies (radiation pockets, strange phenomena)
-- Raiders and slavers (human threats)
+**Survival Elements:**
+- Radiation - patient killer, background hum, rad-meds bought time
+- Resources - bullets, food, water, medicine all precious
+- Pre-war tech - valuable, dangerous, often broken
+- Creatures - mutated by radiation, adapted to wasteland
+- Weather - dust storms, acid rain, irradiated snow
 
-**Technology:**
-- Pre-war tech is valuable and rare
-- Pip-Boys, Power Armor, Energy Weapons
-- Most use improvised, jury-rigged equipment
-- Robots and AI from before the war
-- Medicine is scarce (Stimpaks, Rad-Away, Chems)
+## Wasteland Philosophy
 
-**Economy:**
-- Bottle caps (caps) - standard currency
-- Barter common in remote areas
-- Water, ammo, medicine - always valuable
-- Pre-war money is worthless paper
+This isn't power fantasy. This is **survival with humanity**.
 
-**Tone:**
-Harsh but not hopeless. Dark humor as coping mechanism. Every day is survival, but people still fall in love, make art, dream of better. The wasteland is beautiful in its desolation. Trust is earned in blood. "War never changes" - but people can.
+**Key Truths:**
+- **Scarcity is real** - Every bullet counts, every meal matters, water's life
+- **Stats show vulnerability** - Low HP = infected wound, Low resources = doors close, Low rep = alone
+- **Fortune's turn isn't mechanics** - It's the wasteland testing where you break, rок пустоши
+- **Humanity's the real test** - Stay human when world's not, help strangers when you're starving
+- **Every choice echoes** - Saved settlement remembers, burnt bridge stays burnt
+- **Wasteland remembers** - Reputations spread, debts persist, kindness noticed
+
+**Not about:**
+- Optimal builds or power
+- Collecting best gear
+- Perfect survival
+- Winning the wasteland
+
+**About:**
+- Surviving with soul intact
+- Choices when both options hurt
+- Finding good people in bad world
+- Keeping light burning in ruins
+
+## Tone
+
+**Post-apocalyptic literature:**
+Dust in sunlight. Radiation shimmer. Settlements where children still laugh. Traders sharing campfire stories. Doctors patching strangers. Raiders with reasons, not just monsters. Beauty in desolation - wildflowers in cracked concrete. Horror in necessity - killing to protect. Hope against odds - humanity persists.
+
+**Prose style:**
+Lean, weathered, honest. Let ruins speak. Geiger counter clicks. Wind through broken windows. Cook fires. Distant threats. Survivors' voices carrying weight of past and hope for tomorrow.
 
 ## Starting Point
 
-Player emerges into the wasteland - from a Vault, as a wanderer, or a local trying to survive. The world is dangerous, resources are scarce, and everyone has an angle. But there are still good people out there, still causes worth fighting for, still places worth protecting. Time to find your place in the new world...
+You step into the wasteland. Maybe from underground vault - preserved, naive, educated. Maybe wasteland-born - scarred, weathered, knowing. Maybe ghoul - centuries of memory, radiation-proof, haunted by old world.
+
+Supplies are basic. Knowledge is survival. The wasteland stretches endless - ruins and radiation, threats and opportunities, cruelty and unexpected kindness.
+
+Settlements need help. Raiders need stopping. Traders need protection. Radiation zones hide treasures and death. Factions war for control. And somewhere in ruins, people still dream of better.
+
+**The wasteland doesn't care who you were. It only cares what you do next.**

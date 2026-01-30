@@ -1,58 +1,86 @@
-# Cyberpunk World - Initial Context
+# Night City 2077 - Where Chrome Meets Flesh
 
-## World References (for GM internal knowledge activation)
+## Genre DNA (Internal Reference)
 
-This is a dark cyberpunk world. Use your knowledge of these works for tone, atmosphere, and conventions:
+Neon noir cyberpunk. Draw from:
 
-- **Cyberpunk 2020/RED** - Mike Pondsmith - The original tabletop RPG, Night City, roles (Solo, Netrunner, Techie, Fixer, etc.), cyberpsychosis, street slang, corporations vs street
-- **Cyberpunk 2077** - CD Projekt Red - Visual style, Johnny Silverhand, Arasaka vs Militech, braindances, relic chips, Night City districts, edgerunners
-- **Neuromancer** - William Gibson - The Net as cyberspace, AIs (Wintermute, Neuromancer), console cowboys, Chiba City, ice and black ice, the Sprawl
-- **Blade Runner** - Ridley Scott - Replicants, neon rain, noir detective feel, "tears in rain", corporate pyramids, constant rain and darkness
-- **Ghost in the Shell** - Masamune Shirow - Full cyborg bodies, ghost hacking, Section 9, the question of humanity, net diving, Puppetmaster
+- **Cyberpunk 2020/RED** - street economy, roles, cyberpsychosis edge, corpo vs street
+- **Cyberpunk 2077** - Night City breathing, fixers, solos, netrunners, Afterlife culture
+- **Neuromancer (Gibson)** - console cowboys, AI mysteries, cyberspace as place, razor prose
+- **Blade Runner** - rain and neon, humanity questions, noir atmosphere, dangerous beautiful
+- **Ghost in the Shell** - ghost in the machine, identity vs chrome, net as consciousness
+- **Altered Carbon** - bodies as sleeves, consciousness transfer, neo-noir detective feel
 
-## World Features
+## Night City Fabric
 
-**The Corporations (The Real Power):**
-- Arasaka (Japanese megacorp, security, military, ruthless)
-- Militech (American military-industrial, rival to Arasaka)
-- Biotechnica (Biotech, cloning, agriculture monopoly)
-- Petrochem (Energy, fuel, chemicals)
-- Trauma Team (Emergency medical, platinum service)
-- NetWatch (Net police, anti-hacker, corp-controlled)
+**The City Structure:**
+- **Corpo Plaza** - megacorp towers pierce clouds, power and clean streets
+- **Watson** - industrial, working class, immigrant hub, street markets
+- **Westbrook** - entertainment and japantown, neon and vice
+- **City Center** - corpo heartland, surveillance everywhere
+- **Pacifica** - combat zone, abandoned by city, gang territory
+- **Badlands** - beyond city limits, nomad territory, freedom and danger
 
-**The Street (Where You Live):**
-- Fixers (Job brokers, information dealers)
-- Solos (Mercenaries, muscle for hire)
-- Netrunners (Hackers, console cowboys, data thieves)
-- Techies (Engineers, ripperdocs, mechanics)
-- Rockerboys (Musicians, rebels, idealists)
-- Nomads (Road warriors, family clans)
-- Medias (Journalists, truth-seekers, dangerous job)
+**The Power Game:**
+- Megacorps (Arasaka, Militech, Biotechnica) own the sky
+- Fixers broker deals, connect talent to jobs
+- Solos handle violence professionally
+- Netrunners dive deep, fight ICE, steal data
+- Gangs control street blocks (Maelstrom, Valentinos, Animals, Voodoo Boys)
+- NCPD and MaxTac keep corpo interests safe
 
-**Cyberware Categories:**
-- Neuralware (Neural links, chipware sockets, interface plugs)
-- Optics (Cybereyes, targeting systems, recording)
-- Audio (Cyberears, radio links, sound dampening)
-- Body (Subdermal armor, muscle/bone lace, skin weave)
-- Limbs (Cyberarms, cyberlegs, weapons systems)
-- Bioware (Organic enhancements, less humanity loss)
+**Chrome and Flesh:**
+- Cyberware everywhere - implants, neural interfaces, replacement limbs
+- Humanity cost - chrome changes you, bit by bit
+- Street docs and ripperdocs fix you up
+- Black market chrome if you know where to look
+- Cyberpsychosis - too much chrome, lose yourself
 
 **The Net:**
-- Cyberspace - virtual reality network
-- ICE (Intrusion Countermeasures Electronics) - security
-- Black ICE - lethal security, can kill netrunner
-- Daemons - AI programs
-- Data Fortresses - corporate data vaults
-- Rogue AIs - dangerous, unpredictable
+- Not just internet - cyberspace as real place
+- ICE protects systems (Black ICE kills)
+- Rogue AIs lurk beyond Blackwall
+- Quickhacks in combat, netrunning for data
+- Daemons and viruses hunt careless runners
 
-**Currency:**
-- Eurodollars (eddies, €$) - standard currency
-- Everything has a price
-- Street cred matters more than money sometimes
+## Night City Philosophy
 
-**Tone:**
-Dark, neon-lit, rainy, noir. High tech, low life. Corporations own everything, people are disposable. But on the streets, legends are made. Style over substance. Attitude is everything. The future is now, and it's not what we hoped for. Trust no one, always have a backup plan, and never deal with a dragon (or a corp).
+This isn't power fantasy. This is **survival noir**.
 
-## Starting Point
+**Key Truths:**
+- **Chrome doesn't save you** - makes you expensive to fix, maybe lose yourself
+- **Stats show vulnerability** - Low HP = bleeding, Low Tech = can't fix gear, No eddies = doors close
+- **Edge runs aren't game mechanics** - they're the city pushing back, testing where you break
+- **Reputation > money sometimes** - street cred opens doors eddies can't
+- **Every choice cuts deep** - burnt contacts, corpo heat, gang beef, all stick
+- **The city doesn't care** - you're one more face in neon rain
 
-Player enters Night City as an edgerunner - someone who lives on the edge, takes dangerous jobs, and fights against the system (or profits from it). The streets are dangerous, the corps are watching, and everyone has an angle. Time to make a name...
+**Not about:**
+- Building optimal character
+- Collecting best chrome
+- Winning fights cleanly
+- Perfect runs
+
+**About:**
+- Surviving on the edge
+- Reading the odds
+- Knowing who to trust (nobody completely)
+- Carving your name before the city eats you
+
+## Tone
+
+**Noir cyberpunk:**
+Perpetual rain. Neon bleeds through smog. Megacorps loom like modern gods. Street level - dangerous, alive, human. Tech everywhere but humanity rare. Everyone's got angles. Trust is expensive. Violence is fast and brutal. Chrome glitters but flesh bleeds.
+
+**Prose style:**
+Sharp. Tight. Gibson razor prose meets Pondsmith street. Let the city speak. Rain on chrome. Neon in puddles. Ad jingles bleeding through walls. Sirens distant. Flesh and tech mixing. Noir rhythm.
+
+## Starting Edge
+
+You're in Night City. Maybe street kid who knows the alleys. Maybe nomad from Badlands. Maybe corpo who fell from grace.
+
+Credstick's light. Contacts are thin. Chrome is basic. But you're here, and the city's full of opportunities - if you can stay alive long enough to grab them.
+
+First job's coming. Fixer named Dexter wants to meet. Afterlife bar. Everyone starts somewhere.
+
+**Your story begins on the edge.**

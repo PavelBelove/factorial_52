@@ -5,18 +5,18 @@
     "en": "Wasteland"
   },
   "description": {
-    "ru": "Мир после ядерной войны. Радиоактивные пустоши, мутанты, борьба за выживание среди руин цивилизации.",
-    "en": "World after nuclear war. Radioactive wastelands, mutants, survival among civilization ruins."
+    "ru": "Руины старого мира, где радиация и надежда борются за каждую душу. Выживание измеряется патронами и решениями. Пустошь помнит всё.",
+    "en": "Ruins of the old world, where radiation and hope fight for every soul. Survival measured in bullets and choices. The Wasteland remembers everything."
   },
   "icon": "☢️",
   "enabled": true,
   "has_content": true,
   "features": {
-    "radiation": true,
-    "mutations": true,
-    "factions": true,
-    "scavenging": true,
-    "survival": true
+    "post_apocalypse": true,
+    "radiation_zones": true,
+    "faction_wars": true,
+    "survival_choice": true,
+    "ruins_and_hope": true
   },
-  "tags": ["post-apocalyptic", "survival", "wasteland", "radiation", "mutants"]
+  "tags": ["post-apocalyptic", "survival", "wasteland", "choice", "humanity"]
 }

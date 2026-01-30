@@ -1,42 +1,78 @@
-# Slavic Fantasy World - Initial Context
+# Земля Духов - Where Old Gods Watch
 
-## World References (for GM internal knowledge activation)
+## Genre DNA (Internal Reference)
 
-This is a dark Slavic fantasy world. Use your knowledge of these works for tone, atmosphere, and conventions:
+Dark Slavic fantasy with folklore roots. Draw from:
 
-- **The Witcher (Ведьмак)** - Andrzej Sapkowski - Gray morality, monster hunting profession, cursed creatures with tragic origins, political intrigue between kingdoms, magic has price, peasant superstitions often correct
-- **Volkodav (Волкодав)** - Maria Semyonova - Honor code of warriors, blood vengeance as sacred duty, slavery and freedom, harsh northern lands, patron gods for different peoples, detailed material culture
-- **Three from the Forest (Трое из леса)** - Yuri Nikitin - Bogatyr adventures, ancient Rus setting, humor mixed with danger, friendship and loyalty, encounters with mythical creatures
-- **The Bear and the Nightingale (Медведь и соловей)** - Katherine Arden - Domovoi and household spirits, winter magic, Morozko the Frost King, conflict between old faith and new religion, women's magic
-- **Rusalka (Русалка)** - C.J. Cherryh - Dark forest magic, leshiy danger, vodyanoy bargains, rusalka tragedy, wizards paying prices for power, Slavic spirit ecology
-- **Treasures of the Valkyrie (Сокровища Валькирии)** - Sergei Alexeev - Ancient Aryan mysteries, sacred geography, hidden knowledge, mystical artifacts, connection to land
+- **The Witcher** - Monster hunting, moral complexity, Slavic creatures, folk magic
+- **Volkodav** - Honor code, slave to warrior, sworn oaths binding
+- **Bear and Nightingale** - Spirits real and present, Morozko, domovoy, old magic vs new faith
+- **Rusalka** - Forest magic, Chernevog, pagan vs Christian, nature's power
+- **Slavic folklore** - Baba Yaga, Koschei, Ivan Tsarevich, firebird tales, old gods
 
-## World Features
+## The Spirit-Lands
 
-**The Old Gods:**
-- Perun (thunder, warriors, justice)
-- Veles (underworld, cattle, magic, merchants)
-- Mokosh (fate, women, earth, weaving)
-- Svarog (sky, fire, smithing)
-- Dazhbog (sun, prosperity)
-- Stribog (wind, storms)
-- Morana (winter, death, rebirth)
+**The World:**
+- Dark forests - leshiy territory, dangerous, sacred
+- Rivers and lakes - vodyanoy, rusalki dwell
+- Villages - domovoy protect homes, old traditions persist
+- Sacred groves - where volkhvy perform rituals
+- Gorods - fortified towns, knyaz rule, druzhina warriors
 
-**The Spirits (Нечисть):**
-- Forest: Leshiy (forest master), Borovik, Kikimora
-- Water: Vodyanoy, Rusalki, Bolotnik (swamp)
-- Home: Domovoy, Bannik (bathhouse), Ovinnik (barn)
-- Hostile: Upyr (vampire), Volkolak (werewolf), Navka, Mavka
+**Powers That Be:**
+- **Old Gods** - Perun (thunder/war), Veles (magic/underworld), Mokosh (earth/fate), Svarog (sky/fire), Morana (winter/death)
+- **Spirits (Nechist)** - Leshiy (forest masters), Vodyanoy (water spirits), Rusalki (drowned maidens), Domovoy (house spirits)
+- **Volkhvy** - Priests of old gods, ritual magic, spirit-speakers
+- **Vedmy** - Witches, feared and needed, forest dwellers
+- **Druzhina** - Warrior retinues, oath-bound to knyaz
+- **Peasants** - Superstitious, practical, remember old ways
 
-**Society:**
-- Knyaz (prince) rules with Druzhina (warrior retinue)
-- Boyars (nobles), Smerdy (peasants)
-- Volkhvy (pagan priests), Vedmy (witches), Znakhari (healers)
-- Conflict between Old Ways and New Faith
+**Magic System:**
+- Zagovory - word-spells, spoken power
+- Rituals - offerings, ceremonies, blood if needed
+- Oberegi - protective charms, blessed objects
+- True names - power over things
+- Cost always - magic isn't free, gods demand price
 
-**Tone:**
-Dark and atmospheric but not hopeless. Nature is alive and dangerous but can be bargained with. Honor and given word are sacred. Magic has costs. Monsters often have tragic origins. The world is harsh but there's beauty in it.
+## Spirit-World Philosophy
+
+This isn't power fantasy. This is **honor and consequence**.
+
+**Key Truths:**
+- **Oaths bind supernaturally** - Given word = magical contract, break it and suffer
+- **Honor > wounds** - Shame kills as surely as steel, reputation echoes forever
+- **Spirits remember eternally** - Insult leshiy today, he remembers in century
+- **Gods are active** - They listen, respond, demand, punish, bless
+- **Blood calls to blood** - Vengeance is sacred duty, debts pass to children
+- **Nature is alive** - Every forest, river, home has presence watching
+
+**Not about:**
+- Power builds
+- Optimal stats
+- Winning fights
+- Collecting items
+
+**About:**
+- Keeping oaths when they cost everything
+- Honor when survival tempts betrayal
+- Walking between old faith and new
+- Earning spirits' respect, gods' favor
+- Paying blood debts, keeping given word
+
+## Tone
+
+**Dark folkloric fantasy:**
+Dark pine forests where leshiy watch. Cold rivers where vodyanoy dwell. Villages where domovoy protect or punish. Sacred groves where volkhvy call old gods. Knyaz courts where honor weighs heavier than gold. Winter coming with Morana's cold. Thunder speaking Perun's will.
+
+**Prose style:**
+Folkloric, mythic, weighted. Old words carry power. Let nature speak. Spirits whisper. Gods listen. Given word binds. Blood remembers. Honor echoes.
 
 ## Starting Point
 
-Player enters this world as traveler, warrior, or seeker of knowledge. The roads are dangerous, villages suspicious of strangers, and the forest watches with hungry eyes. Ancient powers stir, and someone must face them...
+You walk the spirit-lands. Maybe warrior sworn to knyaz, honor-bound. Maybe volkhv serving old gods, magic in your blood. Maybe hunter who knows forest rules. Maybe peasant seeking better life.
+
+The old gods haven't forgotten. Spirits watch from every shadow. Leshiy test those who enter forests. Rusalki lure unwary. Domovoy judge who enters homes. Perun's thunder rolls. Veles schemes in shadows. Morana's winter approaches.
+
+Oaths will be spoken. Blood will be shed. Spirits will test. Gods will judge. Honor will be weighed.
+
+**The old ways remember those who walk them true.**
