@@ -1,95 +1,125 @@
 #!/bin/bash
+# Deployment script for 52! World Bot
+# Run this on the server: 176.120.21.138
 
-# Quick deployment script for server
-# Run this on the production server
+set -e  # Exit on error
 
-set -e
+echo "==================================="
+echo "52! World Bot - Deployment Script"
+echo "==================================="
 
-echo "🚀 Factorial 52! - Quick Deploy Script"
-echo "======================================="
+# Configuration
+BOT_TOKEN="8417276425:AAG6-UIwgadm4ew8EQKfv_8kGW_SlzTHG2M"
+OPENROUTER_API_KEY="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"
+INSTALL_DIR="/opt/plexmem"
+SERVICE_NAME="plexmem-bot"
 
-# Colors
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
-
-# Check if running as plexmem user (or root)
-if [ "$USER" != "plexmem" ] && [ "$USER" != "root" ]; then
-    echo -e "${YELLOW}⚠️  Recommended to run as plexmem user${NC}"
-fi
-
-# Navigate to app directory
-cd /home/plexmem/plexmem || {
-    echo -e "${RED}✗ App directory not found${NC}"
-    exit 1
-}
-
-echo -e "${GREEN}✓ In app directory${NC}"
-
-# Pull latest changes
-echo "📥 Pulling latest changes from GitHub..."
-git fetch origin
-git reset --hard origin/main
-echo -e "${GREEN}✓ Code updated${NC}"
-
-# Activate virtual environment
-source venv/bin/activate || {
-    echo -e "${YELLOW}⚠️  Creating virtual environment...${NC}"
-    python3.11 -m venv venv
-    source venv/bin/activate
-}
-
-# Update dependencies
-echo "📦 Installing/updating dependencies..."
-pip install -r requirements.txt --upgrade --quiet
-echo -e "${GREEN}✓ Dependencies updated${NC}"
-
-# Check .env file
-if [ ! -f .env ]; then
-    echo -e "${YELLOW}⚠️  .env file not found. Creating from example...${NC}"
-    cp .env.example .env
-    echo -e "${RED}✗ Please edit .env file with production credentials!${NC}"
-    exit 1
-fi
-
-# Ensure data directory exists
-mkdir -p data logs logs/agents
-
-# Restart services
-echo "🔄 Restarting services..."
-if [ "$USER" = "root" ]; then
-    systemctl restart plexmem-api
-    systemctl restart plexmem-bot
-    echo -e "${GREEN}✓ Services restarted${NC}"
-    
-    # Check status
-    sleep 2
-    if systemctl is-active --quiet plexmem-api && systemctl is-active --quiet plexmem-bot; then
-        echo -e "${GREEN}✓ All services running${NC}"
-    else
-        echo -e "${RED}✗ Some services failed to start${NC}"
-        systemctl status plexmem-api --no-pager
-        systemctl status plexmem-bot --no-pager
-        exit 1
-    fi
+echo ""
+echo "Step 1: Stopping existing bot service..."
+if systemctl is-active --quiet ${SERVICE_NAME}; then
+    sudo systemctl stop ${SERVICE_NAME}
+    echo "✓ Service stopped"
 else
-    echo -e "${YELLOW}⚠️  Run with sudo to restart services:${NC}"
-    echo "    sudo systemctl restart plexmem-api plexmem-bot"
+    echo "✓ Service not running"
 fi
 
 echo ""
-echo -e "${GREEN}✅ Deployment complete!${NC}"
-echo ""
-echo "📊 Check status:"
-echo "  sudo systemctl status plexmem-api"
-echo "  sudo systemctl status plexmem-bot"
-echo ""
-echo "📋 View logs:"
-echo "  sudo journalctl -u plexmem-api -f"
-echo "  sudo journalctl -u plexmem-bot -f"
-echo "  tail -f logs/api.log"
-echo ""
-echo "🌐 API: http://localhost:8000"
-echo "🤖 Bot: @factorial_52_bot"
+echo "Step 2: Updating code from git..."
+cd ${INSTALL_DIR}
+git fetch origin
+git checkout main
+git pull origin main
+echo "✓ Code updated to latest main branch"
 
+echo ""
+echo "Step 3: Updating configuration..."
+cat > ${INSTALL_DIR}/.env << EOF
+# OpenRouter API
+OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+
+# Models per agent
+GM_MODEL="deepseek/deepseek-v3.2"
+QUANTIZER_MODEL="x-ai/grok-4.1-fast"
+SUMMARIZER_MODEL="x-ai/grok-4.1-fast"
+TRANSLATOR_MODEL="x-ai/grok-4.1-fast"
+
+# Database
+DATABASE_URL=sqlite:///data/plexmem.db
+
+# Application Settings
+DEBUG=False
+LOG_LEVEL=INFO
+DEBUG_VERBOSE=False
+
+# Memory System Configuration
+MAX_QUANTS_PER_REQUEST=10
+RAW_TURNS_MIN=4
+RAW_TURNS_MAX=7
+SUMMARY_SIZE_THRESHOLD=20000
+QUANTIZER_TRIGGER_TURNS=3
+
+# Telegram Bot
+TELEGRAM_BOT_TOKEN=${BOT_TOKEN}
+EOF
+
+echo "✓ Configuration updated"
+
+echo ""
+echo "Step 4: Installing/updating dependencies..."
+cd ${INSTALL_DIR}
+# Activate virtual environment if exists, or create it
+if [ ! -d "venv" ]; then
+    echo "Creating virtual environment..."
+    python3 -m venv venv
+fi
+
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+echo "✓ Dependencies installed"
+
+echo ""
+echo "Step 5: Creating/updating systemd service..."
+sudo tee /etc/systemd/system/${SERVICE_NAME}.service > /dev/null << EOF
+[Unit]
+Description=52! World - Infinite Book Bot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=${INSTALL_DIR}
+Environment="PATH=${INSTALL_DIR}/venv/bin"
+ExecStart=${INSTALL_DIR}/venv/bin/python -m telegram.main
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+echo "✓ Service file created"
+
+echo ""
+echo "Step 6: Starting bot service..."
+sudo systemctl enable ${SERVICE_NAME}
+sudo systemctl start ${SERVICE_NAME}
+echo "✓ Service started"
+
+echo ""
+echo "Step 7: Checking status..."
+sleep 2
+sudo systemctl status ${SERVICE_NAME} --no-pager -l
+
+echo ""
+echo "==================================="
+echo "✓ Deployment complete!"
+echo "==================================="
+echo ""
+echo "Useful commands:"
+echo "  View logs:    sudo journalctl -u ${SERVICE_NAME} -f"
+echo "  Check status: sudo systemctl status ${SERVICE_NAME}"
+echo "  Restart:      sudo systemctl restart ${SERVICE_NAME}"
+echo "  Stop:         sudo systemctl stop ${SERVICE_NAME}"
+echo ""
