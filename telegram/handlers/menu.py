@@ -2,6 +2,7 @@
 Menu handlers for Telegram bot.
 Handles all menu navigation, world/language selection, and save/load operations.
 """
+import asyncio
 import logging
 from datetime import datetime
 from typing import Optional
@@ -331,19 +332,35 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
                     
                     if gm_response:
                         # Отправляем ответ ГМ игроку
-                        # Telegram лимит - 4096 символов
-                        full_message = f"🎮 <b>Игра началась!</b>\n\n{gm_response}"
+                        # Telegram лимит - 4096 символов, разбиваем на части если нужно
+                        header = "🎮 <b>Игра началась!</b>\n\n"
+                        full_message = header + gm_response
                         
-                        if len(full_message) > 4096:
-                            # Обрезаем сообщение до лимита
-                            max_length = 4096 - 100  # запас для HTML тегов
-                            truncated_response = gm_response[:max_length] + "...\n\n✂️ (сообщение обрезано, продолжайте игру)"
-                            full_message = f"🎮 <b>Игра началась!</b>\n\n{truncated_response}"
+                        if len(full_message) > 4000:
+                            # Разбиваем на части по 3900 символов (запас для безопасности)
+                            chunk_size = 3900
+                            chunks = []
+                            
+                            for i in range(0, len(gm_response), chunk_size):
+                                chunk = gm_response[i:i + chunk_size]
+                                if i == 0:
+                                    chunks.append(header + chunk)
+                                else:
+                                    chunks.append(chunk)
+                            
+                            logger.info(f"Initial message split into {len(chunks)} chunks")
+                            
+                            # Первый chunk заменяет текущее сообщение
+                            await callback.message.edit_text(chunks[0], parse_mode="HTML")
+                            
+                            # Остальные отправляем как новые сообщения
+                            for chunk in chunks[1:]:
+                                await asyncio.sleep(0.5)
+                                await callback.message.answer(chunk, parse_mode=None)
+                        else:
+                            # Сообщение короткое, отправляем целиком
+                            await callback.message.edit_text(full_message, parse_mode="HTML")
                         
-                        await callback.message.edit_text(
-                            full_message,
-                            parse_mode="HTML"
-                        )
                         logger.info("Successfully sent initial GM message")
                     else:
                         logger.error("Empty GM response")
