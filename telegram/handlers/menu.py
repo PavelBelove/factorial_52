@@ -331,8 +331,17 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
                     
                     if gm_response:
                         # Отправляем ответ ГМ игроку
+                        # Telegram лимит - 4096 символов
+                        full_message = f"🎮 <b>Игра началась!</b>\n\n{gm_response}"
+                        
+                        if len(full_message) > 4096:
+                            # Обрезаем сообщение до лимита
+                            max_length = 4096 - 100  # запас для HTML тегов
+                            truncated_response = gm_response[:max_length] + "...\n\n✂️ (сообщение обрезано, продолжайте игру)"
+                            full_message = f"🎮 <b>Игра началась!</b>\n\n{truncated_response}"
+                        
                         await callback.message.edit_text(
-                            f"🎮 <b>Игра началась!</b>\n\n{gm_response}",
+                            full_message,
                             parse_mode="HTML"
                         )
                         logger.info("Successfully sent initial GM message")
