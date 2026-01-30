@@ -11,7 +11,7 @@ echo "==================================="
 # Configuration
 BOT_TOKEN="8417276425:AAG6-UIwgadm4ew8EQKfv_8kGW_SlzTHG2M"
 OPENROUTER_API_KEY="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"
-INSTALL_DIR="/opt/plexmem"
+INSTALL_DIR="/home/plexmem/plexmem"
 SERVICE_NAME="plexmem-bot"
 
 echo ""
@@ -90,7 +90,8 @@ Type=simple
 User=root
 WorkingDirectory=${INSTALL_DIR}
 Environment="PATH=${INSTALL_DIR}/venv/bin"
-ExecStart=${INSTALL_DIR}/venv/bin/python -m telegram.main
+Environment="PYTHONPATH=${INSTALL_DIR}"
+ExecStart=${INSTALL_DIR}/venv/bin/python telegram/bot.py
 Restart=always
 RestartSec=10
 
