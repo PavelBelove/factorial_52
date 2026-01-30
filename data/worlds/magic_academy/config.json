@@ -1,0 +1,21 @@
+{
+  "id": "magic_academy",
+  "name": {
+    "ru": "Магическая Академия",
+    "en": "Magic Academy"
+  },
+  "description": {
+    "ru": "Живая книга о магической академии, где каждая глава пишется вместе с вами. Обучение магии, тайны библиотеки, дружба и соперничество. Карты судьбы определяют повороты истории.",
+    "en": "A living chronicle of a magic academy, where each chapter unfolds with you. Learning magic, library secrets, friendships and rivalries. Cards of Fate shape the story's turns."
+  },
+  "icon": "📖",
+  "enabled": true,
+  "has_content": true,
+  "features": {
+    "narrative_magic": true,
+    "living_chronicle": true,
+    "fate_cards": true,
+    "character_driven": true
+  },
+  "tags": ["literary", "fantasy", "magic", "academy", "chronicle", "narrative"]
+}

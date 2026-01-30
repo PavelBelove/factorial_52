@@ -3,6 +3,7 @@ Database Manager - handles all database operations.
 Designed to be easily migrated from SQLite to PostgreSQL.
 """
 import json
+import logging
 from typing import List, Optional, Dict, Any
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker, Session
@@ -11,6 +12,8 @@ from sqlalchemy.pool import StaticPool
 from core.config import settings
 from core.database.models import Base, UserDB, SessionDB, QuantDB, TurnDB, SummaryDB, CharacterDB
 from core.models import Quant, QuantType, SessionType
+
+logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:
@@ -44,6 +47,26 @@ class DatabaseManager:
         # Create tables
         Base.metadata.create_all(bind=self.engine)
     
+        # Run simple migrations for new columns
+        self._run_migrations()
+
+    def _run_migrations(self):
+        """Add new columns to existing tables if they don't exist."""
+        from sqlalchemy import inspect, text
+        inspector = inspect(self.engine)
+
+        # Check users table for new settings columns
+        if "users" in inspector.get_table_names():
+            existing_columns = [col["name"] for col in inspector.get_columns("users")]
+
+            with self.engine.connect() as conn:
+                if "difficulty" not in existing_columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN difficulty VARCHAR(20) DEFAULT 'normal'"))
+                    conn.commit()
+                if "content_filter" not in existing_columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN content_filter VARCHAR(20) DEFAULT 'safe'"))
+                    conn.commit()
+
     def get_session(self) -> Session:
         """Get database session."""
         return self.SessionLocal()
@@ -73,13 +96,15 @@ class DatabaseManager:
     def create_session(
         self,
         user_id: int,
-        session_type: SessionType = SessionType.GAME
+        session_type: SessionType = SessionType.GAME,
+        world_id: str = "isekai"
     ) -> SessionDB:
-        """Create new session."""
+        """Create new session with specified world."""
         with self.get_session() as session:
             new_session = SessionDB(
                 user_id=user_id,
-                session_type=session_type.value
+                session_type=session_type.value,
+                world_id=world_id
             )
             session.add(new_session)
             session.commit()
@@ -329,6 +354,7 @@ class DatabaseManager:
         """
         Delete the last turn from the session and decrement current_turn.
         Also clears requested_quants from the previous turn to prevent stale quants.
+        Also deletes summaries that include the deleted turn to prevent context conflicts.
         Returns True if deleted, False if no turns exist.
         Used for /undo and /retry functionality.
         """
@@ -340,6 +366,9 @@ class DatabaseManager:
             
             if not db_session or db_session.current_turn == 0:
                 return False
+            
+            # Get last turn number before deletion
+            deleted_turn_number = db_session.current_turn
             
             # Get last turn
             last_turn = session.query(TurnDB).filter(
@@ -353,6 +382,18 @@ class DatabaseManager:
                 
                 # Decrement current_turn
                 db_session.current_turn -= 1
+                
+                # Delete summaries that include the deleted turn
+                # This prevents outdated summaries from confusing the GM
+                from core.database.models import SummaryDB
+                outdated_summaries = session.query(SummaryDB).filter(
+                    SummaryDB.session_id == session_id,
+                    SummaryDB.turns_end >= deleted_turn_number
+                ).all()
+                
+                for summary in outdated_summaries:
+                    logger.info(f"Deleting outdated summary (turns {summary.turns_start}-{summary.turns_end}) after undo to turn {db_session.current_turn}")
+                    session.delete(summary)
                 
                 # Clear requested_quants from the NEW last turn (previous turn)
                 # This prevents stale quants from confusing GM on retry
@@ -598,4 +639,186 @@ class DatabaseManager:
                 character.equipped = equipped
             
             session.commit()
+    
+    # ============= SAVE SYSTEM OPERATIONS =============
+    
+    def get_user_saved_sessions(self, user_id: int) -> List[SessionDB]:
+        """
+        Get all saved sessions for a user (is_saved=True).
+        Returns sessions ordered by slot number.
+        """
+        with self.get_session() as session:
+            return session.query(SessionDB).filter(
+                SessionDB.user_id == user_id,
+                SessionDB.is_saved == True
+            ).order_by(SessionDB.slot_number).all()
+    
+    def get_session_in_slot(self, user_id: int, slot: int) -> Optional[SessionDB]:
+        """Get session in specific save slot."""
+        with self.get_session() as session:
+            return session.query(SessionDB).filter(
+                SessionDB.user_id == user_id,
+                SessionDB.slot_number == slot,
+                SessionDB.is_saved == True
+            ).first()
+    
+    def save_session_to_slot(
+        self,
+        session_id: int,
+        slot: int,
+        save_name: Optional[str] = None
+    ) -> bool:
+        """
+        Save session to a specific slot.
+        If slot is already occupied, overwrites it.
+        
+        Returns:
+            True if successful, False otherwise
+        """
+        from datetime import datetime
+        
+        with self.get_session() as session:
+            # Get the session to save
+            game_session = session.query(SessionDB).filter(
+                SessionDB.id == session_id
+            ).first()
+            
+            if not game_session:
+                return False
+            
+            # Check if slot is occupied by another session
+            existing_in_slot = session.query(SessionDB).filter(
+                SessionDB.user_id == game_session.user_id,
+                SessionDB.slot_number == slot,
+                SessionDB.is_saved == True,
+                SessionDB.id != session_id  # Different session
+            ).first()
+            
+            if existing_in_slot:
+                # Clear the old session from this slot
+                existing_in_slot.slot_number = None
+                existing_in_slot.is_saved = False
+                existing_in_slot.saved_at = None
+            
+            # Save current session to slot
+            game_session.slot_number = slot
+            game_session.is_saved = True
+            game_session.saved_at = datetime.utcnow()
+            if save_name:
+                game_session.save_name = save_name
+            
+            session.commit()
+            return True
+    
+    def delete_session_from_slot(self, session_id: int) -> bool:
+        """
+        Remove session from save slot (but keep session in DB).
+        Just clears slot_number and is_saved flag.
+        """
+        with self.get_session() as session:
+            game_session = session.query(SessionDB).filter(
+                SessionDB.id == session_id
+            ).first()
+            
+            if not game_session:
+                return False
+            
+            game_session.slot_number = None
+            game_session.is_saved = False
+            game_session.saved_at = None
+            session.commit()
+            return True
+    
+    def deactivate_user_sessions(self, user_id: int):
+        """Deactivate all sessions for a user (for starting new game)."""
+        with self.get_session() as session:
+            sessions = session.query(SessionDB).filter(
+                SessionDB.user_id == user_id,
+                SessionDB.is_active == True
+            ).all()
+            
+            for game_session in sessions:
+                game_session.is_active = False
+            
+            session.commit()
+    
+    # ============= USER PREFERENCES =============
+    
+    def set_user_language(self, user_id: int, language: str):
+        """Set user's language preference."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            if user:
+                user.language = language
+                session.commit()
+    
+    def get_user_language(self, user_id: int) -> str:
+        """Get user's language preference."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            return user.language if user else "ru"
+    
+    def set_user_current_world(self, user_id: int, world_id: str):
+        """Set user's last selected world."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            if user:
+                user.current_world = world_id
+                session.commit()
+    
+    def get_user_current_world(self, user_id: int) -> str:
+        """Get user's last selected world."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            return user.current_world if user else "isekai"
+
+    def set_user_difficulty(self, user_id: int, difficulty: str):
+        """Set user's difficulty preference (easy/normal/hard)."""
+        if difficulty not in ("easy", "normal", "hard"):
+            difficulty = "normal"
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            if user:
+                user.difficulty = difficulty
+                session.commit()
+
+    def get_user_difficulty(self, user_id: int) -> str:
+        """Get user's difficulty preference."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            return user.difficulty if user and user.difficulty else "normal"
+
+    def set_user_content_filter(self, user_id: int, content_filter: str):
+        """Set user's content filter preference (safe/romantic/adult)."""
+        if content_filter not in ("safe", "romantic", "adult"):
+            content_filter = "safe"
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            if user:
+                user.content_filter = content_filter
+                session.commit()
+
+    def get_user_content_filter(self, user_id: int) -> str:
+        """Get user's content filter preference."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            return user.content_filter if user and user.content_filter else "safe"
+
+    def get_user_settings(self, user_id: int) -> dict:
+        """Get all user settings as dict."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            if user:
+                return {
+                    "language": user.language or "ru",
+                    "difficulty": user.difficulty or "normal",
+                    "content_filter": user.content_filter or "safe",
+                    "current_world": user.current_world or "isekai"
+                }
+            return {
+                "language": "ru",
+                "difficulty": "normal",
+                "content_filter": "safe",
+                "current_world": "isekai"
+            }
 

@@ -83,6 +83,10 @@ class TurnOrchestrator:
         if not db_session:
             raise ValueError(f"Session {session_id} not found")
         
+        # Get user settings for prompts and mechanics
+        user_settings = self.db.get_user_settings(db_session.user_id)
+        logger.info(f"User settings: difficulty={user_settings['difficulty']}, filter={user_settings['content_filter']}")
+
         # Increment turn number
         current_turn = db_session.current_turn + 1
         logger.info(f"Turn number: {current_turn}")
@@ -109,10 +113,11 @@ class TurnOrchestrator:
             cards_data = self.mechanics_manager.draw_cards_for_turn()
             logger.debug(f"Cards drawn: {cards_data['pairs']}")
             
-            thresholds = self.mechanics_manager.calculate_thresholds(session_id)
-            logger.debug(f"Thresholds calculated: {list(thresholds.keys())}")
+            difficulty = user_settings.get("difficulty", "normal")
+            thresholds = self.mechanics_manager.calculate_thresholds(session_id, difficulty)
+            logger.debug(f"Thresholds calculated: {list(thresholds.keys())} (difficulty={difficulty})")
             
-            checks = self.mechanics_manager.calculate_all_checks(session_id, cards_data)
+            checks = self.mechanics_manager.calculate_all_checks(session_id, cards_data, difficulty)
             logger.debug(f"Checks calculated: {len(checks)} checks")
             
             combat = self.mechanics_manager.calculate_all_combat_options(session_id, cards_data)
@@ -130,20 +135,35 @@ class TurnOrchestrator:
             }
             logger.info(f"Module data prepared with keys: {list(module_data.keys())}")
         
-        # Step 2: Build context
+        # Step 2: Build context (with world-specific prompts and user settings)
         context_messages = self.context_manager.build_context(
             session_id=session_id,
             current_turn=current_turn,
             active_quants=active_quants,
             system_prompt_parts=system_prompt_parts,
-            module_data=module_data
+            module_data=module_data,
+            world_id=db_session.world_id,
+            user_settings=user_settings
         )
         logger.debug(f"Context built with {len(context_messages)} messages")
         
         # Step 3: GM generates response
+        # Add reminder to user message (language, rules, etc.)
+        user_language = user_settings.get('language', 'Russian')
+        lang_map = {"ru": "Russian", "en": "English", "de": "German", "fr": "French",
+                    "es": "Spanish", "ja": "Japanese", "ko": "Korean", "zh": "Chinese"}
+        user_language = lang_map.get(user_language, user_language)
+
+        gm_reminder = (
+            f"\n\n[Respond in {user_language}. Use cards when needed. "
+            f"Track stats. NPCs only know what was explicitly shared with them. "
+            f"Don't make decisions for player's character - describe world's reaction and pass the turn.]"
+        )
+        user_message_with_reminder = user_message + gm_reminder
+
         gm_response = await self.gm_agent.generate_response(
             context_messages=context_messages,
-            user_message=user_message,
+            user_message=user_message_with_reminder,
             max_tokens=settings.gm_max_tokens
         )
         
@@ -197,18 +217,38 @@ class TurnOrchestrator:
         )
         
         # Step 5: Check if background processing is needed
-        # Trigger when raw turns reach max (7), not by turn number
         recent_turns_count = len(self.db.get_recent_turns(session_id, limit=settings.raw_turns_max + 1))
-        should_process_memory = (recent_turns_count >= settings.raw_turns_max)
-        
-        if should_process_memory:
-            logger.info(f"Triggering background memory processing ({recent_turns_count} raw turns)")
+
+        # Quantizer: run every N turns (starting from turn 3)
+        should_run_quantizer = (
+            current_turn >= settings.quantizer_trigger_turns and
+            current_turn % settings.quantizer_trigger_turns == 0
+        )
+
+        # Summarizer: run when raw turns reach max
+        should_run_summarizer = (recent_turns_count >= settings.raw_turns_max)
+
+        if should_run_quantizer or should_run_summarizer:
+            # Get user language from settings (already loaded above)
+            lang_code = user_settings.get('language', 'ru')
+            lang_map = {"ru": "Russian", "en": "English", "de": "German", "fr": "French",
+                        "es": "Spanish", "ja": "Japanese", "ko": "Korean", "zh": "Chinese"}
+            user_language = lang_map.get(lang_code, lang_code.capitalize())
+
+            logger.info(
+                f"Triggering background processing: "
+                f"quantizer={should_run_quantizer} (turn {current_turn}), "
+                f"summarizer={should_run_summarizer} ({recent_turns_count} raw turns)"
+            )
             # Run in background (non-blocking) - user gets response immediately
             asyncio.create_task(
                 self._background_memory_processing(
                     session_id=session_id,
                     current_turn=current_turn,
-                    active_quants=active_quants
+                    active_quants=active_quants,
+                    run_quantizer=should_run_quantizer,
+                    user_language=user_language,
+                    run_summarizer=should_run_summarizer
                 )
             )
         
@@ -239,14 +279,26 @@ class TurnOrchestrator:
         recent_turns = self.db.get_recent_turns(session_id, limit=1)
         
         if not recent_turns or not recent_turns[0].requested_quants:
-            # No quants requested on previous turn - return empty list
-            # (GM will work with summary and recent turns only)
-            logger.info("No quants requested on previous turn")
-            return []
+            # No quants requested on previous turn
+            # Return character + recent quants as fallback (minimum context)
+            logger.warning("No quants requested on previous turn - using fallback (character + recent)")
+            
+            # Get character quant (always important)
+            all_quants = self.memory_manager.get_all_quants(session_id)
+            fallback_quants = [q for q in all_quants if q.type == "npc" and "пол" in q.id.lower()]
+            
+            # Add most recently updated quants (up to 10 total)
+            recent_quants = sorted(all_quants, key=lambda q: q.updated_at, reverse=True)[:10]
+            for q in recent_quants:
+                if q not in fallback_quants:
+                    fallback_quants.append(q)
+            
+            logger.info(f"Fallback: returning {len(fallback_quants)} quants: {[q.id for q in fallback_quants]}")
+            return fallback_quants
         
         # Get requested quants
         requested_names = recent_turns[0].requested_quants
-        logger.info(f"Retrieving {len(requested_names)} requested quants")
+        logger.info(f"Retrieving {len(requested_names)} requested quants: {requested_names}")
         
         # Retrieve from memory with fuzzy matching
         quants = self.memory_manager.get_quants_by_names(
@@ -255,6 +307,17 @@ class TurnOrchestrator:
             fuzzy=True
         )
         
+        # Fallback: if NO quants found (e.g. GM requested non-existent quants)
+        if not quants:
+            logger.warning(f"NO quants found for requested names! Providing fallback context.")
+            all_quants = self.memory_manager.get_all_quants(session_id)
+            
+            # Return most recently updated quants (up to 10)
+            fallback_quants = sorted(all_quants, key=lambda q: q.updated_at or q.created_at or 0, reverse=True)[:10]
+            logger.info(f"Fallback: returning {len(fallback_quants)} quants: {[q.id for q in fallback_quants]}")
+            return fallback_quants
+        
+        logger.info(f"Found {len(quants)} quants: {[q.id for q in quants]}")
         return quants
     
     async def _translate_turn(
@@ -279,22 +342,26 @@ class TurnOrchestrator:
             )
             
             if translated_json:
-                # Save to database
-                import json
-                json_str = json.dumps(translated_json, ensure_ascii=False)
-                self.db.update_turn_translation(session_id, turn_number, json_str)
+                # Extract content and cost
+                content = translated_json.get('content', '')
+                translator_cost = translated_json.get('cost', 0.0)
                 
-                # Extract cost if available
-                translator_cost = translated_json.get('cost', 0.0) if isinstance(translated_json, dict) else 0.0
-                if translator_cost > 0:
-                    self.db.update_turn_costs(
-                        session_id=session_id,
-                        turn_number=turn_number,
-                        cost_translator=translator_cost
-                    )
-                    logger.info(f"Translator: turn {turn_number} translated, cost ${translator_cost:.6f}")
+                if content:
+                    # Save RAW text to database (no JSON parsing!)
+                    self.db.update_turn_translation(session_id, turn_number, content)
+
+                    # Save cost
+                    if translator_cost > 0:
+                        self.db.update_turn_costs(
+                            session_id=session_id,
+                            turn_number=turn_number,
+                            cost_translator=translator_cost
+                        )
+                        logger.info(f"Translator: turn {turn_number} translated, cost ${translator_cost:.6f}")
+                    else:
+                        logger.info(f"Translator: turn {turn_number} translated and saved")
                 else:
-                    logger.info(f"Translator: turn {turn_number} translated and saved")
+                    logger.warning(f"Translator: empty content for turn {turn_number}")
             else:
                 logger.warning(f"Translator: failed to translate turn {turn_number}")
                 
@@ -305,31 +372,46 @@ class TurnOrchestrator:
         self,
         session_id: int,
         current_turn: int,
-        active_quants: List[Any]
+        active_quants: List[Any],
+        run_quantizer: bool = True,
+        run_summarizer: bool = True,
+        user_language: str = "Russian"
     ):
         """
         Background processing: Quantizer and Summarizer.
         Runs asynchronously while user reads response.
         After completion, trims raw turns window to keep only recent ones.
+
+        Args:
+            session_id: Session ID
+            current_turn: Current turn number
+            active_quants: Currently active quants
+            run_quantizer: Whether to run Quantizer
+            run_summarizer: Whether to run Summarizer
+            user_language: User's language for Quantizer
         """
         try:
-            logger.info("Starting background memory processing")
-            
-            # Run Quantizer and Summarizer in parallel
-            await asyncio.gather(
-                self._run_quantizer(session_id, current_turn, active_quants),
-                self._run_summarizer(session_id),
-                return_exceptions=True
-            )
-            
-            # After summarization, trim old turns (keep last 4)
-            deleted_count = self.db.trim_old_turns(
-                session_id=session_id,
-                keep_last_n=settings.raw_turns_keep
-            )
-            
-            if deleted_count > 0:
-                logger.info(f"Trimmed {deleted_count} old turns, keeping last {settings.raw_turns_keep}")
+            logger.info(f"Starting background processing (quantizer={run_quantizer}, summarizer={run_summarizer})")
+
+            # Build list of tasks to run
+            tasks = []
+            if run_quantizer:
+                tasks.append(self._run_quantizer(session_id, current_turn, active_quants, user_language))
+            if run_summarizer:
+                tasks.append(self._run_summarizer(session_id))
+
+            if tasks:
+                await asyncio.gather(*tasks, return_exceptions=True)
+
+            # After summarization, trim old turns (keep last N)
+            if run_summarizer:
+                deleted_count = self.db.trim_old_turns(
+                    session_id=session_id,
+                    keep_last_n=settings.raw_turns_keep
+                )
+
+                if deleted_count > 0:
+                    logger.info(f"Trimmed {deleted_count} old turns, keeping last {settings.raw_turns_keep}")
             
             logger.info("Background memory processing completed")
         
@@ -340,30 +422,54 @@ class TurnOrchestrator:
         self,
         session_id: int,
         current_turn: int,
-        active_quants: List[Any]
+        active_quants: List[Any],
+        user_language: str = "Russian"
     ):
         """Run Quantizer agent."""
         try:
-            logger.info("Running Quantizer agent")
+            logger.info(f"Running Quantizer agent (language={user_language})")
+
+            # Get session to determine world_id
+            session = self.db.get_session_by_id(session_id)
+            world_id = session.world_id if session else None
             
             # Get context for quantizer
             summary_text = self.context_manager._get_summary(session_id)
+            
+            # Get synopsis list (for navigation)
+            synopsis_list = self.memory_manager.get_recent_quants_synopsis(session_id, current_turn)
+            logger.info(f"Quantizer: synopsis list has {len(synopsis_list)} chars")
+            
+            # Get recent turns (prefer translated English text)
             recent_turns_db = self.db.get_recent_turns(session_id, limit=20)
-            recent_turns = [
-                {
+            recent_turns = []
+            for t in reversed(recent_turns_db):
+                if t.translated_json:
+                    # Use RAW translated text (JSON-like structure, no parsing!)
+                    # LLM understands it even with syntax errors
+                    recent_turns.append({
+                        "user_message": f"Turn {t.turn_number}:",
+                        "agent_reply": t.translated_json  # RAW text, no parsing
+                    })
+                else:
+                    # No translation - use raw Russian
+                    recent_turns.append({
                     "user_message": t.user_message,
                     "agent_reply": t.agent_reply
-                }
-                for t in reversed(recent_turns_db)
-            ]
+                    })
             
-            # Run quantizer
+            logger.info(f"Quantizer: {len(recent_turns)} turns in context")
+            
+            # Run quantizer with world_id and user language
             commands = await self.quantizer_agent.process_memory_updates(
                 session_id=session_id,
                 summary_text=summary_text,
                 recent_turns=recent_turns,
                 active_quants=active_quants,
-                current_turn=current_turn
+                synopsis_list=synopsis_list,
+                current_turn=current_turn,
+                world_id=world_id,
+                language=user_language
             )
             
             if commands:
@@ -478,6 +584,17 @@ class TurnOrchestrator:
                     mode="rewrite"
                 )
                 
+                # Delete all old summaries before saving compressed one
+                old_summaries = self.db.get_all_summaries(session_id)
+                for old_summary in old_summaries:
+                    from core.database.models import SummaryDB
+                    with self.db.get_session() as db_session:
+                        summary_obj = db_session.query(SummaryDB).filter_by(id=old_summary.id).first()
+                        if summary_obj:
+                            db_session.delete(summary_obj)
+                            db_session.commit()
+                    logger.info(f"Deleted old summary (turns {old_summary.turns_start}-{old_summary.turns_end}) before rewrite")
+                
                 # Save as full rewrite
                 if turns_data:
                     self.db.create_summary(
@@ -526,7 +643,20 @@ class TurnOrchestrator:
                     mode="append"
                 )
                 
-                # Save summary
+                # Delete old summaries before saving new one
+                # Since append mode returns FULL cumulative summary,
+                # we only need the latest one
+                old_summaries = self.db.get_all_summaries(session_id)
+                for old_summary in old_summaries:
+                    from core.database.models import SummaryDB
+                    with self.db.get_session() as db_session:
+                        summary_obj = db_session.query(SummaryDB).filter_by(id=old_summary.id).first()
+                        if summary_obj:
+                            db_session.delete(summary_obj)
+                            db_session.commit()
+                    logger.info(f"Deleted old summary (turns {old_summary.turns_start}-{old_summary.turns_end})")
+                
+                # Save new summary
                 if turns_data:
                     self.db.create_summary(
                         session_id=session_id,

@@ -35,25 +35,29 @@ class ContextManager:
         current_turn: int,
         active_quants: List[Quant],
         system_prompt_parts: Optional[Dict[str, str]] = None,
-        module_data: Optional[Dict[str, Any]] = None
+        module_data: Optional[Dict[str, Any]] = None,
+        world_id: Optional[str] = None,
+        user_settings: Optional[Dict[str, str]] = None
     ) -> List[Dict[str, str]]:
         """
         Build complete context for agent turn.
-        
+
         Args:
             session_id: Session ID
             current_turn: Current turn number
             active_quants: Activated quants for this turn
             system_prompt_parts: Modular system prompt components
             module_data: Optional data from modules (game rules, emotions, etc.)
-        
+            world_id: Optional world ID for world-specific prompts
+            user_settings: User preferences (language, content_filter, difficulty)
+
         Returns:
             List of messages for LLM
         """
         messages = []
-        
+
         # 1. System prompt
-        system_prompt = self._build_system_prompt(system_prompt_parts, module_data)
+        system_prompt = self._build_system_prompt(system_prompt_parts, module_data, world_id, user_settings)
         messages.append({
             "role": "system",
             "content": system_prompt
@@ -113,11 +117,13 @@ class ContextManager:
     def _build_system_prompt(
         self,
         parts: Optional[Dict[str, str]],
-        module_data: Optional[Dict[str, Any]]
+        module_data: Optional[Dict[str, Any]],
+        world_id: Optional[str] = None,
+        user_settings: Optional[Dict[str, str]] = None
     ) -> str:
         """
         Build modular system prompt.
-        
+
         Parts can include:
         - base: Core agent role
         - setting: World/game setting
@@ -127,9 +133,9 @@ class ContextManager:
         """
         if not parts:
             parts = {}
-        
-        # Default base prompt
-        base = parts.get("base", self._default_base_prompt())
+
+        # Default base prompt (with user settings for language and content filter)
+        base = parts.get("base", self._default_base_prompt(world_id, user_settings))
         
         prompt_sections = [base]
         
@@ -152,31 +158,48 @@ class ContextManager:
         
         return "\n\n".join(prompt_sections)
     
-    def _default_base_prompt(self) -> str:
-        """Default base system prompt for GM - loaded from file."""
-        try:
-            return get_prompt(PROMPT_GM)
-        except FileNotFoundError:
-            logger.warning("GM prompt file not found, using fallback")
-            # Fallback prompt
-            return """# Роль: Гейм-мастер
+    def _default_base_prompt(
+        self,
+        world_id: Optional[str] = None,
+        user_settings: Optional[Dict[str, str]] = None
+    ) -> str:
+        """Load world-specific GM system prompt with dynamic settings."""
+        # Extract settings
+        language = user_settings.get("language", "ru") if user_settings else "ru"
+        content_filter = user_settings.get("content_filter", "safe") if user_settings else "safe"
 
-Ты - гейм-мастер текстовой RPG.
-
-Ответ в формате JSON:
-{"reply": "текст", "quants": ["квант1", "квант2"]}
-"""
+        # ALWAYS use world-specific prompt
+        if not world_id:
+            logger.error("No world_id provided for GM prompt!")
+            raise ValueError("world_id is required for GM prompt")
+        
+        from core.config import world_manager
+        world_prompt = world_manager.get_gm_system_prompt(
+            world_id,
+            language=language,
+            content_filter=content_filter
+        )
+        
+        if not world_prompt:
+            logger.error(f"Failed to load GM prompt for world {world_id}")
+            raise FileNotFoundError(f"GM prompt not found for world {world_id}")
+        
+        logger.info(f"Loaded GM prompt for {world_id} (lang={language}, filter={content_filter})")
+        return world_prompt
     
     def _get_summary(self, session_id: int) -> str:
-        """Get combined summary text."""
-        summaries = self.db.get_all_summaries(session_id)
+        """
+        Get summary text.
         
-        if not summaries:
+        Since summarizer in append mode returns full cumulative summary,
+        we only need the LATEST summary (which already contains all history).
+        """
+        latest_summary = self.db.get_latest_summary(session_id)
+        
+        if not latest_summary:
             return ""
         
-        # Combine all summaries
-        summary_parts = [s.summary_text for s in summaries]
-        return "\n\n---\n\n".join(summary_parts)
+        return latest_summary.summary_text
     
     def _format_quants(self, quants: List[Quant]) -> str:
         """Format quants for context."""
@@ -186,18 +209,18 @@ class ContextManager:
         formatted = []
         for quant in quants:
             quant_str = f"## {settings.quant_marker}{quant.id}{settings.quant_marker}\n"
-            quant_str += f"**Тип:** {quant.type.value}\n\n"
+            quant_str += f"**Type:** {quant.type.value}\n\n"
             
             # Body
             if quant.body:
-                quant_str += "**Содержание:**\n"
+                quant_str += "**Content:**\n"
                 for key, value in quant.body.items():
                     quant_str += f"- {key}: {value}\n"
                 quant_str += "\n"
             
             # Links
             if quant.links:
-                quant_str += "**Связи:**\n"
+                quant_str += "**Links:**\n"
                 for link_id, relation in quant.links.items():
                     quant_str += f"- {settings.quant_marker}{link_id}{settings.quant_marker}: {relation}\n"
             
@@ -211,11 +234,9 @@ class ContextManager:
         current_turn: int
     ) -> List[Dict[str, str]]:
         """
-        Get recent turns (prefer translated JSON when available).
+        Get recent turns (prefer translated text when available).
         Returns RAW_TURNS_MIN to RAW_TURNS_MAX most recent turns.
         """
-        import json
-        
         # Get recent turns (up to max)
         turns = self.db.get_recent_turns(
             session_id,
@@ -225,40 +246,15 @@ class ContextManager:
         # Reverse to chronological order
         turns.reverse()
         
-        # Convert to dict format, using translated JSON when available
+        # Convert to dict format, using translated text when available
         result = []
         for turn in turns:
             if turn.translated_json:
-                try:
-                    # Parse translated JSON
-                    translated = json.loads(turn.translated_json)
-                    
-                    # Format as compact English context
-                    user_msg = f"Turn {translated.get('turn', '?')}: {translated.get('player', '')}"
-                    gm_msg = translated.get('gm_summary', '')
-                    
-                    # Add key info if present
-                    if translated.get('key_events'):
-                        gm_msg += f"\nEvents: {', '.join(translated['key_events'])}"
-                    if translated.get('changes'):
-                        changes = translated['changes']
-                        change_parts = []
-                        for k, v in changes.items():
-                            if v:
-                                change_parts.append(f"{k}:{v}")
-                        if change_parts:
-                            gm_msg += f"\nChanges: {', '.join(change_parts)}"
-                    
+                # Use RAW translated text (JSON-like structure, no parsing!)
+                # LLM understands it even with syntax errors - this is for token efficiency
                     result.append({
-                        "user_message": user_msg,
-                        "agent_reply": gm_msg
-                    })
-                except (json.JSONDecodeError, KeyError) as e:
-                    logger.warning(f"Failed to parse translated_json for turn {turn.turn_number}: {e}")
-                    # Fallback to raw
-                    result.append({
-                        "user_message": turn.user_message,
-                        "agent_reply": turn.agent_reply
+                    "user_message": f"Turn {turn.turn_number}:",
+                    "agent_reply": turn.translated_json  # RAW text, no JSON parsing
                     })
             else:
                 # No translation yet - use raw (Russian)
@@ -317,18 +313,18 @@ class ContextManager:
         """Format character creation data for GM context"""
         instructions = creation_data["instructions"]
         
-        return f"""# 🎲 Создание персонажа (система "Факториал 52!")
+        return f"""# 🎲 Character Creation (Factorial 52! system)
 
 {instructions}
 
 ---
 
-**Инструкция для ГМ:**
-1. Покажи игроку карты и объясни правила (текст выше)
-2. Дождись его выбора:
-   - Если хочет распределить сам - пусть скажет какую карту куда
-   - Если просит "оптимально" - распредели по совпадениям мастей
-3. После распределения верни в `response_data`:
+**GM Instructions:**
+1. Show player the cards and explain rules (text above - in player's language)
+2. Wait for player's choice:
+   - If wants to assign manually - let them say which card to which stat
+   - If asks "optimal" - assign by suit matches
+3. After assignment, return in `response_data`:
 
 ```json
 {{
@@ -342,15 +338,15 @@ class ContextManager:
 }}
 ```
 
-**Расчет характеристик:**
-- Значение = номинал карты × 5
-- Если масть карты = масть характеристики, добавь +10
+**Stat calculation:**
+- Value = card rank × 5
+- If card suit = stat suit, add +10
 
-**Пример:**
-Карта 7♠ на Силу (♠): 7×5 + 10 = 45
-Карта 7♠ на Магию (♥): 7×5 + 0 = 35
+**Example:**
+Card 7♠ to Strength (♠): 7×5 + 10 = 45
+Card 7♠ to Magic (♥): 7×5 + 0 = 35
 
-**НЕ запрашивай кванты "Character" или "Inventory"** - это теперь отдельная система!
+**DO NOT request "Character" or "Inventory" quants** - they are in game mechanics now!
 """
     
     def _format_mechanics(self, module_data: Dict[str, Any]) -> str:
@@ -367,12 +363,12 @@ class ContextManager:
         pairs_str = []
         for pair in cards["pairs"]:
             cards_str = " + ".join(pair["cards"])
-            pairs_str.append(f"Пара {pair['pair']}: {cards_str}")
+            pairs_str.append(f"Pair {pair['pair']}: {cards_str}")
         
         # Format special events
         special_events_str = ""
         if cards["special_events"]:
-            special_events_str = "\n🎴 **Особые события (только вне боя):**\n" + "\n".join([f"- {event}" for event in cards["special_events"]])
+            special_events_str = "\n🎴 **Special events (peaceful time only):**\n" + "\n".join([f"- {event}" for event in cards["special_events"]])
         
         # Format inventory (compact)
         inventory_str = ""
@@ -381,21 +377,24 @@ class ContextManager:
             not_equipped = [item["id"] for item in char["inventory"] if not item.get("equipped")]
             inventory_lines = []
             if equipped:
-                inventory_lines.append(f"✅ Надето: {', '.join(equipped)}")
+                inventory_lines.append(f"Equipped: {', '.join(equipped)}")
             if not_equipped:
-                inventory_lines.append(f"📦 В сумке: {', '.join(not_equipped)}")
+                inventory_lines.append(f"Bag: {', '.join(not_equipped)}")
             inventory_str = "\n".join(inventory_lines)
         else:
-            inventory_str = "Пусто"
+            inventory_str = "Empty"
+
+        # Format thresholds ONCE (same for all suits - based on average stat)
+        # Get thresholds from any suit (they're all the same)
+        any_suit_thresholds = thresholds["spades"]
+        thresholds_str = f"Easy {any_suit_thresholds['easy']} | Normal {any_suit_thresholds['normal']} | Hard {any_suit_thresholds['hard']} | Very Hard {any_suit_thresholds['very_hard']}"
         
-        # Format checks with FULL BREAKDOWN from pair 1
+        # Format checks with FULL BREAKDOWN from pair 1 (no thresholds per line)
         pair1_checks = checks["pair_1"]
         checks_str = []
         for suit in ["spades", "hearts", "diamonds", "clubs"]:
             check = pair1_checks[suit]
             total = check["total"]
-            easy_thresh = thresholds[suit]["easy"]
-            hard_thresh = thresholds[suit]["hard"]
             suit_icon = {"spades": "♠", "hearts": "♥", "diamonds": "♦", "clubs": "♣"}[suit]
             
             # Show breakdown: card1 + card2 + stat
@@ -407,9 +406,9 @@ class ContextManager:
             
             card1_str = f"{card1_base}+{card1_bonus}" if card1_bonus > 0 else str(card1_base)
             card2_str = f"{card2_base}+{card2_bonus}" if card2_bonus > 0 else str(card2_base)
-            breakdown = f"({card1_str} + {card2_str} + {stat} стат)"
+            breakdown = f"({card1_str} + {card2_str} + {stat} stat)"
             
-            checks_str.append(f"{suit_icon}: {total} {breakdown} → легко {easy_thresh}, сложно {hard_thresh}")
+            checks_str.append(f"{suit_icon}: {total} {breakdown}")
         
         # Format combat (show only best options from pair 1)
         pair1_combat = combat["pair_1"]
@@ -423,43 +422,36 @@ class ContextManager:
 ## Character
 **HP**: {char['hp']}/{char['max_hp']} | **Mana**: {char['mana']}/{char['max_mana']} | **Gold**: {char['gold']}
 
-**Stats** (average: {char['average']}):
-♠ Strength: {char['spades']} | ♥ Magic: {char['hearts']} | ♦ Stamina: {char['diamonds']} | ♣ Agility: {char['clubs']}
+**Stats** (avg: {char['average']}):
+♠ STR: {char['spades']} | ♥ MAG: {char['hearts']} | ♦ STA: {char['diamonds']} | ♣ AGI: {char['clubs']}
 
-## 🎴 Cards (player DOESN'T see them, drawn randomly)
+## 🎴 Cards (hidden from player)
 {chr(10).join(pairs_str)}{special_events_str}
 
-## 🎯 Pre-calculated Checks (pair 1)
+## 🎯 Checks (pair 1)
+**Thresholds:** {thresholds_str}
 {chr(10).join(checks_str)}
 
-## ⚔️ Pre-calculated Combat (pair 1)
+## ⚔️ Combat (pair 1)
 Attack: melee {melee_total} | ranged {ranged_total}
 Defense: physical {phys_def_total} | magical {magic_def_total}
-Combo: available (uses same cards)
 
 ## 🎒 Inventory ({len(char['inventory'])}/20)
 {inventory_str}
 
 ---
 **Instructions:**
-1. All calculations ALREADY DONE - just pick appropriate result
+1. Calculations DONE - pick appropriate result
 2. Describe action narratively using ready values
-3. In `response_data` specify changes and which checks were used:
+3. In `response_data` specify changes:
 ```json
 {{
   "checks_used": [{{"suit": "spades", "success": true}}],
-  "hp": -15,
-  "mana": -10,
-  "gold": 100,
-  "inventory": {{
-    "add": [{{"id": "Меч", "type": "weapon", "suit": "♠", "bonus": 25, "description": "..."}}],
-    "remove": ["Старый_меч"]
-  }},
-  "equip": ["Меч"]
+  "hp": -15, "mana": -10, "gold": 100,
+  "inventory": {{"add": [...], "remove": ["id"]}}
 }}
 ```
-4. Special events (face cards) use ONLY in peaceful time
-5. In combat face cards NOT counted
+4. Special events ONLY in peaceful time, NOT in combat
 """
         
         # Log the formatted mechanics for debugging

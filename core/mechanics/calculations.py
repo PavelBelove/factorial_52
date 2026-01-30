@@ -10,32 +10,47 @@ from .models import Card, Character, Suit
 # THRESHOLDS
 # =============================================================================
 
-def calculate_thresholds(character: Character) -> Dict[str, any]:
+# Difficulty presets: (easy, normal, hard, very_hard)
+DIFFICULTY_PRESETS = {
+    "easy": (100, 140, 180, 220),      # Easier thresholds, step 40
+    "normal": (100, 150, 200, 250),    # Default thresholds, step 50
+    "hard": (140, 180, 220, 260),      # Harder thresholds, step 40
+}
+
+
+def calculate_thresholds(character: Character, difficulty: str = "normal") -> Dict[str, any]:
     """
     Calculate difficulty thresholds for all suits.
-    
+
     Formula:
-    - Easy: 100 + stat
-    - Normal: 150 + stat
-    - Hard: 200 + stat
-    - Very Hard: 250 + stat
-    
+    - Threshold = Base + Average_Stat (NOT the specific stat!)
+    - This makes specialized characters better at their specialty
+
+    Args:
+        character: The character
+        difficulty: "easy", "normal", or "hard" - affects base thresholds
+
     Returns:
         Dict with average and thresholds for each suit
     """
     average = character.average_stat
-    
-    result = {"average": average}
-    
+
+    # Get difficulty preset
+    preset = DIFFICULTY_PRESETS.get(difficulty, DIFFICULTY_PRESETS["normal"])
+    base_easy, base_normal, base_hard, base_very_hard = preset
+
+    result = {"average": average, "difficulty": difficulty}
+
     for suit in Suit:
-        stat = character.get_total_stat(suit)
+        # Thresholds use AVERAGE stat, not specific stat
+        # This way specialized characters have advantage in their area
         result[suit.name.lower()] = {
-            "easy": 100 + stat,
-            "normal": 150 + stat,
-            "hard": 200 + stat,
-            "very_hard": 250 + stat
+            "easy": base_easy + average,
+            "normal": base_normal + average,
+            "hard": base_hard + average,
+            "very_hard": base_very_hard + average
         }
-    
+
     return result
 
 
@@ -301,7 +316,7 @@ def calculate_all_combat_options(
         if both_red:
             for combo_name in combos:
                 combos[combo_name]["attack_failed"] = True
-                combos[combo_name]["reason"] = "Обе карты красные - атака провалена"
+                combos[combo_name]["reason"] = "Both cards red - attack failed"
         
         results[pair_key] = {
             "cards": [str(card) for card in pair],
@@ -323,39 +338,39 @@ def calculate_all_combat_options(
 def detect_special_events(cards: List[Card]) -> List[str]:
     """
     Detect special events from cards.
-    
+
     Only applies in PEACEFUL time, only for PLAYER.
-    
+
     Special events:
     - Jack: Unexpected plot twist or NPC appearance
     - Queen: Female character/energy influence
     - King: Male character/energy influence
     - Two Aces: Divine success
     - Two Twos: Catastrophe
-    
+
     Args:
         cards: List of all cards drawn this turn
-        
+
     Returns:
         List of special event messages
     """
     events = []
-    
+
     # Check for faces
     for card in cards:
         if card.face_meaning:
             events.append(f"{card}: {card.face_meaning}")
-    
+
     # Check for double aces
     aces = [card for card in cards if card.rank == 15]
     if len(aces) >= 2:
-        events.append("⚡ Два туза: Божественный успех!")
-    
+        events.append("⚡ Two Aces: Divine success!")
+
     # Check for double twos
     twos = [card for card in cards if card.rank == 2]
     if len(twos) >= 2:
-        events.append("💀 Две двойки: Катастрофа!")
-    
+        events.append("💀 Two Twos: Catastrophe!")
+
     return events
 
 

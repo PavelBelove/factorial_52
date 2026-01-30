@@ -1,0 +1,22 @@
+{
+  "id": "isekai",
+  "name": {
+    "ru": "Иной Мир",
+    "en": "Another World"
+  },
+  "description": {
+    "ru": "Магия реальна, боги ходят среди смертных, а прошлая жизнь — лишь воспоминание. Новый мир не ждал героя. Он ждал того, кто выживет.",
+    "en": "Magic is real, gods walk among mortals, and your past life is just memory. The new world didn't wait for a hero. It waited for someone who'd survive."
+  },
+  "icon": "🗡️",
+  "enabled": true,
+  "has_content": true,
+  "features": {
+    "isekai_journey": true,
+    "magic_discovery": true,
+    "adventurer_life": true,
+    "gods_and_monsters": true,
+    "second_chance": true
+  },
+  "tags": ["isekai", "fantasy", "adventure", "magic", "reincarnation"]
+}

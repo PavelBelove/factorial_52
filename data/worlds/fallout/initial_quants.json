@@ -1,0 +1,581 @@
+[
+  {
+    "id": "CharacterCreation",
+    "type": "meta",
+    "synopsis": "special instructions for character creation phase, uses =Карточная_Система= to generate stats for wasteland survivor",
+    "body": {
+      "role": "SPECIAL QUANT FOR CHARACTER CREATION",
+      "priority": "CRITICAL - if you see this quant, character creation process is priority",
+      "instruction_for_gm": "You see this quant ONLY during character creation.\n\n**WHAT TO DO:**\n1. System draws 5 cards for stat distribution (see =Значение_Карт=)\n2. Explain distribution rules from =Характеристики=\n3. Player distributes 4 best cards (worst discarded) to 4 stats\n4. Value = rank × 5 (+10 if suit matches characteristic)\n5. Ask about: origin (Vault dweller, wastelander, settler, caravan), background, unique trait\n6. Return final stats in response_data\n\n**AFTER CREATION:**\n- DON'T request this quant again\n- Request =Пустошь=, =Фракции=, =Технологии_Пустоши= as needed",
+      "instruction_for_quantizer": "DON'T create 'Character' or 'Inventory' quants - they are in game mechanics!\n\nInstead create quants for:\n1. UNIQUE character abilities (e.g., 'Мутация', 'Навык_Выживания')\n2. Important backstory elements (e.g., 'Убежище_101', 'Месть_за_Семью')\n3. Special equipment or contacts"
+    },
+    "links": {
+      "Карточная_Система": "uses for stat generation",
+      "Характеристики": "distributes cards to these 4 stats",
+      "Пустошь": "world setting"
+    },
+    "is_game": false
+  },
+  {
+    "id": "Карточная_Система",
+    "type": "concept",
+    "synopsis": "core card-based RPG system 'Factorial 52!', uses standard 52-card deck for all checks and combat via =Проверки= and =Боевая_Система=",
+    "body": {
+      "description": "Card-based tabletop RPG system. All actions resolved by drawing cards. No dice needed - only standard 52-card deck.",
+      "core_principle": "Cards are drawn BEFORE player declares action. GM sees results and uses them for narrative. Player describes intent, GM interprets based on drawn cards.",
+      "card_drawing": "Always draw 2 cards as a pair. Bot draws 2 pairs (4 cards) per turn for flexibility.",
+      "key_mechanics": [
+        "Card value = rank × 10",
+        "Suit/color bonuses add +10 or +20",
+        "Character stat adds to total",
+        "Compare vs threshold for success"
+      ],
+      "wasteland_context": "In the wasteland, checks involve: firefights, surviving radiation, scavenging ruins, dealing with factions, trading, and fighting mutants."
+    },
+    "links": {
+      "Значение_Карт": "card rank values and face card meanings",
+      "Система_Мастей": "four suits tied to characteristics",
+      "Проверки": "out-of-combat skill checks",
+      "Боевая_Система": "combat resolution",
+      "Особые_События": "special results from aces, twos, face cards"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Значение_Карт",
+    "type": "concept",
+    "synopsis": "card rank values: 2-10 face value, J=11, Q=12, K=13, A=15; face cards add narrative elements via =Особые_События=",
+    "body": {
+      "rank_values": {
+        "2-10": "face value",
+        "Jack": "11 (also triggers: wanderer appears, raider scout, mysterious stranger)",
+        "Queen": "12 (also triggers: female settler leader, Brotherhood scribe, caravan master)",
+        "King": "13 (also triggers: faction leader, Brotherhood paladin, settlement boss)",
+        "Ace": "15 (highest value, double aces = miraculous survival)"
+      },
+      "value_calculation": {
+        "checks": "rank × 10",
+        "character_creation": "rank × 5",
+        "items": "rank × 5"
+      },
+      "narrative_use": "Face cards can introduce faction representatives, traders, or threats. Use for storytelling enrichment.",
+      "critical_combinations": {
+        "two_aces": "Miraculous find, perfect shot, impossible survival, wasteland legend moment",
+        "two_twos": "Catastrophe, weapon jam, radiation spike, ambush, everything goes wrong"
+      }
+    },
+    "links": {
+      "Карточная_Система": "part of core card system",
+      "Проверки": "values used in skill checks",
+      "Боевая_Система": "values used in combat",
+      "Особые_События": "face cards and critical combos trigger special events"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Система_Мастей",
+    "type": "concept",
+    "synopsis": "four card suits map to =Характеристики=: ♠Spades=Strength, ♥Hearts=Science, ♦Diamonds=Survival, ♣Clubs=Agility",
+    "body": {
+      "suit_mapping": {
+        "spades": {
+          "symbol": "♠",
+          "color": "black",
+          "characteristic": "Сила (Strength)",
+          "wasteland_use": "melee combat, carrying capacity, physical labor, intimidation"
+        },
+        "hearts": {
+          "symbol": "♥",
+          "color": "red",
+          "characteristic": "Наука (Science)",
+          "wasteland_use": "repair, hacking terminals, medicine, understanding pre-war tech"
+        },
+        "diamonds": {
+          "symbol": "♦",
+          "color": "red",
+          "characteristic": "Выживание (Survival)",
+          "wasteland_use": "scavenging, trading, radiation resistance, social interaction"
+        },
+        "clubs": {
+          "symbol": "♣",
+          "color": "black",
+          "characteristic": "Ловкость (Agility)",
+          "wasteland_use": "shooting, sneaking, lockpicking, quick reactions"
+        }
+      },
+      "color_meaning": {
+        "black": "♠♣ - active/combat actions (Strength, Agility)",
+        "red": "♥♦ - knowledge/survival actions (Science, Survival)"
+      }
+    },
+    "links": {
+      "Характеристики": "each suit corresponds to one characteristic",
+      "Боевая_Система": "suit determines action type in combat",
+      "Бонусы_Мастей": "suit/color matching gives bonuses"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Характеристики",
+    "type": "concept",
+    "synopsis": "four character stats from =Система_Мастей=: Сила(♠), Наука(♥), Выживание(♦), Ловкость(♣); used in =Проверки= and =Боевая_Система=",
+    "body": {
+      "stats": {
+        "spades_strength": {
+          "name": "Сила (Strength)",
+          "suit": "♠ Spades",
+          "applications": ["melee combat", "carrying capacity", "breaking obstacles", "intimidation", "using heavy weapons"]
+        },
+        "hearts_science": {
+          "name": "Наука (Science)",
+          "suit": "♥ Hearts",
+          "applications": ["repairing equipment", "hacking terminals", "crafting", "medicine", "understanding pre-war technology"]
+        },
+        "diamonds_survival": {
+          "name": "Выживание (Survival)",
+          "suit": "♦ Diamonds",
+          "applications": ["scavenging", "trading", "cooking", "radiation resistance", "social interaction", "tracking"]
+        },
+        "clubs_agility": {
+          "name": "Ловкость (Agility)",
+          "suit": "♣ Clubs",
+          "applications": ["shooting", "sneaking", "lockpicking", "dodging", "pickpocketing", "quick reactions"]
+        }
+      },
+      "starting_values": "Typically 25-85 range. Card rank × 5 (+10 if suit matches).",
+      "hp_formula": {
+        "max_hp": "Strength + Survival + Agility",
+        "radiation_threshold": "Survival × 2 (rads before sickness)"
+      }
+    },
+    "links": {
+      "Система_Мастей": "stats correspond to card suits",
+      "Проверки": "stats add to check totals",
+      "Радиация": "Survival affects radiation resistance"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Проверки",
+    "type": "concept",
+    "synopsis": "out-of-combat skill checks using =Карточная_Система=: 2 cards × 10 + stat + =Бонусы_Мастей= vs difficulty threshold",
+    "body": {
+      "when_to_check": "When outcome is uncertain. Walking through safe settlement auto-succeeds. Sneaking past raiders, picking locks, trading require checks.",
+      "formula": {
+        "step1": "Draw 2 cards",
+        "step2": "Each card: rank × 10",
+        "step3": "Add suit/color bonus per card (+20 suit match, +10 color match)",
+        "step4": "Add relevant characteristic value",
+        "step5": "Compare total vs difficulty threshold"
+      },
+      "difficulty_thresholds": {
+        "easy": "100 + average_stat (simple repair, friendly trade)",
+        "normal": "150 + average_stat (standard lock, cautious trader)",
+        "hard": "200 + average_stat (master lock, hostile negotiation)",
+        "very_hard": "250 + average_stat (pre-war vault tech, faction leader)"
+      },
+      "wasteland_examples": {
+        "picking_lock": "Agility check, varies by lock level",
+        "repairing_weapon": "Science check, normal difficulty",
+        "trading_with_merchant": "Survival check, normal difficulty",
+        "intimidating_raider": "Strength check, normal difficulty"
+      }
+    },
+    "links": {
+      "Карточная_Система": "uses card drawing mechanic",
+      "Характеристики": "stat adds to total",
+      "Развитие_Персонажа": "successful checks grant XP"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Боевая_Система",
+    "type": "concept",
+    "synopsis": "combat resolution via =Карточная_Система=: black cards(♠♣)=attack, red cards(♥♦)=defense; damage = attack - defense",
+    "body": {
+      "combat_context": "Wasteland combat is fast and deadly. Ammo is precious - every shot counts.",
+      "combat_flow": {
+        "step1": "Cards dealt to all participants (2 per entity)",
+        "step2": "Declare action WITHOUT knowing cards",
+        "step3": "Cards revealed, GM narrates with wasteland brutality"
+      },
+      "attack_types": {
+        "melee": "Uses ♠ Strength - machetes, baseball bats, power fists, bare hands",
+        "ranged": "Uses ♣ Agility - pistols, rifles, laser weapons, shotguns"
+      },
+      "defense_types": {
+        "physical": "Uses ♦ Survival - cover, armor, tactical retreat",
+        "technical": "Uses ♥ Science - using environment, disabling enemy weapons"
+      },
+      "damage_formula": "Attack total - Defense total = Damage dealt",
+      "ammo_tracking": "Ammunition is limited! Track usage. Reloading in combat = vulnerability.",
+      "critical_hits": "Head, heart, limbs. Hitting weak points = increased damage."
+    },
+    "links": {
+      "Карточная_Система": "core combat mechanic",
+      "Технологии_Пустоши": "weapons and armor",
+      "Особые_События": "critical hits and fumbles"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Бонусы_Мастей",
+    "type": "concept",
+    "synopsis": "suit/color matching bonuses for =Проверки= and =Боевая_Система=: suit match +20, color match +10 (mutually exclusive)",
+    "body": {
+      "bonus_priority": "Suit match takes precedence over color match. Cannot stack both.",
+      "suit_match": "+20 bonus when card suit matches the action type",
+      "color_match": "+10 bonus when card color matches action type (but suit doesn't match)",
+      "wasteland_examples": {
+        "shooting": "♣ card gives +20, ♠ card gives +10, red cards give 0",
+        "repairing": "♥ card gives +20, ♦ card gives +10, black cards give 0"
+      }
+    },
+    "links": {
+      "Система_Мастей": "bonuses based on suit system",
+      "Проверки": "applies to skill checks",
+      "Боевая_Система": "applies to combat actions"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Особые_События",
+    "type": "concept",
+    "synopsis": "special card combinations for narrative: 2 Aces=miracle, 2 Twos=catastrophe, face cards=plot elements; uses =Значение_Карт=",
+    "body": {
+      "applies_to": "ONLY player characters, adds narrative flavor",
+      "critical_combinations": {
+        "two_aces": {
+          "name": "Miraculous Moment / Чудесный момент",
+          "effect": "Impossible survival, legendary find, perfect shot",
+          "wasteland_examples": [
+            "Find pristine pre-war cache",
+            "Survive point-blank explosion",
+            "One shot, three raiders down",
+            "Deathclaw decides you're not worth it"
+          ]
+        },
+        "two_twos": {
+          "name": "Total Disaster / Полная катастрофа",
+          "effect": "Everything goes wrong, worst possible outcome",
+          "wasteland_examples": [
+            "Weapon explodes in hands",
+            "Walk into radscorpion nest",
+            "Trader was actually raider scout",
+            "Ancient mine collapses"
+          ]
+        }
+      },
+      "face_cards": {
+        "jack": "Wanderer appears - mysterious stranger, scout, messenger",
+        "queen": "Female influence - settlement leader, scribe, caravan boss",
+        "king": "Male authority - faction elder, paladin, raider chief"
+      }
+    },
+    "links": {
+      "Значение_Карт": "based on specific card values",
+      "Карточная_Система": "special cases in card system"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Предметы",
+    "type": "concept",
+    "synopsis": "equipment tied to =Система_Мастей=: weapons, armor, chems, tools; bonus = rank × 5 (+10 suit match)",
+    "body": {
+      "item_mechanics": {
+        "suit_affinity": "Each item belongs to one suit",
+        "value_discovery": "Item condition and stats revealed through examination",
+        "equip_limit": "Can only use 1 item of each suit type actively"
+      },
+      "wasteland_item_types": {
+        "spades": "Melee weapons - machetes, sledgehammers, power fists, knives",
+        "hearts": "Tech items - Pip-Boy, repair kits, medical supplies, hacking tools",
+        "diamonds": "Armor and survival gear - leather armor, combat armor, rad suits",
+        "clubs": "Ranged weapons - pistols, rifles, shotguns, energy weapons"
+      },
+      "condition": "Items degrade with use. Broken weapon = useless. Repair or replace.",
+      "special_items": {
+        "power_armor": "Pre-war military exoskeleton. Rare, requires fusion cores.",
+        "pip_boy": "Personal computer. Maps, inventory, radio, Geiger counter. Vault dweller mark.",
+        "energy_weapons": "Lasers, plasma. Powerful but rare ammo and hard to repair."
+      }
+    },
+    "links": {
+      "Система_Мастей": "items tied to suit system",
+      "Характеристики": "bonuses add to stats",
+      "Технологии_Пустоши": "tech details"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Развитие_Персонажа",
+    "type": "concept",
+    "synopsis": "character progression via =Проверки= success: +1 XP per successful check, at 10 XP: +1 stat, +1 HP",
+    "body": {
+      "xp_gain": "Each successful check grants +1 XP to the characteristic used.",
+      "level_up": {
+        "trigger": "When any characteristic reaches 10 XP",
+        "rewards": ["+1 to that characteristic", "+1 to max HP", "XP resets to 0"]
+      },
+      "wasteland_progression": {
+        "reputation": "Deeds build reputation with factions and settlements",
+        "perks": "Special abilities unlocked through gameplay and story",
+        "equipment": "Better gear found or crafted as you explore"
+      },
+      "alternative_progression": "Completing major quests, special training, or finding rare tech can grant direct stat increases."
+    },
+    "links": {
+      "Проверки": "XP gained from successful checks",
+      "Характеристики": "stats that improve",
+      "Фракции": "reputation affects relations"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Пустошь",
+    "type": "concept",
+    "synopsis": "post-nuclear world: radiation, ruins, survival, new order; setting for all =Проверки= and encounters",
+    "body": {
+      "description": "The Great War destroyed the old world in two hours. Over two hundred years have passed. Radiation has receded from most places, but the world is changed forever.",
+      "geography": "Ruined cities, radioactive craters, deserts and dead forests. Rare oases of life around clean water sources.",
+      "law_of_wasteland": "Might makes right. But reputation and connections matter more than brute force. Loners don't survive long.",
+      "resources": "Water, food, ammo, medicine - everything is valuable. Old world left much junk and some treasures.",
+      "philosophy": "War never changes. But people can."
+    },
+    "links": {
+      "Фракции": "struggle for control",
+      "Мутанты_и_Твари": "inhabit the wasteland",
+      "Локации": "key locations"
+    },
+    "aliases": ["пустошь", "wasteland", "мир", "постапокалипсис"]
+  },
+  {
+    "id": "Фракции",
+    "type": "concept",
+    "synopsis": "major groups of wasteland: Brotherhood of Steel, traders, raiders, settlements; affects social =Проверки=",
+    "body": {
+      "description": "In wasteland chaos, people unite. Some for survival, some for power, some for ideology.",
+      "major_factions": {
+        "brotherhood_of_steel": "Military order collecting old world technology. Power armor, energy weapons, strict hierarchy. Not always friendly to outsiders.",
+        "traders_caravans": "Lifeblood of wasteland economy. Connect settlements, carry goods and news. Neutral but well-armed.",
+        "raiders": "Marauder gangs. Live by looting and violence. Different tribes with different customs - from relatively civilized to cannibals.",
+        "settlements": "Islands of order. Farmers, traders, craftsmen. Defend their walls and pay tribute to the strong.",
+        "enclave_remnants": "Fragments of old government. Technologically advanced, ideologically dangerous."
+      }
+    },
+    "links": {
+      "Пустошь": "struggle for control",
+      "Локации": "bases and territories"
+    },
+    "aliases": ["фракции", "группировки", "банды", "организации"]
+  },
+  {
+    "id": "Мутанты_и_Твари",
+    "type": "concept",
+    "synopsis": "wasteland creatures: ghouls, super mutants, mutated animals, anomalies; combat via =Боевая_Система=",
+    "body": {
+      "description": "Radiation and FEV (Forced Evolutionary Virus) changed life on Earth. Some changes are nightmare, some are chance for survival.",
+      "creatures": {
+        "ghouls": "Irradiated humans. Feral ghouls are mindless zombies. Sane ghouls are long-lived, often outcasts. Don't confuse them!",
+        "super_mutants": "FEV result. Huge, strong, often dumb. Some are intelligent and even friendly. Most are not.",
+        "deathclaws": "Apex predator of wasteland. Fast, deadly, nearly invulnerable. Running is best tactic.",
+        "radscorpions": "Giant scorpions. Venomous, aggressive, everywhere.",
+        "molerats": "Small but pack hunters. Problem for supplies more than health."
+      },
+      "anomalies": "Zones of distorted reality. Radiation pockets, gravity traps, electric fields. Avoid!"
+    },
+    "links": {
+      "Пустошь": "inhabit",
+      "Боевая_Система": "dangerous enemies"
+    },
+    "aliases": ["мутанты", "твари", "существа", "монстры", "гули", "супермутанты"]
+  },
+  {
+    "id": "Технологии_Пустоши",
+    "type": "concept",
+    "synopsis": "pre-war technology, improvised gear, power armor, energy weapons, medicine; affects =Характеристики= and combat",
+    "body": {
+      "description": "Old world left technology that wasteland cannot reproduce. Who controls technology controls future.",
+      "equipment": {
+        "power_armor": "Military exoskeleton. Turns person into tank. Rare, requires training and nuclear batteries.",
+        "energy_weapons": "Lasers, plasma. Powerful but rare and hard to repair. Ammo even rarer.",
+        "firearms": "From improvised pipes to preserved military samples. Reliable, repairable.",
+        "pip_boy": "Personal wrist computer. Maps, inventory, radio, Geiger counter. Vault dwellers have them.",
+        "medicine": "Stimpaks (instant healing), Rad-Away (removes radiation), RadX (protection). Chems (buffs and side effects)."
+      },
+      "improvisation": "Weapons and armor from junk. Not pretty but works. Wasteland is kingdom of DIY."
+    },
+    "links": {
+      "Фракции": "Brotherhood collects",
+      "Экономика_и_Торговля": "valuable goods"
+    },
+    "aliases": ["технологии", "оружие", "броня", "снаряжение", "медицина"]
+  },
+  {
+    "id": "Локации",
+    "type": "concept",
+    "synopsis": "typical wasteland locations: vaults, settlements, ruins, zones; setting for =Проверки= and encounters",
+    "body": {
+      "description": "Wasteland is ruined cities, dangerous zones, and rare oases of civilization.",
+      "location_types": {
+        "vaults": "Underground Corporation bunkers. Most were social experiments. Some still sealed.",
+        "settlements": "Survivor towns. Walls from junk, armed guards, barter and distrust of strangers.",
+        "city_ruins": "Skeletons of metropolises. Dangerous - raiders, mutants, radiation. But loot - old tech, supplies.",
+        "radioactive_zones": "Bomb craters, waste dumps. High radiation, mutants, but valuable materials.",
+        "roads_trails": "Caravan routes - relatively safe. Wild trails - at your own risk."
+      },
+      "underground": "Subway systems. Shelter from radiation but their own inhabitants and dangers."
+    },
+    "links": {
+      "Пустошь": "places on map",
+      "Фракции": "control territories"
+    },
+    "aliases": ["локации", "места", "зоны", "убежища", "поселения"]
+  },
+  {
+    "id": "Экономика_и_Торговля",
+    "type": "concept",
+    "synopsis": "caps, barter, caravans, valuable resources; currency of the wasteland",
+    "body": {
+      "description": "In wasteland everything has price. Bottle caps became universal currency - hard to counterfeit and limited.",
+      "economy": {
+        "currency": "Caps. In some regions - ammo or clean water. Pre-war money is toilet paper.",
+        "valuable_resources": "Clean water, radiation-free food, ammo, stimpaks, nuclear batteries, working electronics.",
+        "prices": "Stimpak: 25-50 caps. Ammo (10): 5-20 caps. Pistol: 50-150 caps. Rifle: 150-400 caps. Power armor: 2000+ caps.",
+        "caravans": "Trade caravans are economy's arteries. Brahmin (two-headed cows) carry loads. Guard duty is good work."
+      },
+      "barter": "In remote areas caps are useless. Goods for goods exchange. Barter skill is critical."
+    },
+    "links": {
+      "Технологии_Пустоши": "what's valuable",
+      "Фракции": "trade connections"
+    },
+    "aliases": ["экономика", "торговля", "крышки", "caps", "деньги", "цены"]
+  },
+  {
+    "id": "Радиация",
+    "type": "concept",
+    "synopsis": "radiation threat: sources, consequences, protection, treatment; survival mechanic tied to =Характеристики=",
+    "body": {
+      "description": "Radiation is invisible killer of wasteland. In water, food, air of contaminated zones. Geiger counter is best friend.",
+      "mechanics": {
+        "sources": "Craters, dumps, contaminated water and food, some creatures, nuclear waste.",
+        "consequences": "Light exposure - nausea, weakness. Medium - radiation sickness. Heavy - death or ghoulification.",
+        "protection": "RadX (drug), protective suits, lead lining. Or just stay away.",
+        "treatment": "Rad-Away removes radiation. Rare and valuable medicine. Some doctors do blood transfusions."
+      },
+      "measurement": "Pip-Boy shows level. Without it - by feeling (bad option).",
+      "threshold": "Survival × 2 = rads before sickness sets in."
+    },
+    "links": {
+      "Мутанты_и_Твари": "cause of mutations",
+      "Технологии_Пустоши": "protection and treatment"
+    },
+    "aliases": ["радиация", "облучение", "заражение", "рады"]
+  },
+  {
+    "id": "Выживание_в_Пустоши",
+    "type": "concept",
+    "synopsis": "survival skills: scavenging, shelter, hunting, repair; uses =Характеристики= Survival stat",
+    "body": {
+      "description": "In wasteland every day is struggle. Those who can't survive don't live long.",
+      "skills": {
+        "scavenging": "Ruins full of junk. Need eye to tell valuable from trash. Cans, ammo, medicine, parts.",
+        "hunting": "Mutated animals are food source. But they hunt back. Radstags (deer), brahmin, molerats - edible.",
+        "water": "Clean water is life. Dirty can be drunk (radiation), boiled (not always helps), or filtered (if you have means).",
+        "shelter": "Predators come out at night. Raiders love darkness. Find safe place before sunset - priority.",
+        "repair": "Everything breaks. Ability to fix weapons, armor, tech - most valuable skill."
+      },
+      "navigation": "Wasteland is no place for the lost. Maps, landmarks, stars. Pip-Boy helps."
+    },
+    "links": {
+      "Пустошь": "where to survive",
+      "Проверки": "survival skill checks"
+    },
+    "aliases": ["выживание", "собирательство", "охота", "ремонт"]
+  },
+  {
+    "id": "Химия_и_Зависимости",
+    "type": "concept",
+    "synopsis": "wasteland chems: buffs, side effects, addiction; risk-reward survival mechanic",
+    "body": {
+      "description": "Chems are dark side of survival. Instant boost, but high price.",
+      "chems": {
+        "stimpaks": "Instant healing. Safe but rare and expensive.",
+        "rad_away": "Removes radiation. Necessity in contaminated zones.",
+        "psycho": "Combat fury. +damage, -control. High addiction.",
+        "jet": "Time slowing. Reflexes at limit. Very addictive.",
+        "buffout": "Strength and endurance. Muscles on steroids. Heart can't take it."
+      },
+      "addiction": "Regular use = addiction. Withdrawal lowers stats. Treatable but difficult."
+    },
+    "links": {
+      "Технологии_Пустоши": "part of medicine",
+      "Выживание_в_Пустоши": "help and risk"
+    },
+    "aliases": ["химия", "хим", "препараты", "наркотики", "стимпаки"]
+  },
+  {
+    "id": "Репутация_и_Карма",
+    "type": "concept",
+    "synopsis": "reputation system: relations with factions, consequences of choices; affects social =Проверки=",
+    "body": {
+      "description": "In wasteland rumors spread fast. Your actions shape reputation - and it comes back.",
+      "mechanics": {
+        "faction_reputation": "Every faction remembers. Help - doors open. Harm - doors close. Permanently.",
+        "karma": "General moral state. Wasteland doesn't judge, but people do. Good karma attracts allies, bad attracts bounty hunters.",
+        "rumors": "Caravans carry news. Save settlement today - three towns know tomorrow."
+      },
+      "consequences": "Killed trader? Caravans avoid you. Saved from raiders? Welcome in settlements.",
+      "neutrality": "Can choose no sides. Difficult but possible. Freelancer - on your own."
+    },
+    "links": {
+      "Фракции": "relations",
+      "Выживание_в_Пустоши": "social survival"
+    },
+    "aliases": ["репутация", "карма", "отношения", "слава"]
+  },
+  {
+    "id": "Убежища_Vault",
+    "type": "concept",
+    "synopsis": "Corporation Vaults: history, experiments, dwellers, technology; source of =Технологии_Пустоши=",
+    "body": {
+      "description": "Vaults are underground Corporation bunkers. Promised salvation. In reality - social experiments on people.",
+      "truth": {
+        "official_version": "Nuclear war shelters for the chosen. Self-sufficient for hundreds of years.",
+        "reality": "Each Vault was an experiment. On psyche, genetics, society. Subjects didn't know.",
+        "vault_dwellers": "Naive to wasteland realities but educated and technically literate. Pip-Boy is their mark.",
+        "technology": "Vaults preserved pre-war tech. Medicine, weapons, data. Most valuable prize."
+      },
+      "sealed_vaults": "Some still haven't opened. What's inside? Riches or nightmare?",
+      "numbers": "Each Vault has number. 13, 101, 111 - each has its story."
+    },
+    "links": {
+      "Фракции": "dwellers as group",
+      "Технологии_Пустоши": "source of technology"
+    },
+    "aliases": ["убежища", "vault", "волт-тек", "vault-tec", "бункер"]
+  },
+  {
+    "id": "Транспорт_и_Путешествия",
+    "type": "concept",
+    "synopsis": "travel methods: on foot, caravans, vehicles, dangers of the road; exploration mechanic",
+    "body": {
+      "description": "Wasteland is vast. Distance is enemy. How to get there alive?",
+      "methods": {
+        "on_foot": "Slow but reliable. Can hide, avoid dangers. Tiring, need water.",
+        "caravans": "Pay and ride. Safer, but on caravan's schedule and route.",
+        "vehicles": "Motorcycles, cars - rare. Need fuel, parts, skill. But speed decides.",
+        "brahmin": "Pack two-headed cows. Slow but carry much. Stubborn."
+      },
+      "dangers": "Raiders on roads, mutants in wastes, radiation in zones. Night more dangerous than day.",
+      "navigation": "Ruins, rocks, roads. Without map or Pip-Boy - easy to get lost."
+    },
+    "links": {
+      "Пустошь": "movement",
+      "Локации": "route points"
+    },
+    "aliases": ["транспорт", "путешествия", "дорога", "караван"]
+  }
+]

@@ -10,6 +10,7 @@ class CreateSessionRequest(BaseModel):
     platform_id: str = Field(..., description="Platform user ID (e.g., telegram ID)")
     platform_type: str = Field(default="telegram", description="Platform type")
     session_type: str = Field(default="game", description="Session type: game or companion")
+    world_id: str = Field(default="isekai", description="World ID for game session")
 
 
 class CreateSessionResponse(BaseModel):

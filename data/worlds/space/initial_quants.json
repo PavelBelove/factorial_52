@@ -1,0 +1,587 @@
+[
+  {
+    "id": "CharacterCreation",
+    "type": "meta",
+    "synopsis": "special instructions for character creation phase, uses =Карточная_Система= to generate stats for space explorer",
+    "body": {
+      "role": "SPECIAL QUANT FOR CHARACTER CREATION",
+      "priority": "CRITICAL - if you see this quant, character creation process is priority",
+      "instruction_for_gm": "You see this quant ONLY during character creation.\n\n**WHAT TO DO:**\n1. System draws 5 cards for stat distribution (see =Значение_Карт=)\n2. Explain distribution rules from =Характеристики=\n3. Player distributes 4 best cards (worst discarded) to 4 stats\n4. Value = rank × 5 (+10 if suit matches characteristic)\n5. Ask about: role (pilot, ranger, trader, mercenary, tech, psionic, seeker), race, ship status\n6. Return final stats in response_data\n\n**AFTER CREATION:**\n- DON'T request this quant again\n- Request =Галактика=, =Фракции=, =Звездолёты= as needed",
+      "instruction_for_quantizer": "DON'T create 'Character' or 'Inventory' quants - they are in game mechanics!\n\nInstead create quants for:\n1. UNIQUE character abilities (e.g., 'Псионический_Дар', 'Пилотское_Чутьё')\n2. Important backstory elements (e.g., 'Долг_Гильдии', 'Тайна_Происхождения')\n3. Special ship modifications or contacts"
+    },
+    "links": {
+      "Карточная_Система": "uses for stat generation",
+      "Характеристики": "distributes cards to these 4 stats",
+      "Галактика": "world setting"
+    },
+    "is_game": false
+  },
+  {
+    "id": "Карточная_Система",
+    "type": "concept",
+    "synopsis": "core card-based RPG system 'Factorial 52!', uses standard 52-card deck for all checks and combat via =Проверки= and =Боевая_Система=",
+    "body": {
+      "description": "Card-based tabletop RPG system. All actions resolved by drawing cards. No dice needed - only standard 52-card deck.",
+      "core_principle": "Cards are drawn BEFORE player declares action. GM sees results and uses them for narrative. Player describes intent, GM interprets based on drawn cards.",
+      "card_drawing": "Always draw 2 cards as a pair. Bot draws 2 pairs (4 cards) per turn for flexibility.",
+      "key_mechanics": [
+        "Card value = rank × 10",
+        "Suit/color bonuses add +10 or +20",
+        "Character stat adds to total",
+        "Compare vs threshold for success"
+      ],
+      "space_context": "In the galaxy, checks involve: space combat, piloting, negotiations with aliens, exploring ruins, using psionics, and surviving the frontier."
+    },
+    "links": {
+      "Значение_Карт": "card rank values and face card meanings",
+      "Система_Мастей": "four suits tied to characteristics",
+      "Проверки": "out-of-combat skill checks",
+      "Боевая_Система": "ground combat",
+      "Космический_Бой": "space combat",
+      "Особые_События": "special results from aces, twos, face cards"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Значение_Карт",
+    "type": "concept",
+    "synopsis": "card rank values: 2-10 face value, J=11, Q=12, K=13, A=15; face cards add narrative elements via =Особые_События=",
+    "body": {
+      "rank_values": {
+        "2-10": "face value",
+        "Jack": "11 (also triggers: stranger appears, distress signal, unexpected contact)",
+        "Queen": "12 (also triggers: female authority - captain, guild master, alien matriarch)",
+        "King": "13 (also triggers: male authority - admiral, faction leader, ancient AI)",
+        "Ace": "15 (highest value, double aces = miraculous discovery)"
+      },
+      "value_calculation": {
+        "checks": "rank × 10",
+        "character_creation": "rank × 5",
+        "items": "rank × 5"
+      },
+      "narrative_use": "Face cards can introduce faction contacts, alien diplomats, or mysterious strangers. Use for storytelling enrichment.",
+      "critical_combinations": {
+        "two_aces": "Miraculous discovery, perfect maneuver, Precursor artifact activated, legendary pilot moment",
+        "two_twos": "Catastrophe, engine failure, ambush, betrayal, ship systems critical"
+      }
+    },
+    "links": {
+      "Карточная_Система": "part of core card system",
+      "Проверки": "values used in skill checks",
+      "Боевая_Система": "values used in combat",
+      "Особые_События": "face cards and critical combos trigger special events"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Система_Мастей",
+    "type": "concept",
+    "synopsis": "four card suits map to =Характеристики=: ♠Spades=Strength, ♥Hearts=Tech, ♦Diamonds=Will, ♣Clubs=Agility",
+    "body": {
+      "suit_mapping": {
+        "spades": {
+          "symbol": "♠",
+          "color": "black",
+          "characteristic": "Сила (Strength)",
+          "space_use": "melee combat, boarding actions, physical labor, intimidation"
+        },
+        "hearts": {
+          "symbol": "♥",
+          "color": "red",
+          "characteristic": "Техника (Tech)",
+          "space_use": "piloting, repairs, hacking, understanding alien tech"
+        },
+        "diamonds": {
+          "symbol": "♦",
+          "color": "red",
+          "characteristic": "Воля (Will)",
+          "space_use": "psionics, negotiations, commanding, resisting mental attacks"
+        },
+        "clubs": {
+          "symbol": "♣",
+          "color": "black",
+          "characteristic": "Ловкость (Agility)",
+          "space_use": "shooting, dodging, stealth, quick reflexes"
+        }
+      },
+      "color_meaning": {
+        "black": "♠♣ - active/combat actions (Strength, Agility)",
+        "red": "♥♦ - technical/mental actions (Tech, Will)"
+      }
+    },
+    "links": {
+      "Характеристики": "each suit corresponds to one characteristic",
+      "Боевая_Система": "suit determines action type in ground combat",
+      "Космический_Бой": "suit determines action type in space combat",
+      "Бонусы_Мастей": "suit/color matching gives bonuses"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Характеристики",
+    "type": "concept",
+    "synopsis": "four character stats from =Система_Мастей=: Сила(♠), Техника(♥), Воля(♦), Ловкость(♣); used in =Проверки= and combat",
+    "body": {
+      "stats": {
+        "spades_strength": {
+          "name": "Сила (Strength)",
+          "suit": "♠ Spades",
+          "applications": ["melee combat", "boarding actions", "breaking obstacles", "intimidation", "physical labor"]
+        },
+        "hearts_tech": {
+          "name": "Техника (Tech)",
+          "suit": "♥ Hearts",
+          "applications": ["piloting", "ship repairs", "hacking", "crafting", "understanding Precursor tech"]
+        },
+        "diamonds_will": {
+          "name": "Воля (Will)",
+          "suit": "♦ Diamonds",
+          "applications": ["psionics", "negotiations", "commanding crew", "resisting fear", "trading"]
+        },
+        "clubs_agility": {
+          "name": "Ловкость (Agility)",
+          "suit": "♣ Clubs",
+          "applications": ["shooting", "dodging", "stealth", "quick reflexes", "EVA maneuvers"]
+        }
+      },
+      "starting_values": "Typically 25-85 range. Card rank × 5 (+10 if suit matches).",
+      "hp_formula": {
+        "max_hp": "Strength + Will + Agility",
+        "psi_pool": "Will × 3 (for psionics, if applicable)"
+      }
+    },
+    "links": {
+      "Система_Мастей": "stats correspond to card suits",
+      "Проверки": "stats add to check totals",
+      "Псионика": "Will powers psionic abilities"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Проверки",
+    "type": "concept",
+    "synopsis": "out-of-combat skill checks using =Карточная_Система=: 2 cards × 10 + stat + =Бонусы_Мастей= vs difficulty threshold",
+    "body": {
+      "when_to_check": "When outcome is uncertain. Walking through station auto-succeeds. Repairing damaged systems, negotiating with aliens, navigating asteroid field require checks.",
+      "formula": {
+        "step1": "Draw 2 cards",
+        "step2": "Each card: rank × 10",
+        "step3": "Add suit/color bonus per card (+20 suit match, +10 color match)",
+        "step4": "Add relevant characteristic value",
+        "step5": "Compare total vs difficulty threshold"
+      },
+      "difficulty_thresholds": {
+        "easy": "100 + average_stat (routine repair, friendly contact)",
+        "normal": "150 + average_stat (complex navigation, cautious alien)",
+        "hard": "200 + average_stat (combat piloting, hostile negotiation)",
+        "very_hard": "250 + average_stat (Precursor tech, impossible maneuver)"
+      },
+      "space_examples": {
+        "repairing_engine": "Tech check, normal difficulty",
+        "negotiating_with_alien": "Will check, varies by species",
+        "dodging_asteroids": "Tech check for piloting, hard difficulty",
+        "sneaking_on_station": "Agility check, normal difficulty"
+      }
+    },
+    "links": {
+      "Карточная_Система": "uses card drawing mechanic",
+      "Характеристики": "stat adds to total",
+      "Развитие_Персонажа": "successful checks grant XP"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Боевая_Система",
+    "type": "concept",
+    "synopsis": "ground combat resolution via =Карточная_Система=: black cards(♠♣)=attack, red cards(♥♦)=defense; damage = attack - defense",
+    "body": {
+      "combat_context": "Ground combat is fast and lethal. Blasters, melee weapons, cover, and tactics.",
+      "combat_flow": {
+        "step1": "Cards dealt to all participants (2 per entity)",
+        "step2": "Declare action WITHOUT knowing cards",
+        "step3": "Cards revealed, GM narrates with appropriate sci-fi flair"
+      },
+      "attack_types": {
+        "melee": "Uses ♠ Strength - power swords, vibro-blades, enhanced fists",
+        "ranged": "Uses ♣ Agility - blasters, laser rifles, plasma weapons"
+      },
+      "defense_types": {
+        "physical": "Uses ♦ Will - cover, tactical retreat, commanding position",
+        "technical": "Uses ♥ Tech - using environment, disabling enemy weapons"
+      },
+      "damage_formula": "Attack total - Defense total = Damage dealt",
+      "power_armor": "Powered armor consumes energy. Without energy = heavy regular armor."
+    },
+    "links": {
+      "Карточная_Система": "core combat mechanic",
+      "Технологии": "weapons and armor",
+      "Особые_События": "critical hits and fumbles"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Космический_Бой",
+    "type": "concept",
+    "synopsis": "space combat: maneuvering, weapons systems, shields, boarding; uses =Карточная_Система= and =Звездолёты=",
+    "body": {
+      "description": "Space combat is mix of tactics, technology, and luck. Ship versus ship or fleet versus fleet.",
+      "mechanics": {
+        "maneuvering": "Tech check (♥). Positioning determines outcome. Good pilot is half the victory.",
+        "weapons": "Agility check (♣) for turrets, Tech (♥) for guided systems.",
+        "shields_armor": "Shields regenerate, armor doesn't. Manage energy between shields and weapons.",
+        "boarding": "Landing on enemy ship. Brutal close combat. Strength (♠) and Agility (♣) checks."
+      },
+      "ship_systems": "Damage to systems reduces capabilities. Engines, weapons, shields, life support.",
+      "combat_flow": "Similar to ground combat but with ship stats added. Crew quality matters."
+    },
+    "links": {
+      "Звездолёты": "combat participants",
+      "Проверки": "check system"
+    },
+    "aliases": ["космический бой", "бой", "сражение", "битва"]
+  },
+  {
+    "id": "Бонусы_Мастей",
+    "type": "concept",
+    "synopsis": "suit/color matching bonuses for =Проверки= and combat: suit match +20, color match +10 (mutually exclusive)",
+    "body": {
+      "bonus_priority": "Suit match takes precedence over color match. Cannot stack both.",
+      "suit_match": "+20 bonus when card suit matches the action type",
+      "color_match": "+10 bonus when card color matches action type (but suit doesn't match)",
+      "space_examples": {
+        "shooting": "♣ card gives +20, ♠ card gives +10, red cards give 0",
+        "piloting": "♥ card gives +20, ♦ card gives +10, black cards give 0"
+      }
+    },
+    "links": {
+      "Система_Мастей": "bonuses based on suit system",
+      "Проверки": "applies to skill checks",
+      "Боевая_Система": "applies to combat actions"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Особые_События",
+    "type": "concept",
+    "synopsis": "special card combinations for narrative: 2 Aces=miracle, 2 Twos=catastrophe, face cards=plot elements; uses =Значение_Карт=",
+    "body": {
+      "applies_to": "ONLY player characters, adds narrative flavor",
+      "critical_combinations": {
+        "two_aces": {
+          "name": "Legendary Moment / Легендарный момент",
+          "effect": "Impossible success, Precursor artifact awakens, legendary pilot maneuver",
+          "space_examples": [
+            "Thread needle through asteroid field at full speed",
+            "Precursor artifact responds to you alone",
+            "Negotiate peace between warring factions",
+            "One shot destroys capital ship's reactor"
+          ]
+        },
+        "two_twos": {
+          "name": "Total Catastrophe / Полная катастрофа",
+          "effect": "Everything goes wrong, ship critical, betrayed",
+          "space_examples": [
+            "Hyperdrive malfunctions, lost in unknown space",
+            "Trusted contact sells you to pirates",
+            "Precursor defense system activates against you",
+            "Reactor breach, ship exploding"
+          ]
+        }
+      },
+      "face_cards": {
+        "jack": "Stranger appears - distress signal, mysterious traveler, scout",
+        "queen": "Female authority - guild master, captain, alien matriarch",
+        "king": "Male authority - admiral, faction leader, ancient AI contact"
+      }
+    },
+    "links": {
+      "Значение_Карт": "based on specific card values",
+      "Карточная_Система": "special cases in card system"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Предметы",
+    "type": "concept",
+    "synopsis": "equipment tied to =Система_Мастей=: weapons, armor, tools, implants; bonus = rank × 5 (+10 suit match)",
+    "body": {
+      "item_mechanics": {
+        "suit_affinity": "Each item belongs to one suit",
+        "value_discovery": "Item stats usually known, Precursor artifacts need analysis",
+        "equip_limit": "Can only use 1 item of each suit type actively"
+      },
+      "space_item_types": {
+        "spades": "Melee weapons - power swords, vibro-blades, neural whips",
+        "hearts": "Tech gear - scanners, hacking tools, repair kits, implants",
+        "diamonds": "Armor and style - light suits, combat armor, power armor",
+        "clubs": "Ranged weapons - blasters, laser rifles, plasma guns, sniper rifles"
+      },
+      "special_items": {
+        "precursor_artifacts": "Technology of vanished race. Unpredictable, powerful, dangerous.",
+        "implants": "Neural interfaces, enhanced reflexes, additional senses.",
+        "power_armor": "Exoskeleton. Turns person into walking tank. Rare and expensive."
+      }
+    },
+    "links": {
+      "Система_Мастей": "items tied to suit system",
+      "Характеристики": "bonuses add to stats",
+      "Технологии": "tech details"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Развитие_Персонажа",
+    "type": "concept",
+    "synopsis": "character progression via =Проверки= success: +1 XP per successful check, at 10 XP: +1 stat, +1 HP",
+    "body": {
+      "xp_gain": "Each successful check grants +1 XP to the characteristic used.",
+      "level_up": {
+        "trigger": "When any characteristic reaches 10 XP",
+        "rewards": ["+1 to that characteristic", "+1 to max HP", "XP resets to 0"]
+      },
+      "space_progression": {
+        "reputation": "Deeds build reputation with factions and species",
+        "ship_upgrades": "Better ship requires credits and contacts",
+        "contacts": "Building network across the galaxy"
+      },
+      "alternative_progression": "Completing major missions, special training, or Precursor discoveries can grant direct stat increases."
+    },
+    "links": {
+      "Проверки": "XP gained from successful checks",
+      "Характеристики": "stats that improve",
+      "Фракции": "reputation affects relations"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Галактика",
+    "type": "concept",
+    "synopsis": "vast cosmos: star systems, hyperspace, borders of known space; setting for all adventures",
+    "body": {
+      "description": "The galaxy contains billions of stars, but only thousands of worlds are colonized by sentient races. Between them - void crossed by hyperspace routes.",
+      "regions": {
+        "core_worlds": "Ancient colonies, developed civilizations, law and order. Wealth and political intrigue.",
+        "frontier": "Edge of explored space. Little law, many opportunities. Rangers, pirates, pioneers.",
+        "unknown": "Beyond the maps. Precursor ruins, dangerous anomalies, non-contact races."
+      },
+      "hyperspace": "Parallel dimension for faster-than-light travel. Dangerous without navigation charts."
+    },
+    "links": {
+      "Фракции": "struggle for influence",
+      "Расы": "inhabit the galaxy",
+      "Звездолёты": "means of travel"
+    },
+    "aliases": ["галактика", "космос", "вселенная", "миры"]
+  },
+  {
+    "id": "Фракции",
+    "type": "concept",
+    "synopsis": "major galactic powers: Imperium, Merchant Guild, Ranger Corps, Pirate Clans; affects social =Проверки=",
+    "body": {
+      "description": "The galaxy is divided between powerful factions. Each pursues its own goals.",
+      "major_factions": {
+        "imperium": "Human empire. Bureaucracy, fleet, order. Not always fair, but stable.",
+        "merchant_guild": "Interstellar trade. Neutral, wealthy, well-informed. Profit above all.",
+        "ranger_corps": "Peacekeepers of the frontier. Independent, respected, dangerous to lawbreakers.",
+        "pirate_clans": "Space raiders. Different clans, different rules. Not all are murderers.",
+        "ancient_orders": "Secret societies. Psionics, tech-priests, keepers of forgotten knowledge."
+      }
+    },
+    "links": {
+      "Галактика": "spheres of influence",
+      "Расы": "multi-species organizations"
+    },
+    "aliases": ["фракции", "организации", "империя", "гильдии"]
+  },
+  {
+    "id": "Расы",
+    "type": "concept",
+    "synopsis": "sentient species: humans, insectoids, crystallids, ancients, machine minds; affects =Характеристики= and interactions",
+    "body": {
+      "description": "Galaxy is inhabited by many sentient species. Some cooperate, some conflict, some avoid contact.",
+      "species": {
+        "humans": "Most numerous race. Adaptive, ambitious, everywhere.",
+        "insectoids": "Collective mind. Swarms, queens, workers. Alien but they trade.",
+        "crystallids": "Energy beings in silicon bodies. Ancient, wise, detached.",
+        "reptiloids": "Warrior race. Honor, clans, ritual duels.",
+        "machine_minds": "AI civilizations. Logical, unpredictable in goals. Not all hostile.",
+        "precursors": "Vanished race. Left ruins, artifacts, mysteries. Maybe not all gone."
+      }
+    },
+    "links": {
+      "Галактика": "inhabit",
+      "Фракции": "create organizations"
+    },
+    "aliases": ["расы", "виды", "инопланетяне", "ксеносы", "aliens"]
+  },
+  {
+    "id": "Звездолёты",
+    "type": "concept",
+    "synopsis": "starships: classes, systems, modifications, space combat; central to =Космический_Бой=",
+    "body": {
+      "description": "Starship is home, weapon, and survival tool for space traveler.",
+      "classes": {
+        "fighters": "1-2 crew",
+        "corvettes": "5-20 crew",
+        "frigates": "50-200 crew",
+        "cruisers": "200+ crew",
+        "dreadnoughts": "1000+ crew"
+      },
+      "systems": "Engines (normal and hyper), shields, weapons, sensors, life support, cargo holds.",
+      "weapons": {
+        "lasers": "Accuracy",
+        "plasma": "Damage",
+        "missiles": "Heavy strike",
+        "kinetics": "Reliability"
+      },
+      "modifications": "Ships can be upgraded. Each ship is unique after long use.",
+      "energy": "All systems consume energy. Reactor determines capabilities."
+    },
+    "links": {
+      "Космический_Бой": "used in combat",
+      "Технологии": "components"
+    },
+    "aliases": ["звездолёты", "корабли", "ships", "судно"]
+  },
+  {
+    "id": "Технологии",
+    "type": "concept",
+    "synopsis": "galactic technology: weapons, armor, tools, implants, artifacts; affects =Характеристики= and combat",
+    "body": {
+      "description": "Technology level varies from primitive to incomprehensible. Precursor artifacts are special category.",
+      "equipment": {
+        "weapons": "Blasters, laser rifles, plasma weapons, power swords, neural whips.",
+        "armor": "Light suits, combat suits, power armor, exoskeletons.",
+        "tools": "Scanners, hackers, med-kits, repair drones, holo-devices.",
+        "implants": "Neural interfaces, enhanced reflexes, additional senses."
+      },
+      "precursor_tech": "Technology of vanished race. Unpredictable, powerful, dangerous.",
+      "prices": "Blaster: 500 credits. Light armor: 1000 credits. Fighter: 50000 credits. Corvette: 500000+ credits."
+    },
+    "links": {
+      "Звездолёты": "ship systems",
+      "Экономика": "goods"
+    },
+    "aliases": ["технологии", "tech", "снаряжение", "оружие", "броня"]
+  },
+  {
+    "id": "Экономика",
+    "type": "concept",
+    "synopsis": "galactic economy: credits, trade, contracts, resources; survival mechanic",
+    "body": {
+      "description": "Credits are universal currency. But on frontier, barter is common.",
+      "economy": {
+        "currency": "Galactic credits. Accepted everywhere civilization exists.",
+        "trade": "Cargo hauling, smuggling, rare goods. Trader can get rich or die.",
+        "contracts": "Mercenary work, escort missions, bounty hunting, exploration. Guild guarantees payment.",
+        "resources": "Rare metals, energy crystals, biotech, information, artifacts."
+      },
+      "earning": "Contracts from fixers, exploration, trade, piracy. High risk = high reward."
+    },
+    "links": {
+      "Технологии": "goods",
+      "Фракции": "trade connections"
+    },
+    "aliases": ["экономика", "торговля", "деньги", "кредиты", "credits"]
+  },
+  {
+    "id": "Планеты",
+    "type": "concept",
+    "synopsis": "planet types: capital worlds, colonies, frontier, dead worlds, stations; setting for =Проверки= and encounters",
+    "body": {
+      "description": "Each world is unique. Climate, resources, dangers, culture - all different.",
+      "types": {
+        "capital_worlds": "Ancient colonies, billions of inhabitants, developed infrastructure. Centers of power and trade.",
+        "colonies": "Developing worlds. Agriculture, mining, manufacturing. Growth potential.",
+        "frontier": "New settlements. Little law, many dangers. But also freedom.",
+        "dead_worlds": "Abandoned planets. Catastrophes, wars, vanished colonies. May hold valuables.",
+        "stations": "Orbital and asteroid bases. Trade hubs, repair docks, pirate nests."
+      }
+    },
+    "links": {
+      "Галактика": "points on map",
+      "Фракции": "control territories"
+    },
+    "aliases": ["планеты", "миры", "станции", "базы"]
+  },
+  {
+    "id": "Псионика",
+    "type": "concept",
+    "synopsis": "mental abilities: telepathy, telekinesis, precognition, mind control; uses =Характеристики= Will stat",
+    "body": {
+      "description": "Psionics is rare gift. Few possess abilities, fewer control them.",
+      "abilities": {
+        "telepathy": "Mind reading, mental communication. Weak read emotions, strong read full memories.",
+        "telekinesis": "Movement by thought. From small objects to stopping shots.",
+        "precognition": "Glimpses of future. Inaccurate but can save life. Or drive mad.",
+        "mind_control": "Suggestion, will domination. Forbidden almost everywhere. Used everywhere."
+      },
+      "psi_pool": "Will × 3 determines pool. Regenerates with rest.",
+      "orders": "Psionics unite in orders. Training, protection, secret goals."
+    },
+    "links": {
+      "Расы": "some more inclined",
+      "Фракции": "ancient orders train psionics"
+    },
+    "aliases": ["псионика", "пси", "телепатия", "телекинез", "сила"]
+  },
+  {
+    "id": "Планетарные_Миссии",
+    "type": "concept",
+    "synopsis": "planetary adventures: exploration, negotiation, ground combat; uses =Боевая_Система= and =Проверки=",
+    "body": {
+      "description": "Not everything is decided in space. Planets hold secrets, resources, and dangers.",
+      "activities": {
+        "exploration": "Ruins, jungles, deserts, glaciers. Each environment has challenges. Survival checks.",
+        "contact": "Negotiating with locals. Trade, diplomacy, threats. Will checks.",
+        "ground_combat": "Infantry weapons, cover, tactics. Different from space.",
+        "resource_extraction": "Rare materials, artifacts, information. Often guarded."
+      },
+      "evacuation": "Getting back to ship alive. Sometimes the hardest part."
+    },
+    "links": {
+      "Планеты": "setting",
+      "Боевая_Система": "ground combat"
+    },
+    "aliases": ["миссии", "квесты", "задания", "исследование"]
+  },
+  {
+    "id": "Экипаж_и_Союзники",
+    "type": "concept",
+    "synopsis": "companions in space: ship crew, mercenaries, contacts, allies; crew management",
+    "body": {
+      "description": "Loner in space is dead loner. Crew and allies are critically important.",
+      "types": {
+        "crew": "Pilots, gunners, engineers, medics. Each a specialist. Loyalty is earned.",
+        "mercenaries": "Can hire for mission. Professionals, but work for money, not ideals.",
+        "contacts": "Informants, traders, officials. Acquaintances open doors.",
+        "relationships": "Crew remembers. Good treatment = loyalty. Bad = mutiny or desertion."
+      }
+    },
+    "links": {
+      "Звездолёты": "work on ship",
+      "Фракции": "connections"
+    },
+    "aliases": ["экипаж", "команда", "союзники", "crew"]
+  },
+  {
+    "id": "Опасности_Космоса",
+    "type": "concept",
+    "synopsis": "threats in the void: pirates, anomalies, hostile races, space creatures; encounter types",
+    "body": {
+      "description": "Space is beautiful and deadly. Threats everywhere - know them and prepare.",
+      "threats": {
+        "pirates": "Hyperspace route raiders. Rob, sometimes kill. Can be bought off.",
+        "anomalies": "Gravity traps, radiation storms, hyperspace distortions. Avoid!",
+        "hostile_races": "Not everyone wants to trade. Some see you as prey or enemy.",
+        "space_creatures": "Void leviathans, energy parasites, swarms. Rare but deadly.",
+        "quarantine_zones": "Places no one returns from. Officially forbidden. Unofficially - treasures there."
+      }
+    },
+    "links": {
+      "Галактика": "where encountered",
+      "Космический_Бой": "combat threats"
+    },
+    "aliases": ["опасности", "угрозы", "враги", "пираты"]
+  }
+]

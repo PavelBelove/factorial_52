@@ -22,6 +22,14 @@ class UserDB(Base):
     platform_type = Column(String(50), default="telegram")  # telegram, discord, web, etc.
     created_at = Column(DateTime, default=datetime.utcnow)
     
+    # User preferences
+    language = Column(String(10), default="ru")  # User's language preference
+    current_world = Column(String(50), default="isekai")  # Last selected world
+
+    # Game settings
+    difficulty = Column(String(20), default="normal")  # easy, normal, hard
+    content_filter = Column(String(20), default="safe")  # safe, romantic, adult
+
     # Relationships
     sessions = relationship("SessionDB", back_populates="user", cascade="all, delete-orphan")
 
@@ -39,6 +47,13 @@ class SessionDB(Base):
     current_turn = Column(Integer, default=0)
     is_active = Column(Boolean, default=True)
     
+    # World & Save system
+    world_id = Column(String(50), default="isekai", nullable=False)  # World for this session
+    slot_number = Column(Integer, nullable=True)  # Save slot (1-5), None if not saved
+    is_saved = Column(Boolean, default=False)  # Is this session saved?
+    saved_at = Column(DateTime, nullable=True)  # When was it last saved
+    save_name = Column(String(255), nullable=True)  # Optional custom save name
+    
     # Relationships
     user = relationship("UserDB", back_populates="sessions")
     quants = relationship("QuantDB", back_populates="session", cascade="all, delete-orphan")
@@ -48,6 +63,8 @@ class SessionDB(Base):
     # Indexes
     __table_args__ = (
         Index("idx_session_user_active", "user_id", "is_active"),
+        Index("idx_session_user_slot", "user_id", "slot_number"),
+        Index("idx_session_world", "world_id"),
     )
 
 

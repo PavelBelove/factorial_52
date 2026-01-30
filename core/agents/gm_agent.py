@@ -76,6 +76,9 @@ class GMAgent:
             result = self._parse_gm_response(content)
             result["raw_response"] = content
             
+            # Log what we're returning
+            logger.debug(f"GM returning reply (first 200 chars): {result.get('reply', '')[:200]}")
+            
             # Add usage/cost info if available
             if "usage" in response:
                 result["usage"] = response["usage"]
@@ -136,10 +139,42 @@ class GMAgent:
             except json.JSONDecodeError:
                 pass
         
+        # Try extracting "narrative" field from incomplete/truncated JSON
+        # This helps when JSON is truncated or malformed (e.g., hit token limit)
+        # Pattern allows for missing closing quote (truncated response)
+        narrative_match = re.search(
+            r'"(?:narrative|gm_narrative)"\s*:\s*"((?:[^"\\]|\\.)*)(?:"|\Z)',
+            content,
+            re.DOTALL
+        )
+        if narrative_match:
+            try:
+                narrative_text = narrative_match.group(1)
+                # Unescape JSON string
+                narrative_text = narrative_text.replace('\\n', '\n').replace('\\t', '\t')
+                narrative_text = narrative_text.replace('\\"', '"').replace('\\\\', '\\')
+                logger.info(f"Extracted 'narrative' from incomplete JSON ({len(narrative_text)} chars)")
+
+                # Try to extract quant_requests too
+                quants_match = re.search(r'"quant_requests"\s*:\s*\[(.*?)\]', content, re.DOTALL)
+                quants = []
+                if quants_match:
+                    quants_str = quants_match.group(1)
+                    quants = re.findall(r'"([^"]+)"', quants_str)
+
+                return {
+                    "reply": narrative_text,
+                    "quants": quants,
+                    "response_data": {}
+                }
+            except Exception as e:
+                logger.warning(f"Failed to extract narrative from JSON: {e}")
+        
         # Fallback: try to extract from various markdown/text formats
         logger.warning("Could not parse GM response as JSON, using text fallback")
         
-        # Try to extract reply from **reply**: format
+        # IMPORTANT: When GM returns plain text instead of JSON,
+        # we treat it as narrative (not as full response with metadata)
         reply = content
         quants = []
         
@@ -219,9 +254,15 @@ class GMAgent:
             raise ValueError("GM response must be a dict")
         
         # MAP new field names to expected names
-        # Prolog prompt uses: narrative, quant_requests, response_data
+        # GM prompt uses: gm_narrative, quant_requests, response_data
         # System expects: reply, quants, response_data
-        if "narrative" in data and "reply" not in data:
+        
+        # ALWAYS prefer gm_narrative or narrative over reply field
+        # (reply might contain full JSON dump, which is wrong)
+        if "gm_narrative" in data:
+            data["reply"] = data.pop("gm_narrative")
+            logger.debug("Mapped 'gm_narrative' -> 'reply'")
+        elif "narrative" in data:
             data["reply"] = data.pop("narrative")
             logger.debug("Mapped 'narrative' -> 'reply'")
         

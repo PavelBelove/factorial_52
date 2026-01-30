@@ -1,0 +1,642 @@
+[
+  {
+    "id": "CharacterCreation",
+    "type": "meta",
+    "synopsis": "special instructions for character creation phase, uses =Карточная_Система= to generate stats for Slavic world hero",
+    "body": {
+      "role": "SPECIAL QUANT FOR CHARACTER CREATION",
+      "priority": "CRITICAL - if you see this quant, character creation process is priority",
+      "instruction_for_gm": "You see this quant ONLY during character creation.\n\n**WHAT TO DO:**\n1. System draws 5 cards for stat distribution (see =Значение_Карт=)\n2. Explain distribution rules from =Характеристики=\n3. Player distributes 4 best cards (worst discarded) to 4 stats\n4. Value = rank × 5 (+10 if suit matches characteristic)\n5. Ask about: background (warrior/volkhv/hunter/wanderer), patron deity, homeland\n6. Return final stats in response_data\n\n**AFTER CREATION:**\n- DON'T request this quant again\n- Request =Старые_Боги=, =Нечисть=, =Общество= as needed",
+      "instruction_for_quantizer": "DON'T create 'Character' or 'Inventory' quants - they are in game mechanics!\n\nInstead create quants for:\n1. UNIQUE character abilities (e.g., 'Волчий_Глаз', 'Благословение_Перуна')\n2. Important backstory elements (e.g., 'Кровная_Месть', 'Род_Героя')\n3. Patron deity relationships"
+    },
+    "links": {
+      "Карточная_Система": "uses for stat generation",
+      "Характеристики": "distributes cards to these 4 stats",
+      "Старые_Боги": "choose patron deity"
+    },
+    "is_game": false
+  },
+  {
+    "id": "Карточная_Система",
+    "type": "concept",
+    "synopsis": "core card-based RPG system 'Factorial 52!', uses standard 52-card deck for all checks and combat via =Проверки= and =Боевая_Система=",
+    "body": {
+      "description": "Card-based tabletop RPG system. All actions resolved by drawing cards. No dice needed - only standard 52-card deck.",
+      "core_principle": "Cards are drawn BEFORE player declares action. GM sees results and uses them for narrative. Player describes intent, GM interprets based on drawn cards.",
+      "card_drawing": "Always draw 2 cards as a pair. Bot draws 2 pairs (4 cards) per turn for flexibility.",
+      "key_mechanics": [
+        "Card value = rank × 10",
+        "Suit/color bonuses add +10 or +20",
+        "Character stat adds to total",
+        "Compare vs threshold for success"
+      ],
+      "slavic_context": "In Slavic world, checks involve: combat with nechist, bargaining with spirits, surviving wilderness, social encounters with suspicious villagers, using magic."
+    },
+    "links": {
+      "Значение_Карт": "card rank values and face card meanings",
+      "Система_Мастей": "four suits tied to characteristics",
+      "Проверки": "out-of-combat skill checks",
+      "Боевая_Система": "combat with humans and nechist",
+      "Особые_События": "special results from aces, twos, face cards"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Значение_Карт",
+    "type": "concept",
+    "synopsis": "card rank values: 2-10 face value, J=11, Q=12, K=13, A=15; face cards add narrative elements via =Особые_События=",
+    "body": {
+      "rank_values": {
+        "2-10": "face value",
+        "Jack": "11 (also triggers: wanderer appears, spirit stirs, unexpected encounter)",
+        "Queen": "12 (also triggers: vedma/witch influence, Mokosh's attention, woman's fate)",
+        "King": "13 (also triggers: knyaz/boyar involvement, Perun's gaze, warrior's challenge)",
+        "Ace": "15 (highest value, double aces = god's blessing)"
+      },
+      "value_calculation": {
+        "checks": "rank × 10",
+        "character_creation": "rank × 5",
+        "items": "rank × 5"
+      },
+      "narrative_use": "Face cards introduce spirits, nobles, or witches. Use for storytelling enrichment.",
+      "critical_combinations": {
+        "two_aces": "Divine intervention, ancestor's blessing, impossible deed accomplished",
+        "two_twos": "Cursed fate, dark spirit's attention, catastrophic failure"
+      }
+    },
+    "links": {
+      "Карточная_Система": "part of core card system",
+      "Проверки": "values used in skill checks",
+      "Боевая_Система": "values used in combat",
+      "Особые_События": "face cards and critical combos trigger special events"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Система_Мастей",
+    "type": "concept",
+    "synopsis": "four card suits map to =Характеристики=: ♠Spades=Strength, ♥Hearts=Magic, ♦Diamonds=Endurance, ♣Clubs=Agility",
+    "body": {
+      "suit_mapping": {
+        "spades": {
+          "symbol": "♠",
+          "color": "black",
+          "characteristic": "Сила (Strength)",
+          "slavic_use": "melee combat, breaking bonds, intimidation, feats of strength, Perun's domain"
+        },
+        "hearts": {
+          "symbol": "♥",
+          "color": "red",
+          "characteristic": "Магия (Magic)",
+          "slavic_use": "spellcasting, spirit bargaining, seeing hidden things, Veles's domain"
+        },
+        "diamonds": {
+          "symbol": "♦",
+          "color": "red",
+          "characteristic": "Стойкость (Endurance)",
+          "slavic_use": "surviving hardship, resisting curses, social standing, trading, Mokosh's domain"
+        },
+        "clubs": {
+          "symbol": "♣",
+          "color": "black",
+          "characteristic": "Ловкость (Agility)",
+          "slavic_use": "archery, stealth in forest, quick reflexes, tracking, Stribog's domain"
+        }
+      },
+      "color_meaning": {
+        "black": "♠♣ - active/offensive actions (Явь - manifest world)",
+        "red": "♥♦ - passive/defensive actions (Навь - spirit world)"
+      }
+    },
+    "links": {
+      "Характеристики": "each suit corresponds to one characteristic",
+      "Боевая_Система": "suit determines combat action type",
+      "Бонусы_Мастей": "suit/color matching gives bonuses",
+      "Старые_Боги": "suits connected to god domains"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Характеристики",
+    "type": "concept",
+    "synopsis": "four character stats from =Система_Мастей=: Сила(♠), Магия(♥), Стойкость(♦), Ловкость(♣); used in =Проверки= and =Боевая_Система=",
+    "body": {
+      "stats": {
+        "spades_strength": {
+          "name": "Сила (Strength)",
+          "suit": "♠ Spades",
+          "slavic_applications": ["melee combat", "breaking chains/doors", "wrestling", "intimidating enemies", "carrying burdens"],
+          "patron": "Perun (warriors), Svarog (smiths)"
+        },
+        "hearts_magic": {
+          "name": "Магия (Magic)",
+          "suit": "♥ Hearts",
+          "slavic_applications": ["casting zagovory (spells)", "seeing spirits", "bargaining with nechist", "reading omens", "breaking curses"],
+          "patron": "Veles (sorcery), Mokosh (fate-weaving)"
+        },
+        "diamonds_endurance": {
+          "name": "Стойкость (Endurance)",
+          "suit": "♦ Diamonds",
+          "slavic_applications": ["surviving cold/hunger", "resisting poison/curse", "social influence", "trading", "enduring torture"],
+          "patron": "Mokosh (endurance), Dazhbog (prosperity)"
+        },
+        "clubs_agility": {
+          "name": "Ловкость (Agility)",
+          "suit": "♣ Clubs",
+          "slavic_applications": ["archery", "tracking", "forest stealth", "dodging", "quick strikes", "riding"],
+          "patron": "Stribog (swiftness), hunters"
+        }
+      },
+      "starting_values": "Typically 25-85 range. Card rank × 5 (+10 if suit matches).",
+      "hp_mana_formula": {
+        "max_hp": "spades + diamonds + clubs",
+        "max_mana": "hearts × 3 (for volkhvy and vedmy)"
+      }
+    },
+    "links": {
+      "Система_Мастей": "stats correspond to card suits",
+      "Проверки": "stats add to check totals",
+      "Старые_Боги": "gods favor certain stats"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Проверки",
+    "type": "concept",
+    "synopsis": "out-of-combat skill checks using =Карточная_Система=: 2 cards × 10 + stat + =Бонусы_Мастей= vs difficulty threshold",
+    "body": {
+      "when_to_check": "When outcome is uncertain. Walking through village auto-succeeds. Bargaining with leshiy, tracking upyr, convincing boyar require checks.",
+      "formula": {
+        "step1": "Draw 2 cards",
+        "step2": "Each card: rank × 10",
+        "step3": "Add suit/color bonus per card (+20 suit match, +10 color match)",
+        "step4": "Add relevant characteristic value",
+        "step5": "Compare total vs difficulty threshold"
+      },
+      "difficulty_thresholds": {
+        "easy": "100 + average_stat (talking to friendly peasant)",
+        "normal": "150 + average_stat (bargaining, tracking, basic magic)",
+        "hard": "200 + average_stat (convincing hostile spirit, complex spell)",
+        "very_hard": "250 + average_stat (ancient ritual, defying god's curse)"
+      },
+      "slavic_examples": {
+        "tracking_wolf": "Clubs check, normal difficulty",
+        "bargaining_with_leshiy": "Hearts check, hard difficulty",
+        "intimidating_bandit": "Spades check, normal difficulty",
+        "surviving_blizzard": "Diamonds check, hard difficulty"
+      }
+    },
+    "links": {
+      "Карточная_Система": "uses card drawing mechanic",
+      "Характеристики": "stat adds to total",
+      "Развитие_Персонажа": "successful checks grant XP"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Боевая_Система",
+    "type": "concept",
+    "synopsis": "combat resolution via =Карточная_Система=: black cards(♠♣)=attack, red cards(♥♦)=defense; damage = attack - defense",
+    "body": {
+      "combat_context": "Combat in Slavic world is brutal and often final. Fight humans (bandits, druzhina, raiders), beasts (wolves, bears), and nechist (upyri, volkolaki).",
+      "combat_flow": {
+        "step1": "Cards dealt to all participants (2 per entity)",
+        "step2": "Declare action WITHOUT knowing cards",
+        "step3": "Cards revealed, GM narrates with appropriate brutality"
+      },
+      "attack_types": {
+        "melee": "Uses ♠ Spades - sword, axe, mace, bare hands",
+        "ranged": "Uses ♣ Clubs - bow, throwing axe, spear"
+      },
+      "defense_types": {
+        "physical": "Uses ♦ Diamonds - shield, armor, parrying",
+        "magical": "Uses ♥ Hearts - protective charms, spirit intervention"
+      },
+      "damage_formula": "Attack total - Defense total = Damage dealt",
+      "special_enemies": {
+        "nechist": "Some require silver, fire, or specific rituals to harm",
+        "blessed_weapons": "Weapons blessed by volkhv deal extra damage to spirits"
+      }
+    },
+    "links": {
+      "Карточная_Система": "core combat mechanic",
+      "Нечисть": "special rules for fighting spirits",
+      "Особые_События": "critical hits and fumbles"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Бонусы_Мастей",
+    "type": "concept",
+    "synopsis": "suit/color matching bonuses for =Проверки= and =Боевая_Система=: suit match +20, color match +10 (mutually exclusive)",
+    "body": {
+      "bonus_priority": "Suit match takes precedence over color match. Cannot stack both.",
+      "suit_match": "+20 bonus when card suit matches the action type",
+      "color_match": "+10 bonus when card color matches action type (but suit doesn't match)",
+      "slavic_examples": {
+        "sword_strike": "♠ card gives +20, ♣ card gives +10, red cards give 0",
+        "speaking_to_spirits": "♥ card gives +20, ♦ card gives +10, black cards give 0"
+      }
+    },
+    "links": {
+      "Система_Мастей": "bonuses based on suit system",
+      "Проверки": "applies to skill checks",
+      "Боевая_Система": "applies to combat actions"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Особые_События",
+    "type": "concept",
+    "synopsis": "special card combinations for narrative: 2 Aces=divine blessing, 2 Twos=dark fate, face cards=plot elements; uses =Значение_Карт=",
+    "body": {
+      "applies_to": "ONLY player characters, significant for spirit encounters",
+      "critical_combinations": {
+        "two_aces": {
+          "name": "Blessing of the Gods / Благословение богов",
+          "effect": "Divine intervention, ancestor's spirit aids, impossible deed",
+          "slavic_examples": [
+            "Perun's thunder strikes your enemy",
+            "Ancestor's ghost warns of ambush",
+            "Leshiy decides to help instead of harm",
+            "Frozen river holds under your weight"
+          ]
+        },
+        "two_twos": {
+          "name": "Dark Fate / Тёмная доля",
+          "effect": "Curse manifests, spirit's wrath, terrible misfortune",
+          "slavic_examples": [
+            "Weapon breaks at crucial moment",
+            "Dark spirit takes notice of you",
+            "Old curse activates",
+            "Trusted ally revealed as enemy"
+          ]
+        }
+      },
+      "face_cards": {
+        "jack": "Wanderer appears - stranger, spirit in disguise, messenger",
+        "queen": "Feminine power - vedma intervention, Mokosh's weaving, woman with secret",
+        "king": "Masculine power - knyaz's attention, Perun's judgment, warrior's challenge"
+      }
+    },
+    "links": {
+      "Значение_Карт": "based on specific card values",
+      "Карточная_Система": "special cases in card system",
+      "Старые_Боги": "divine interventions"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Предметы",
+    "type": "concept",
+    "synopsis": "equipment tied to =Система_Мастей=: weapons, armor, charms, potions; bonus = rank × 5 (+10 suit match)",
+    "body": {
+      "item_mechanics": {
+        "suit_affinity": "Each item belongs to one suit",
+        "value_discovery": "Item stats revealed through use or volkhv appraisal",
+        "equip_limit": "Can only use 1 item of each suit type actively"
+      },
+      "slavic_item_types": {
+        "spades": "Melee weapons - swords (меч), axes (топор), maces (булава), spears (копьё)",
+        "hearts": "Magical items - charms (обереги), ritual tools, blessed items, herbs",
+        "diamonds": "Armor and protection - кольчуга (chainmail), шлем (helm), щит (shield)",
+        "clubs": "Ranged and tools - bow (лук), hunting knife, traps, tracking tools"
+      },
+      "special_items": {
+        "blessed_weapon": "Blessed by volkhv, harms spirits",
+        "obereg": "Protective charm against specific danger",
+        "silver_weapon": "Required to harm certain nechist",
+        "speaking_stone": "Allows communication with spirits"
+      }
+    },
+    "links": {
+      "Система_Мастей": "items tied to suit system",
+      "Характеристики": "bonuses add to stats",
+      "Нечисть": "some items specifically counter spirits"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Развитие_Персонажа",
+    "type": "concept",
+    "synopsis": "character progression via =Проверки= success: +1 XP per successful check, at 10 XP: +1 stat, +1 HP, +1 Mana",
+    "body": {
+      "xp_gain": "Each successful check grants +1 XP to the characteristic used.",
+      "level_up": {
+        "trigger": "When any characteristic reaches 10 XP",
+        "rewards": ["+1 to that characteristic", "+1 to max HP", "+1 to max Mana", "XP resets to 0"]
+      },
+      "slavic_progression": {
+        "reputation": "Deeds build reputation - hero, monster-slayer, oathbreaker, cursed",
+        "divine_favor": "Please gods through deeds appropriate to their domain",
+        "spirit_relations": "Build relationships with local spirits - friend or enemy"
+      },
+      "alternative_progression": "Volkhv training, god's blessing, completing great deed can grant direct stat increases."
+    },
+    "links": {
+      "Проверки": "XP gained from successful checks",
+      "Характеристики": "stats that improve",
+      "Старые_Боги": "divine favor affects progression"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Старые_Боги",
+    "type": "concept",
+    "synopsis": "Slavic pagan pantheon: Perun (thunder), Veles (magic), Mokosh (fate), Svarog (fire), Morana (death); affects =Характеристики= and blessings",
+    "body": {
+      "major_gods": {
+        "perun": {
+          "domain": "Thunder, warriors, justice, oaths",
+          "symbol": "Axe, oak tree, thunder",
+          "favors": "Warriors, oath-keepers, those who fight evil",
+          "stat_bonus": "Strength (♠)"
+        },
+        "veles": {
+          "domain": "Underworld, magic, cattle, merchants, knowledge",
+          "symbol": "Serpent, horn, willow",
+          "favors": "Volkhvy, merchants, cunning folk",
+          "stat_bonus": "Magic (♥)"
+        },
+        "mokosh": {
+          "domain": "Fate, earth, women, weaving, fertility",
+          "symbol": "Spindle, water, Friday",
+          "favors": "Women, mothers, those who endure",
+          "stat_bonus": "Endurance (♦)"
+        },
+        "svarog": {
+          "domain": "Sky, fire, smithing, creation",
+          "symbol": "Hammer, forge fire, sun",
+          "favors": "Smiths, craftsmen, builders",
+          "stat_bonus": "Strength/Magic hybrid"
+        },
+        "stribog": {
+          "domain": "Wind, storms, speed",
+          "symbol": "Wind, clouds, birds",
+          "favors": "Travelers, archers, messengers",
+          "stat_bonus": "Agility (♣)"
+        },
+        "morana": {
+          "domain": "Winter, death, rebirth, dreams",
+          "symbol": "Ice, skulls, white maiden",
+          "relation": "Feared and respected, not worshipped openly"
+        },
+        "dazhbog": {
+          "domain": "Sun, prosperity, summer, giving",
+          "symbol": "Sun disc, golden light",
+          "favors": "Generous folk, those who share"
+        }
+      },
+      "worship": "Shrines in groves, offerings at crossroads, rituals at solstices. Volkhvy serve as intermediaries.",
+      "conflict": "Old faith vs New Faith (Christianity analog) creates tension in some regions."
+    },
+    "links": {
+      "Характеристики": "gods favor certain stats",
+      "Нечисть": "spirits fear certain gods",
+      "Общество": "religion shapes society",
+      "Магия_и_Ритуалы": "gods power magical rites"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Нечисть",
+    "type": "concept",
+    "synopsis": "Slavic spirits and monsters: forest (leshiy), water (vodyanoy, rusalka), home (domovoy), hostile (upyr, volkolak); requires =Боевая_Система= or bargaining",
+    "body": {
+      "forest_spirits": {
+        "leshiy": {
+          "description": "Forest master, can appear as old man, tree, or beast",
+          "behavior": "Protects forest, tests travelers, can help or harm",
+          "dealing_with": "Offer respect, leave gifts, don't break forest laws"
+        },
+        "borovik": "Lesser forest spirit, mushroom guardian",
+        "kikimora_forest": "Swamp-dwelling female spirit, dangerous"
+      },
+      "water_spirits": {
+        "vodyanoy": {
+          "description": "Water master, appears as old man with fish features",
+          "behavior": "Drowns disrespectful, can be bargained with",
+          "dealing_with": "Offerings before crossing water, don't fish without permission"
+        },
+        "rusalka": {
+          "description": "Drowned maidens, beautiful and deadly",
+          "behavior": "Lure men to drown, dance in moonlight",
+          "dealing_with": "Avoid water at night, wormwood protects"
+        },
+        "bolotnik": "Swamp spirit, extremely dangerous, no bargains"
+      },
+      "home_spirits": {
+        "domovoy": {
+          "description": "House spirit, appears as small old man",
+          "behavior": "Protects home if respected, mischief if not",
+          "dealing_with": "Leave food offerings, speak respectfully"
+        },
+        "bannik": "Bathhouse spirit, dangerous, requires ritual respect",
+        "ovinnik": "Barn spirit, protects livestock"
+      },
+      "hostile_spirits": {
+        "upyr": {
+          "description": "Undead blood-drinker, created from improper burial",
+          "weakness": "Sunlight, stake through heart, fire, decapitation",
+          "signs": "Village deaths, livestock drained"
+        },
+        "volkolak": {
+          "description": "Werewolf, cursed human or willing shapeshifter",
+          "weakness": "Silver, wolfsbane, breaking the curse",
+          "types": "Cursed (tragic) vs willing (evil)"
+        },
+        "navka": "Spirit of unbaptized/murdered child, dangerous",
+        "mavka": "Forest spirit of dead girl, seductive and deadly"
+      }
+    },
+    "links": {
+      "Боевая_Система": "combat with hostile nechist",
+      "Магия_и_Ритуалы": "rituals to deal with spirits",
+      "Проверки": "bargaining and survival checks"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Общество",
+    "type": "concept",
+    "synopsis": "Slavic social structure: knyaz and druzhina (warriors), boyars (nobles), smerdy (peasants), volkhvy (priests); affects social =Проверки=",
+    "body": {
+      "political_structure": {
+        "knyaz": {
+          "role": "Prince, rules the land",
+          "power": "Commands druzhina, dispenses justice, leads in war",
+          "court": "Boyars advise, compete for influence"
+        },
+        "druzhina": {
+          "role": "Prince's warrior retinue",
+          "status": "Professional warriors, high honor",
+          "loyalty": "Personal oath to knyaz"
+        },
+        "boyars": {
+          "role": "Landed nobility",
+          "power": "Own villages, command local forces",
+          "politics": "Constant maneuvering for influence"
+        },
+        "smerdy": {
+          "role": "Free peasants",
+          "life": "Work land, pay tribute, serve in war if called",
+          "rights": "Can own property, have legal standing"
+        },
+        "kholopy": {
+          "role": "Slaves/bondsmen",
+          "status": "No rights, property of owner",
+          "sources": "War captives, debt, birth"
+        }
+      },
+      "religious_figures": {
+        "volkhv": "Pagan priest, keeper of old ways, magic user",
+        "vedma": "Witch, can be helpful or harmful, feared",
+        "znakhar": "Healer, uses herbs and minor magic"
+      },
+      "honor_culture": {
+        "slovo": "Given word is sacred, breaking it brings shame and curse",
+        "blood_vengeance": "Krovnaya mest - sacred duty to avenge family",
+        "hospitality": "Guest right is sacred, host protects guest"
+      }
+    },
+    "links": {
+      "Старые_Боги": "religion shapes society",
+      "Проверки": "social status affects interactions",
+      "Характеристики": "Diamonds stat for social situations"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Магия_и_Ритуалы",
+    "type": "concept",
+    "synopsis": "Slavic magic system: zagovory (word spells), oberegi (charms), rituals; uses =Характеристики= Hearts stat; tied to =Старые_Боги=",
+    "body": {
+      "magic_types": {
+        "zagovory": {
+          "description": "Word-magic, spoken spells with ritual phrases",
+          "use": "Healing, protection, cursing, binding",
+          "cost": "Mana, sometimes offerings or personal sacrifice"
+        },
+        "oberegi": {
+          "description": "Protective charms, crafted objects with power",
+          "examples": "Rowan branches, iron, silver, specific symbols",
+          "function": "Passive protection against specific threats"
+        },
+        "ritual_magic": {
+          "description": "Complex ceremonies requiring preparation",
+          "examples": "Summoning spirits, breaking curses, divination",
+          "requirements": "Time, components, proper location, often multiple people"
+        },
+        "natural_magic": {
+          "description": "Working with herbs, elements, natural forces",
+          "practitioners": "Znakhari, some vedmy",
+          "scope": "Healing, weather-sense, animal communication"
+        }
+      },
+      "magic_costs": {
+        "mana": "Hearts × 3 determines pool, regenerates with rest",
+        "offerings": "Spirits may demand gifts for aid",
+        "personal_price": "Powerful magic may cost health, years, or sanity",
+        "taboos": "Breaking magical rules brings consequences"
+      },
+      "practitioners": {
+        "volkhv": "Priest-magician, works with gods, formal training",
+        "vedma": "Witch, often self-taught or taught by spirits, feared",
+        "znakhar": "Folk healer, limited magic, trusted"
+      }
+    },
+    "links": {
+      "Характеристики": "Hearts stat powers magic",
+      "Старые_Боги": "gods grant magical power",
+      "Нечисть": "magic used against/with spirits",
+      "Проверки": "magical actions require checks"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Локации",
+    "type": "concept",
+    "synopsis": "typical Slavic world locations: dense forests, villages, hillforts (goroda), sacred groves, cursed places; setting for =Проверки= and encounters",
+    "body": {
+      "wilderness": {
+        "dark_forest": {
+          "description": "Endless ancient forest, home of leshiy and worse",
+          "dangers": "Getting lost, hostile spirits, wolves, bandits",
+          "resources": "Hunting, herbs, hidden paths"
+        },
+        "rivers": {
+          "description": "Major travel routes, vodyanoy territory",
+          "dangers": "Rusalki, vodyanoy, floods",
+          "importance": "Trade, fishing, boundaries"
+        },
+        "swamps": {
+          "description": "Deadly bogs, bolotnik domain",
+          "dangers": "Drowning, will-o-wisps, disease",
+          "resources": "Rare herbs, hiding places"
+        }
+      },
+      "settlements": {
+        "village": {
+          "description": "Small agricultural community",
+          "features": "Wooden houses, domovoy in each, communal fields",
+          "attitude": "Suspicious of strangers, protective of own"
+        },
+        "gorod": {
+          "description": "Fortified town or hillfort",
+          "features": "Palisade walls, knyaz's hall, market, shrine",
+          "importance": "Trade, protection, justice"
+        }
+      },
+      "sacred_places": {
+        "sacred_grove": "Holy place, volkhvy conduct rituals, spirits dwell",
+        "crossroads": "Liminal space, offerings left, spirits pass",
+        "burial_mounds": "Ancestor resting places, disturbing them is dangerous"
+      },
+      "cursed_places": {
+        "abandoned_village": "Something drove people away, evil lingers",
+        "battlefield": "Unburied dead, navki and upyri",
+        "witch_hut": "Former vedma dwelling, dangerous magic remains"
+      }
+    },
+    "links": {
+      "Нечисть": "spirits inhabit locations",
+      "Проверки": "survival and exploration checks",
+      "Общество": "settlements have social structure"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Конфликты_и_Угрозы",
+    "type": "concept",
+    "synopsis": "typical threats in Slavic world: raiders, feuding knyazi, awakening evil, faith conflict; drives plot and =Боевая_Система= encounters",
+    "body": {
+      "human_threats": {
+        "raiders": "Bandits, foreign raiders (Vikings, steppe nomads)",
+        "feuding_lords": "Knyazi fight each other, peasants suffer",
+        "slavers": "Capture people for foreign markets"
+      },
+      "supernatural_threats": {
+        "awakening_evil": "Ancient horror stirs, spreading corruption",
+        "spirit_rage": "Offended powerful spirit terrorizes region",
+        "curse_spreading": "Magical plague or widespread curse"
+      },
+      "social_conflicts": {
+        "old_vs_new_faith": "Pagans vs New Faith (Christianity analog)",
+        "noble_vs_common": "Boyars oppressing peasants",
+        "blood_feud": "Families locked in generations of vengeance"
+      },
+      "personal_quests": {
+        "vengeance": "Blood debt must be paid",
+        "rescue": "Someone taken by nechist or enemies",
+        "breaking_curse": "Self or loved one cursed",
+        "finding_truth": "Mystery to solve, secret to uncover"
+      }
+    },
+    "links": {
+      "Боевая_Система": "combat with threats",
+      "Нечисть": "supernatural enemies",
+      "Общество": "social conflicts"
+    },
+    "is_game": true
+  }
+]

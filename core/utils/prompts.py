@@ -1,9 +1,10 @@
 """
-Utilities for loading prompts from files.
+Utilities for loading prompts from files with Jinja2 templating support.
 """
 import os
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Any, Optional
+from jinja2 import Template
 
 # Project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -55,6 +56,45 @@ def get_prompt(prompt_name: str, use_cache: bool = True) -> str:
 def clear_prompts_cache():
     """Clear prompts cache. Useful for development/testing."""
     _prompts_cache.clear()
+
+
+def render_prompt(prompt_name: str, variables: Optional[Dict[str, Any]] = None, use_cache: bool = True) -> str:
+    """
+    Load prompt and render it with Jinja2 template variables.
+
+    Args:
+        prompt_name: Name of prompt file (without .md extension)
+        variables: Dictionary of template variables (e.g., {"language": "Russian"})
+        use_cache: Whether to use cached template
+
+    Returns:
+        Rendered prompt content
+    """
+    template_content = get_prompt(prompt_name, use_cache=use_cache)
+
+    if not variables:
+        return template_content
+
+    template = Template(template_content)
+    return template.render(**variables)
+
+
+def render_world_prompt(world_prompt: str, variables: Optional[Dict[str, Any]] = None) -> str:
+    """
+    Render world-specific prompt with Jinja2 template variables.
+
+    Args:
+        world_prompt: Raw prompt content from world file
+        variables: Dictionary of template variables
+
+    Returns:
+        Rendered prompt content
+    """
+    if not variables:
+        return world_prompt
+
+    template = Template(world_prompt)
+    return template.render(**variables)
 
 
 # Convenience constants for prompt names

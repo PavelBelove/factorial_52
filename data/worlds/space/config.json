@@ -1,0 +1,22 @@
+{
+  "id": "space",
+  "name": {
+    "ru": "Предел",
+    "en": "The Frontier"
+  },
+  "description": {
+    "ru": "Звёзды раскинулись бесконечно, а ты — между Империумом и неизведанным. Каждый прыжок — риск. Каждая встреча — выбор. Космос не прощает, но награждает смелых.",
+    "en": "Stars stretch endless, and you stand between Imperium and unknown. Each jump — risk. Each encounter — choice. Space forgives nothing, but rewards the bold."
+  },
+  "icon": "🚀",
+  "enabled": true,
+  "has_content": true,
+  "features": {
+    "space_opera": true,
+    "alien_encounters": true,
+    "frontier_exploration": true,
+    "cosmic_scale": true,
+    "personal_stakes": true
+  },
+  "tags": ["space", "opera", "frontier", "aliens", "exploration"]
+}

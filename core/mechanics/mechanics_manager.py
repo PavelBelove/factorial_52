@@ -208,27 +208,28 @@ class MechanicsManager:
     # CALCULATIONS
     # =========================================================================
     
-    def calculate_thresholds(self, session_id: int) -> Dict[str, Any]:
+    def calculate_thresholds(self, session_id: int, difficulty: str = "normal") -> Dict[str, Any]:
         """Calculate difficulty thresholds for all suits"""
         char = self.get_character(session_id)
         if not char:
             return {}
-        
-        return calculations.calculate_thresholds(char)
-    
+
+        return calculations.calculate_thresholds(char, difficulty)
+
     def calculate_all_checks(
         self,
         session_id: int,
-        cards_data: Dict[str, Any]
+        cards_data: Dict[str, Any],
+        difficulty: str = "normal"
     ) -> Dict[str, Any]:
         """Calculate all possible checks for all pairs and all suits"""
         char = self.get_character(session_id)
         if not char:
             return {}
-        
-        thresholds = self.calculate_thresholds(session_id)
+
+        thresholds = self.calculate_thresholds(session_id, difficulty)
         card_pairs = cards_data["_card_objects"]
-        
+
         return calculations.calculate_all_checks(card_pairs, char, thresholds)
     
     def calculate_all_combat_options(
@@ -307,7 +308,7 @@ class MechanicsManager:
                 if check.get("success"):
                     suit_name = check["suit"]
                     self._add_xp(char, suit_name)
-                    changes_applied.append(f"XP +1 для {suit_name}")
+                    changes_applied.append(f"XP +1 {suit_name}")
         
         # Direct stat increases (from training, etc.)
         if "stats" in response_data:
@@ -331,8 +332,8 @@ class MechanicsManager:
                         self._remove_item_from_inventory(char, item_id, changes_applied)
                     except Exception as e:
                         logger.error(f"Error removing item {item_id}: {e}")
-                        changes_applied.append(f"⚠️ Не удалось удалить: {item_id}")
-            
+                        changes_applied.append(f"Failed to remove: {item_id}")
+
             # Add items (with deduplication and stacking)
             if "add" in inv_data:
                 for item_data in inv_data["add"]:
@@ -340,7 +341,7 @@ class MechanicsManager:
                         self._add_item_to_inventory(char, item_data, changes_applied)
                     except Exception as e:
                         logger.error(f"Error adding item {item_data.get('id', 'unknown')}: {e}")
-                        changes_applied.append(f"⚠️ Не удалось добавить: {item_data.get('id', 'unknown')}")
+                        changes_applied.append(f"Failed to add: {item_data.get('id', 'unknown')}")
         
         # Equip/unequip items
         if "equip" in response_data:
@@ -349,15 +350,15 @@ class MechanicsManager:
                     if item.id == item_id:
                         item.equipped = True
                         char.equipped[item_id] = True
-                        changes_applied.append(f"Надето: {item_id}")
-        
+                        changes_applied.append(f"Equipped: {item_id}")
+
         if "unequip" in response_data:
             for item_id in response_data["unequip"]:
                 for item in char.inventory:
                     if item.id == item_id:
                         item.equipped = False
                         char.equipped.pop(item_id, None)
-                        changes_applied.append(f"Снято: {item_id}")
+                        changes_applied.append(f"Unequipped: {item_id}")
         
         # Save to DB
         self._character_to_db(session_id, char)
@@ -368,19 +369,19 @@ class MechanicsManager:
     def _remove_item_from_inventory(self, char: Character, item_id: str, changes_log: List[str]):
         """
         Remove item from inventory with stack support.
-        
+
         Rules:
         1. If item has _X5 suffix, decrement to _X4
         2. If item has _X2, decrement to base name (no suffix)
         3. If item has no suffix or _X1, remove completely
-        
+
         Args:
             char: Character
             item_id: Item ID to remove
             changes_log: List to append change messages
         """
         import re
-        
+
         # Find item by exact ID
         for i, item in enumerate(char.inventory):
             if item.id == item_id:
@@ -389,30 +390,30 @@ class MechanicsManager:
                 if match:
                     base_name = match.group(1)
                     count = int(match.group(2))
-                    
+
                     if count > 2:
                         # Decrement count
                         new_id = f"{base_name}_X{count - 1}"
                         char.inventory[i].id = new_id
-                        changes_log.append(f"Использован: {item_id} (остался {new_id})")
+                        changes_log.append(f"Used: {item_id} ({new_id} left)")
                         logger.info(f"Decremented stack: {new_id}")
                     elif count == 2:
                         # Decrement to base name (no suffix)
                         char.inventory[i].id = base_name
-                        changes_log.append(f"Использован: {item_id} (остался {base_name})")
+                        changes_log.append(f"Used: {item_id} ({base_name} left)")
                         logger.info(f"Decremented stack: {base_name}")
                     else:
                         # Remove completely (shouldn't happen with _X1, but just in case)
                         char.inventory.pop(i)
-                        changes_log.append(f"Удалён: {item_id}")
+                        changes_log.append(f"Removed: {item_id}")
                         logger.info(f"Removed item: {item_id}")
                 else:
                     # Not a stack - remove completely
                     char.inventory.pop(i)
-                    changes_log.append(f"Удалён: {item_id}")
+                    changes_log.append(f"Removed: {item_id}")
                     logger.info(f"Removed item: {item_id}")
                 return
-        
+
         # Item not found - log warning
         logger.warning(f"Item not found in inventory: {item_id}")
     
@@ -432,8 +433,18 @@ class MechanicsManager:
         """
         import re
         
-        # Graceful item creation with fallback
-        try:
+        # Handle both formats: string or dict
+        if isinstance(item_data, str):
+            # GM returned just item name - create minimal item
+            item_id = item_data
+            sanitized_data = {
+                'id': item_id,
+                'type': 'item',  # generic type
+                'bonus': 0,
+                'description': f"Added by GM: {item_id}",
+                'suit': None
+            }
+        elif isinstance(item_data, dict):
             # Sanitize item data
             sanitized_data = item_data.copy()
             
@@ -446,14 +457,20 @@ class MechanicsManager:
                 sanitized_data['bonus'] = 0
             if 'description' not in sanitized_data:
                 sanitized_data['description'] = ''
+        else:
+            logger.error(f"Invalid item_data type: {type(item_data)}, value: {item_data}")
+            changes_log.append(f"Invalid item data format")
+            return
             
+        # Graceful item creation with fallback
+        try:
             new_item = Item(**sanitized_data)
             
         except Exception as e:
-            logger.error(f"Failed to create item from data: {item_data}")
+            logger.error(f"Failed to create item from data: {sanitized_data}")
             logger.error(f"Validation error: {e}")
-            logger.warning(f"Skipping invalid item: {item_data.get('id', 'unknown')}")
-            changes_log.append(f"⚠️ Предмет не добавлен (ошибка валидации): {item_data.get('id', 'unknown')}")
+            logger.warning(f"Skipping invalid item: {sanitized_data.get('id', 'unknown')}")
+            changes_log.append(f"Item validation failed: {sanitized_data.get('id', 'unknown')}")
             return
         
         # Check for exact duplicate (all fields match)
@@ -488,13 +505,13 @@ class MechanicsManager:
                         # Update count
                         total_count = existing_count + new_count
                         existing_item.id = f"{base_name}_X{total_count}"
-                        changes_log.append(f"Получен: {new_item.id} (теперь {existing_item.id})")
+                        changes_log.append(f"Added: {new_item.id} (now {existing_item.id})")
                         logger.info(f"Stacked item: {existing_item.id}")
                         return
-        
+
         # No duplicate found - add new item
         char.inventory.append(new_item)
-        changes_log.append(f"Получен: {new_item.id}")
+        changes_log.append(f"Added: {new_item.id}")
         logger.info(f"Added new item: {new_item.id}")
     
     def _add_xp(self, char: Character, suit_name: str):

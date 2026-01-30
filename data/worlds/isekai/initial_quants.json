@@ -1,0 +1,482 @@
+[
+  {
+    "id": "CharacterCreation",
+    "type": "meta",
+    "synopsis": "special instructions for character creation phase, uses =Карточная_Система= to generate stats",
+    "body": {
+      "role": "SPECIAL QUANT FOR CHARACTER CREATION",
+      "priority": "CRITICAL - if you see this quant, character creation process is priority",
+      "instruction_for_gm": "You see this quant ONLY during character creation.\n\n**WHAT TO DO:**\n1. System draws 5 cards for stat distribution (see =Значение_Карт=)\n2. Explain distribution rules from =Характеристики=\n3. Player distributes 4 best cards (worst discarded) to 4 stats\n4. Value = rank × 5 (+10 if suit matches characteristic)\n5. Return final stats in response_data\n\n**AFTER CREATION:**\n- DON'T request this quant again\n- Request =Карточная_Система=, =Проверки=, =Боевая_Система= as needed",
+      "instruction_for_quantizer": "DON'T create 'Character' or 'Inventory' quants - they are in game mechanics!\n\nInstead create quants for:\n1. UNIQUE character abilities (e.g., 'Магический_Призыв')\n2. Important backstory elements (e.g., 'Предыстория_Героя')\n3. Special items with lore"
+    },
+    "links": {
+      "Карточная_Система": "uses for stat generation",
+      "Характеристики": "distributes cards to these 4 stats",
+      "Значение_Карт": "card values determine stat values"
+    },
+    "is_game": false
+  },
+  {
+    "id": "Карточная_Система",
+    "type": "concept",
+    "synopsis": "core card-based RPG system 'Factorial 52!', uses standard 52-card deck for all checks and combat via =Проверки= and =Боевая_Система=",
+    "body": {
+      "description": "Card-based tabletop RPG system. All actions resolved by drawing cards. No dice needed - only standard 52-card deck.",
+      "core_principle": "Cards are drawn BEFORE player declares action. GM sees results and uses them for narrative. Player describes intent, GM interprets based on drawn cards.",
+      "card_drawing": "Always draw 2 cards as a pair. Bot draws 2 pairs (4 cards) per turn for flexibility.",
+      "key_mechanics": [
+        "Card value = rank × 10",
+        "Suit/color bonuses add +10 or +20",
+        "Character stat adds to total",
+        "Compare vs threshold for success"
+      ],
+      "bot_adaptations": "Cards dealt randomly before turn. GM sees check results and uses them for luck/skill checks in narrative. Combat uses card pair (unlike tabletop single-card)."
+    },
+    "links": {
+      "Значение_Карт": "card rank values and face card meanings",
+      "Система_Мастей": "four suits tied to characteristics",
+      "Проверки": "out-of-combat skill checks",
+      "Боевая_Система": "combat resolution",
+      "Особые_События": "special results from aces, twos, face cards"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Значение_Карт",
+    "type": "concept",
+    "synopsis": "card rank values: 2-10 face value, J=11, Q=12, K=13, A=15; face cards add narrative elements via =Особые_События=",
+    "body": {
+      "rank_values": {
+        "2-10": "face value",
+        "Jack": "11 (also triggers plot twist)",
+        "Queen": "12 (also triggers female influence)",
+        "King": "13 (also triggers male influence)",
+        "Ace": "15 (highest value, double aces = divine success)"
+      },
+      "value_calculation": {
+        "checks": "rank × 10",
+        "character_creation": "rank × 5",
+        "items": "rank × 5"
+      },
+      "narrative_use": "Face cards (J, Q, K) can introduce NPCs, plot twists, or thematic elements. GM uses these for storytelling enrichment in peaceful time.",
+      "critical_combinations": {
+        "two_aces": "Divine intervention, miraculous success",
+        "two_twos": "Catastrophe, worst possible outcome"
+      }
+    },
+    "links": {
+      "Карточная_Система": "part of core card system",
+      "Проверки": "values used in skill checks",
+      "Боевая_Система": "values used in combat",
+      "Особые_События": "face cards and critical combos trigger special events",
+      "CharacterCreation": "values determine starting stats"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Система_Мастей",
+    "type": "concept",
+    "synopsis": "four card suits map to =Характеристики=: ♠Spades=Strength, ♥Hearts=Magic, ♦Diamonds=Endurance, ♣Clubs=Agility",
+    "body": {
+      "suit_mapping": {
+        "spades": {
+          "symbol": "♠",
+          "color": "black",
+          "characteristic": "Сила (Strength)",
+          "combat_role": "melee attack"
+        },
+        "hearts": {
+          "symbol": "♥",
+          "color": "red",
+          "characteristic": "Магия (Magic)",
+          "combat_role": "magic defense, spellcasting"
+        },
+        "diamonds": {
+          "symbol": "♦",
+          "color": "red",
+          "characteristic": "Стойкость (Endurance)",
+          "combat_role": "physical defense"
+        },
+        "clubs": {
+          "symbol": "♣",
+          "color": "black",
+          "characteristic": "Ловкость (Agility)",
+          "combat_role": "ranged attack"
+        }
+      },
+      "color_meaning": {
+        "black": "♠♣ - offensive actions (attack)",
+        "red": "♥♦ - defensive actions (defense)"
+      },
+      "bonuses": "Suit match: +20, Color match: +10 (see =Бонусы_Мастей=)"
+    },
+    "links": {
+      "Характеристики": "each suit corresponds to one characteristic",
+      "Боевая_Система": "suit determines attack/defense type",
+      "Бонусы_Мастей": "suit/color matching gives bonuses",
+      "Карточная_Система": "fundamental part of card system"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Характеристики",
+    "type": "concept",
+    "synopsis": "four character stats from =Система_Мастей=: Сила(♠), Магия(♥), Стойкость(♦), Ловкость(♣); used in =Проверки= and =Боевая_Система=",
+    "body": {
+      "stats": {
+        "spades_strength": {
+          "name": "Сила (Strength)",
+          "suit": "♠ Spades",
+          "applications": ["melee combat", "physical strength", "willpower", "intimidation"],
+          "combat_use": "melee attack damage"
+        },
+        "hearts_magic": {
+          "name": "Магия (Magic)",
+          "suit": "♥ Hearts",
+          "applications": ["magic defense", "spellcasting", "wisdom", "communication", "persuasion"],
+          "combat_use": "magical defense, spell power"
+        },
+        "diamonds_endurance": {
+          "name": "Стойкость (Endurance)",
+          "suit": "♦ Diamonds",
+          "applications": ["physical defense", "endurance", "charisma", "trading", "constitution"],
+          "combat_use": "physical defense (shields, armor, dodging)"
+        },
+        "clubs_agility": {
+          "name": "Ловкость (Agility)",
+          "suit": "♣ Clubs",
+          "applications": ["ranged combat", "acrobatics", "aim", "stealth", "dexterity"],
+          "combat_use": "ranged attack damage"
+        }
+      },
+      "starting_values": "Typically 25-85 range. Card rank × 5 (+10 if suit matches).",
+      "average_stat": "Sum of all 4 stats ÷ 4. Used to calculate difficulty thresholds.",
+      "hp_mana_formula": {
+        "max_hp": "spades + diamonds + clubs",
+        "max_mana": "hearts × 3"
+      }
+    },
+    "links": {
+      "Система_Мастей": "stats correspond to card suits",
+      "Проверки": "stats add to check totals",
+      "Боевая_Система": "stats add to attack/defense",
+      "Развитие_Персонажа": "stats increase through XP",
+      "CharacterCreation": "initial stats from card distribution"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Проверки",
+    "type": "concept",
+    "synopsis": "out-of-combat skill checks using =Карточная_Система=: 2 cards × 10 + stat + =Бонусы_Мастей= vs difficulty threshold",
+    "body": {
+      "when_to_check": "When outcome is uncertain. Simple/obvious actions auto-succeed. Risky/difficult actions require check.",
+      "formula": {
+        "step1": "Draw 2 cards",
+        "step2": "Each card: rank × 10",
+        "step3": "Add suit/color bonus per card (+20 suit match, +10 color match)",
+        "step4": "Add relevant characteristic value",
+        "step5": "Compare total vs difficulty threshold"
+      },
+      "difficulty_thresholds": {
+        "easy": "100 + average_stat",
+        "normal": "150 + average_stat",
+        "hard": "200 + average_stat",
+        "very_hard": "250 + average_stat"
+      },
+      "example": "Jumping chasm (hard, agility). Difficulty: 200 + 40 = 240. Cards: 8♥ + K♠ = (80+130) + 60 agility = 270. Success!",
+      "gm_interpretation": "GM sees pre-drawn cards and their check results. Uses appropriate check for the action player describes."
+    },
+    "links": {
+      "Карточная_Система": "uses card drawing mechanic",
+      "Значение_Карт": "card values determine base result",
+      "Характеристики": "stat adds to total",
+      "Бонусы_Мастей": "suit/color bonuses apply",
+      "Развитие_Персонажа": "successful checks grant XP"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Боевая_Система",
+    "type": "concept",
+    "synopsis": "combat resolution via =Карточная_Система=: black cards(♠♣)=attack, red cards(♥♦)=defense; damage = attack - defense",
+    "body": {
+      "combat_flow": {
+        "step1": "Cards dealt to all participants (2 per entity in bot version)",
+        "step2": "Players declare actions WITHOUT knowing their cards",
+        "step3": "Cards revealed, GM narrates results"
+      },
+      "card_colors": {
+        "black": "♠♣ = Attack cards",
+        "red": "♥♦ = Defense cards"
+      },
+      "attack_types": {
+        "melee": "Uses ♠ Spades/Strength. Close combat, swords, fists.",
+        "ranged": "Uses ♣ Clubs/Agility. Bows, guns, thrown weapons.",
+        "magic": "Uses ♥ Hearts/Magic. Spells, magical abilities."
+      },
+      "defense_types": {
+        "physical": "Uses ♦ Diamonds/Endurance. Shields, armor, dodging.",
+        "magical": "Uses ♥ Hearts/Magic. Barriers, wards, counterspells."
+      },
+      "damage_formula": "Attack total - Defense total = Damage dealt",
+      "value_calculation": "Card value (rank × 10) + characteristic + suit bonus (+20) or color bonus (+10)",
+      "combo_attacks": "Can combine two stats (e.g., magic + strength for 'fire sword'). Both stats add, but if both cards are red - attack fails!",
+      "bot_adaptation": "Uses pair of cards instead of single card. More dynamic combat with higher values."
+    },
+    "links": {
+      "Карточная_Система": "core combat mechanic",
+      "Система_Мастей": "suits determine attack/defense type",
+      "Характеристики": "stats add to combat values",
+      "Бонусы_Мастей": "suit/color bonuses apply",
+      "Особые_События": "critical combinations in combat"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Бонусы_Мастей",
+    "type": "concept",
+    "synopsis": "suit/color matching bonuses for =Проверки= and =Боевая_Система=: suit match +20, color match +10 (mutually exclusive)",
+    "body": {
+      "bonus_priority": "Suit match takes precedence over color match. Cannot stack both.",
+      "suit_match": "+20 bonus when card suit matches the characteristic/action suit",
+      "color_match": "+10 bonus when card color matches action type (but suit doesn't match)",
+      "examples": {
+        "suit_match": "Using ♠7 for Strength check: +20 bonus (spades = strength)",
+        "color_match": "Using ♣7 for Strength check: +10 bonus (both black, but clubs ≠ spades)",
+        "no_bonus": "Using ♥7 for Strength check: no bonus (red ≠ black)"
+      },
+      "combat_application": {
+        "melee_attack": "♠ gives +20, ♣ gives +10, red gives 0",
+        "ranged_attack": "♣ gives +20, ♠ gives +10, red gives 0",
+        "physical_defense": "♦ gives +20, ♥ gives +10, black gives 0",
+        "magic_defense": "♥ gives +20, ♦ gives +10, black gives 0"
+      }
+    },
+    "links": {
+      "Система_Мастей": "bonuses based on suit system",
+      "Проверки": "applies to skill checks",
+      "Боевая_Система": "applies to combat actions"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Особые_События",
+    "type": "concept",
+    "synopsis": "special card combinations for narrative: 2 Aces=divine success, 2 Twos=catastrophe, face cards=plot elements; uses =Значение_Карт=",
+    "body": {
+      "applies_to": "ONLY player characters, ONLY in peaceful time (not combat for NPCs)",
+      "critical_combinations": {
+        "two_aces": {
+          "name": "Divine Success / Божественный успех",
+          "effect": "Miraculous outcome. Divine intervention, impossible luck, legendary feat.",
+          "example_peaceful": "Recognized as 'Great Hero from prophecy', gifted sacred artifact",
+          "example_combat": "Accidental spell causes meteor to destroy enemy army, meteor itself is valuable"
+        },
+        "two_twos": {
+          "name": "Catastrophe / Катастрофа",
+          "effect": "Worst possible outcome. Everything goes wrong.",
+          "example_peaceful": "Falsely accused of murder, imprisoned, sentenced to death",
+          "example_combat": "Enemy summons demon lord, must flee for life"
+        }
+      },
+      "face_cards": {
+        "jack": {
+          "meaning": "Plot twist, unexpected event, NPC appearance",
+          "use": "GM introduces new story element or character"
+        },
+        "queen": {
+          "meaning": "Female character or energy influence",
+          "use": "Female NPC becomes significant, feminine themes emerge"
+        },
+        "king": {
+          "meaning": "Male character or energy influence",
+          "use": "Male NPC becomes significant, masculine themes emerge"
+        }
+      },
+      "gm_guidance": "Use face cards for narrative enrichment. They suggest themes but don't force specific outcomes."
+    },
+    "links": {
+      "Значение_Карт": "based on specific card values",
+      "Карточная_Система": "special cases in card system",
+      "Проверки": "can occur during checks",
+      "Боевая_Система": "can occur during combat"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Предметы",
+    "type": "concept",
+    "synopsis": "equipment system tied to =Система_Мастей=: items have suit affinity, bonus = rank × 5 (+10 suit match), max 1 equipped per suit",
+    "body": {
+      "item_mechanics": {
+        "suit_affinity": "Each item belongs to one suit (♠ weapons, ♥ magical items, ♦ armor, ♣ ranged/tools)",
+        "value_discovery": "Item stats unknown until 'identified' - draw card, rank × 5 (+10 if suit matches)",
+        "equip_limit": "Can only wear 1 item of each suit type. Others stay in inventory."
+      },
+      "effect": "Equipped item bonus adds to corresponding characteristic for all checks and combat.",
+      "item_types": {
+        "spades": "Melee weapons (swords, axes, maces)",
+        "hearts": "Magical items (amulets, staves, wands)",
+        "diamonds": "Defensive gear (armor, shields, cloaks)",
+        "clubs": "Ranged/utility (bows, tools, thrown weapons)"
+      },
+      "inventory": "Unlimited storage, but only equipped items grant bonuses.",
+      "stacking": "Consumables stack (Potion_X3). Using one decrements count."
+    },
+    "links": {
+      "Система_Мастей": "items tied to suit system",
+      "Характеристики": "bonuses add to stats",
+      "Проверки": "equipped bonuses affect checks",
+      "Боевая_Система": "equipped bonuses affect combat"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Развитие_Персонажа",
+    "type": "concept",
+    "synopsis": "character progression via =Проверки= success: +1 XP per successful check, at 10 XP: +1 stat, +1 HP, +1 Mana",
+    "body": {
+      "xp_gain": "Each successful check grants +1 XP to the characteristic used.",
+      "level_up": {
+        "trigger": "When any characteristic reaches 10 XP",
+        "rewards": [
+          "+1 to that characteristic",
+          "+1 to max HP",
+          "+1 to max Mana",
+          "XP resets to 0"
+        ]
+      },
+      "tracking": "Each of 4 characteristics has separate XP counter (spades_xp, hearts_xp, etc.)",
+      "average_recalculation": "After stat increase, average_stat should be recalculated. Affects difficulty thresholds.",
+      "alternative_progression": "GM can award direct stat increases for training, special events, or story rewards.",
+      "death_rule": "Death is permanent. If character dies, create new one. Keep notes for potential reuse in future games."
+    },
+    "links": {
+      "Проверки": "XP gained from successful checks",
+      "Характеристики": "stats that improve",
+      "Карточная_Система": "part of overall game system"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Магическая_Система",
+    "type": "concept",
+    "synopsis": "isekai magic works through Mana (=Характеристики= ♥Hearts×3), regenerates with rest; multiple schools available via =Гильдия_Авантюристов=",
+    "body": {
+      "mana_mechanics": {
+        "source": "Internal magical energy present in all living beings",
+        "max_mana": "Hearts stat × 3 (see =Характеристики=)",
+        "regeneration": "Rest, food, mana potions, meditation",
+        "exhaustion": "Exceeding mana limit causes fatigue, unconsciousness, or death"
+      },
+      "magic_schools": {
+        "elemental": "Fire, water, earth, air, lightning",
+        "healing": "Restoration, purification, blessing",
+        "enhancement": "Body strengthening, speed boost, resistance",
+        "summoning": "Creature summoning, item manifestation",
+        "illusion": "Deception, invisibility, phantom creation",
+        "necromancy": "Dark arts, forbidden in most kingdoms"
+      },
+      "racial_affinity": "Different races have natural predisposition to certain magic types",
+      "learning": "Through academies, mentors, ancient tomes, or natural talent awakening"
+    },
+    "links": {
+      "Характеристики": "Hearts stat determines mana pool",
+      "Гильдия_Авантюристов": "provides magic training services",
+      "Расы_и_Существа": "races have different magic affinities",
+      "Боевая_Система": "magic used in combat via Hearts stat"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Гильдия_Авантюристов",
+    "type": "concept",
+    "synopsis": "adventurer organization with rank system F→S, provides quests and services; ranks affect =Проверки= difficulty access",
+    "body": {
+      "description": "Central organization for adventurers in isekai worlds. Hub for quests, information, and services.",
+      "rank_system": {
+        "F": "Novice - basic fetch quests, herb gathering",
+        "E": "Beginner - simple monster hunting",
+        "D": "Junior - moderate dungeons, escort missions",
+        "C": "Average - standard adventurer, most quests available",
+        "B": "Experienced - difficult quests, party leadership",
+        "A": "Elite - rare quests, kingdom-level threats",
+        "S": "Legendary - world-threatening events, heroes of renown"
+      },
+      "services": [
+        "Quest posting and acceptance",
+        "Monster/dungeon information",
+        "Resource exchange and trade",
+        "Recommendation letters",
+        "Training facilities",
+        "Party formation assistance"
+      ],
+      "rank_up": "Complete appropriate quests, demonstrate skill, pass evaluation. Higher ranks unlock better quests and rewards."
+    },
+    "links": {
+      "Карточная_Система": "rank affects available quest difficulty",
+      "Магическая_Система": "offers magic training",
+      "Расы_и_Существа": "information about monsters"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Расы_и_Существа",
+    "type": "concept",
+    "synopsis": "isekai world races and creatures: humans, elves, dwarves, beastfolk, demons; monsters from slimes to dragons; affects =Магическая_Система= affinity",
+    "body": {
+      "playable_races": {
+        "humans": "Versatile, no special bonuses, adaptable to any role",
+        "elves": "Long-lived, magic affinity (♥+), forest dwelling",
+        "dwarves": "Sturdy, crafting masters, endurance affinity (♦+)",
+        "beastfolk": "Animal traits, agility affinity (♣+), various sub-types (cat, wolf, fox, etc.)",
+        "demons": "Varied, often misunderstood, unique abilities",
+        "dragonborn": "Rare, dragon blood, strength affinity (♠+)"
+      },
+      "monster_types": {
+        "weak": "Slimes, goblins, wolves - F-E rank quests",
+        "moderate": "Orcs, ogres, undead - D-C rank quests",
+        "strong": "Trolls, wyverns, golems - B-A rank quests",
+        "legendary": "Dragons, demon lords, ancient evils - S rank quests"
+      },
+      "creature_traits": "Each race/monster has typical habitat, abilities, weaknesses. GM should consider these in encounters."
+    },
+    "links": {
+      "Магическая_Система": "races have magic affinities",
+      "Гильдия_Авантюристов": "ranks correspond to monster difficulty",
+      "Характеристики": "racial bonuses to stats"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Исекай_Особенности",
+    "type": "concept",
+    "synopsis": "isekai genre conventions: otherworld knowledge advantage, unique abilities, game-like elements; affects =Проверки= interpretation",
+    "body": {
+      "transfer_types": {
+        "reincarnation": "Death in original world, rebirth in new one",
+        "summoning": "Deliberately called by ritual or deity",
+        "portal": "Accidental transfer, physical body retained"
+      },
+      "otherworld_advantage": {
+        "knowledge": "Modern science, technology, tactics unknown in fantasy world",
+        "unique_ability": "Often granted special power during transfer (by god, system, etc.)",
+        "perspective": "Different worldview can solve problems locals can't"
+      },
+      "common_tropes": {
+        "cheat_skill": "Overpowered ability from reincarnation",
+        "system_awareness": "Recognizing RPG mechanics others take for granted",
+        "cultural_clash": "Modern values vs medieval society",
+        "harem_potential": "Multiple romantic interests (optional genre element)"
+      },
+      "gm_guidance": "Player can leverage Earth knowledge. Create quants for specific advantages when used creatively."
+    },
+    "links": {
+      "Характеристики": "unique abilities may modify stats",
+      "Магическая_Система": "otherworlders often have unique magic",
+      "Карточная_Система": "meta-awareness of game-like rules"
+    },
+    "is_game": true
+  }
+]

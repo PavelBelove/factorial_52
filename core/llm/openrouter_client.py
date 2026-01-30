@@ -201,30 +201,57 @@ class OpenRouterClient:
     def extract_json(self, response: Dict[str, Any]) -> Dict[str, Any]:
         """Extract and parse JSON content from API response."""
         content = self.extract_content(response)
-        
+
+        if not content or not content.strip():
+            logger.error("Empty content from LLM response")
+            logger.error(f"Full response: {response}")
+            return {}
+
         # Try to parse as JSON
         try:
-            return json.loads(content)
-        except json.JSONDecodeError:
-            # Try to extract JSON from markdown code block
-            if "```json" in content:
-                json_str = content.split("```json")[1].split("```")[0].strip()
-                try:
-                    return json.loads(json_str)
-                except json.JSONDecodeError:
-                    pass
-            
-            # Try to extract JSON from text
-            import re
-            json_match = re.search(r'\{.*\}', content, re.DOTALL)
-            if json_match:
-                try:
-                    return json.loads(json_match.group(0))
-                except json.JSONDecodeError:
-                    pass
-            
-            logger.error(f"Failed to parse JSON from response: {content}")
+            result = json.loads(content)
+            if isinstance(result, dict):
+                return result
+            logger.warning(f"JSON parsed but not a dict: {type(result)}")
             return {}
+        except json.JSONDecodeError as e:
+            logger.warning(f"Direct JSON parse failed: {e}")
+
+        # Try to extract JSON from markdown code block
+        if "```json" in content:
+            try:
+                json_str = content.split("```json")[1].split("```")[0].strip()
+                result = json.loads(json_str)
+                if isinstance(result, dict):
+                    return result
+            except (json.JSONDecodeError, IndexError) as e:
+                logger.warning(f"Markdown JSON parse failed: {e}")
+
+        # Try to extract JSON object from text (non-greedy, balanced braces)
+        import re
+
+        # Find the outermost balanced braces
+        brace_count = 0
+        start_idx = None
+        for i, char in enumerate(content):
+            if char == '{':
+                if start_idx is None:
+                    start_idx = i
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+                if brace_count == 0 and start_idx is not None:
+                    json_str = content[start_idx:i+1]
+                    try:
+                        result = json.loads(json_str)
+                        if isinstance(result, dict):
+                            return result
+                    except json.JSONDecodeError:
+                        pass
+                    break
+
+        logger.error(f"Failed to parse JSON from response ({len(content)} chars): {content[:500]}...")
+        return {}
     
     async def simple_completion(
         self,
@@ -273,30 +300,31 @@ class OpenRouterClient:
     ) -> Dict[str, Any]:
         """
         Completion expecting JSON response.
-        
+
         Args:
             prompt: User prompt
             system_prompt: Optional system prompt
             model: Model to use
             temperature: Sampling temperature
             max_tokens: Max tokens
-        
+
         Returns:
             Parsed JSON dict
         """
         messages = []
-        
+
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
-        
+
         messages.append({"role": "user", "content": prompt})
-        
+
         response = await self.chat_completion(
             messages=messages,
             model=model,
             temperature=temperature,
-            max_tokens=max_tokens
+            max_tokens=max_tokens,
+            response_format={"type": "json_object"}  # Force JSON mode
         )
-        
+
         return self.extract_json(response)
 

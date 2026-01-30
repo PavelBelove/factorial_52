@@ -49,10 +49,14 @@ class Settings(BaseSettings):
     # Raw turns management
     raw_turns_keep: int = 5  # How many raw turns to keep after summarization (trimmed to this after summarizer runs)
     raw_turns_max: int = 10  # When raw turns >= this, trigger Summarizer (then trim to raw_turns_keep)
+    quantizer_trigger_turns: int = 3  # Run Quantizer every N turns (starting from turn 3)
+    
+    # Quants management
+    quants_synopsis_window: int = 30  # How many turns back to show quants synopsis for GM/Quantizer
     
     # Summarizer configuration
     summary_append_threshold: int = 2000  # Characters threshold for append mode
-    summary_max_length: int = 5000  # Maximum summary length before forced rewrite
+    summary_max_length: int = 20000  # Maximum summary length before forced rewrite ("drying")
     
     # Quantizer configuration
     quantizer_max_commands: int = 15  # Maximum commands per Quantizer execution
@@ -68,6 +72,25 @@ class Settings(BaseSettings):
     
     # Quant name marker (for summary and context)
     quant_marker: str = "="
+    
+    # Localization & Worlds
+    default_language: str = "ru"  # Default language
+    available_languages: list[str] = ["ru", "en"]  # Available languages (only ru is fully translated)
+    default_world: str = "isekai"  # Default world if not specified
+    max_save_slots: int = 5  # Maximum save slots per user
+    
+    # Telegram FSM
+    fsm_ttl_seconds: int = 3600  # FSM state TTL (1 hour)
+    
+    # Prompt templating (future feature - for user gameplay customization)
+    prompt_use_templates: bool = True  # Enable Jinja2 templating in prompts
+    # Future template variables: {difficulty}, {content_policy}, {game_style}, {world_setting}
+    
+    # GM Response constraints
+    gm_response_max_tokens: int = 1000  # Maximum tokens for GM response (not characters!)
+    gm_response_min_tokens: int = 700   # Minimum tokens for GM response
+    gm_quants_min_request: int = 3      # Minimum quants GM should request for next turn
+    gm_quants_max_request: int = 10     # Maximum quants GM should request for next turn
     
     class Config:
         env_file = ".env"
@@ -92,8 +115,42 @@ except Exception as e:
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 LOGS_DIR = PROJECT_ROOT / "logs"
+WORLDS_DIR = DATA_DIR / "worlds"  # Worlds configuration directory
+PROMPTS_DIR = PROJECT_ROOT / "prompts"  # Prompts directory
 
 # Ensure directories exist
 DATA_DIR.mkdir(exist_ok=True)
 LOGS_DIR.mkdir(exist_ok=True)
+WORLDS_DIR.mkdir(exist_ok=True)
+
+# Localization
+LOCALIZATION_DIR = PROJECT_ROOT / "core" / "localization"
+
+# Initialize localizations
+from core.localization.ru import RussianLocalization
+from core.localization.en import EnglishLocalization
+
+_available_localizations = {
+    "ru": RussianLocalization(),
+    "en": EnglishLocalization()
+}
+
+def get_localization(lang_code: str):
+    """Get localization instance by language code."""
+    return _available_localizations.get(lang_code, _available_localizations[settings.default_language])
+
+
+def get_prompt_template_vars() -> dict:
+    """Get template variables for prompt substitution."""
+    return {
+        "max_tokens": settings.gm_response_max_tokens,
+        "min_tokens": settings.gm_response_min_tokens,
+        "min_quants": settings.gm_quants_min_request,
+        "max_quants": settings.gm_quants_max_request,
+        # Future: difficulty, content_policy, game_style will be added here
+    }
+
+# World manager
+from core.managers.world_manager import WorldManager
+world_manager = WorldManager(WORLDS_DIR)
 

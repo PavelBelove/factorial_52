@@ -42,3 +42,6 @@ exports/
 temp/
 # Environment
 .env
+
+# Old archive (reference only, not for repo)
+old_archive_version/

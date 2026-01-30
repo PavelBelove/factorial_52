@@ -1,0 +1,22 @@
+{
+  "id": "slavic",
+  "name": {
+    "ru": "Земля Духов",
+    "en": "Land of Spirits"
+  },
+  "description": {
+    "ru": "Где лешие бродят по борам, волхвы хранят древние тайны, а данное слово тяжелее меча. Старые боги не забыли. Ты — помнишь?",
+    "en": "Where leshiy walk the forests, volkhvy guard ancient secrets, and a given word weighs heavier than steel. The Old Gods haven't forgotten. Have you?"
+  },
+  "icon": "🌲",
+  "enabled": true,
+  "has_content": true,
+  "features": {
+    "old_gods_active": true,
+    "spirits_everywhere": true,
+    "honor_binding": true,
+    "dark_folklore": true,
+    "blood_and_oath": true
+  },
+  "tags": ["slavic", "fantasy", "folklore", "spirits", "honor", "dark"]
+}

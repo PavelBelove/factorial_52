@@ -1,0 +1,22 @@
+{
+  "id": "fallout",
+  "name": {
+    "ru": "Пустошь",
+    "en": "Wasteland"
+  },
+  "description": {
+    "ru": "Руины старого мира, где радиация и надежда борются за каждую душу. Выживание измеряется патронами и решениями. Пустошь помнит всё.",
+    "en": "Ruins of the old world, where radiation and hope fight for every soul. Survival measured in bullets and choices. The Wasteland remembers everything."
+  },
+  "icon": "☢️",
+  "enabled": true,
+  "has_content": true,
+  "features": {
+    "post_apocalypse": true,
+    "radiation_zones": true,
+    "faction_wars": true,
+    "survival_choice": true,
+    "ruins_and_hope": true
+  },
+  "tags": ["post-apocalyptic", "survival", "wasteland", "choice", "humanity"]
+}

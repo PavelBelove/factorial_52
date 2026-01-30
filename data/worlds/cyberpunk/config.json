@@ -1,0 +1,22 @@
+{
+  "id": "cyberpunk",
+  "name": {
+    "ru": "Найт-Сити 2077",
+    "en": "Night City 2077"
+  },
+  "description": {
+    "ru": "Неоновые улицы, где хром встречается с плотью. Корпорации владеют небом, улица — всем остальным. Каждое решение оставляет след. Твоя история начинается на грани.",
+    "en": "Neon streets where chrome meets flesh. Corps own the sky, the street owns everything else. Every choice leaves a mark. Your story starts on the edge."
+  },
+  "icon": "🌃",
+  "enabled": true,
+  "has_content": true,
+  "features": {
+    "neon_noir": true,
+    "chrome_and_flesh": true,
+    "net_and_street": true,
+    "corps_vs_edge": true,
+    "survival_noir": true
+  },
+  "tags": ["cyberpunk", "noir", "dystopia", "chrome", "survival"]
+}

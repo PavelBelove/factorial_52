@@ -48,22 +48,33 @@ def log_agent_call(
                 f.write(f"TURN: {turn_number}\n")
             f.write("=" * 80 + "\n\n")
             
-            # Context
-            f.write("CONTEXT (Input to LLM):\n")
+            # Context - RAW JSON ONLY (exactly as sent to API)
+            f.write("CONTEXT (Input to LLM - RAW JSON):\n")
             f.write("=" * 80 + "\n")
-            for i, msg in enumerate(context, 1):
-                f.write(f"\n[Message {i}] Role: {msg.get('role', 'unknown')}\n")
-                f.write("-" * 80 + "\n")
-                f.write(msg.get('content', '') + "\n")
-            
+            f.write(json.dumps(context, ensure_ascii=False, indent=2))
             f.write("\n" + "=" * 80 + "\n")
             
-            # Response
-            f.write("\nRESPONSE (Output from LLM):\n")
+            # Response - RAW JSON with metadata at top
+            f.write("\nRESPONSE (Output from API - RAW JSON):\n")
             f.write("=" * 80 + "\n")
             
             if isinstance(response, dict):
-                # Pretty print dict
+                # Extract metadata if present
+                usage = response.get("usage")
+                cost = response.get("cost")
+                
+                # Print metadata first if present
+                if usage or cost:
+                    f.write("\n=== API METADATA ===\n")
+                    if usage:
+                        f.write(f"Tokens: {usage.get('prompt_tokens', 'N/A')} prompt + "
+                               f"{usage.get('completion_tokens', 'N/A')} completion = "
+                               f"{usage.get('total_tokens', 'N/A')} total\n")
+                    if cost:
+                        f.write(f"Cost: ${cost:.6f}\n")
+                    f.write("===================\n\n")
+                
+                # Pretty print full response
                 f.write(json.dumps(response, ensure_ascii=False, indent=2))
             elif isinstance(response, str):
                 f.write(response)
