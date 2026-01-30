@@ -205,27 +205,27 @@ class ContextManager:
         """Format quants for context."""
         if not quants:
             return ""
-
+        
         formatted = []
         for quant in quants:
             quant_str = f"## {settings.quant_marker}{quant.id}{settings.quant_marker}\n"
             quant_str += f"**Type:** {quant.type.value}\n\n"
-
+            
             # Body
             if quant.body:
                 quant_str += "**Content:**\n"
                 for key, value in quant.body.items():
                     quant_str += f"- {key}: {value}\n"
                 quant_str += "\n"
-
+            
             # Links
             if quant.links:
                 quant_str += "**Links:**\n"
                 for link_id, relation in quant.links.items():
                     quant_str += f"- {settings.quant_marker}{link_id}{settings.quant_marker}: {relation}\n"
-
+            
             formatted.append(quant_str)
-
+        
         return "\n".join(formatted)
     
     def _get_recent_turns(
@@ -252,10 +252,10 @@ class ContextManager:
             if turn.translated_json:
                 # Use RAW translated text (JSON-like structure, no parsing!)
                 # LLM understands it even with syntax errors - this is for token efficiency
-                result.append({
+                    result.append({
                     "user_message": f"Turn {turn.turn_number}:",
                     "agent_reply": turn.translated_json  # RAW text, no JSON parsing
-                })
+                    })
             else:
                 # No translation yet - use raw (Russian)
                 result.append({
@@ -312,7 +312,7 @@ class ContextManager:
     def _format_character_creation(self, creation_data: Dict[str, Any]) -> str:
         """Format character creation data for GM context"""
         instructions = creation_data["instructions"]
-
+        
         return f"""# 🎲 Character Creation (Factorial 52! system)
 
 {instructions}
@@ -358,18 +358,18 @@ Card 7♠ to Magic (♥): 7×5 + 0 = 35
         checks = module_data["checks"]
         combat = module_data["combat"]
         logger.debug(f"Character stats: spades={char['spades']}, hearts={char['hearts']}, diamonds={char['diamonds']}, clubs={char['clubs']}")
-
+        
         # Format cards
         pairs_str = []
         for pair in cards["pairs"]:
             cards_str = " + ".join(pair["cards"])
             pairs_str.append(f"Pair {pair['pair']}: {cards_str}")
-
+        
         # Format special events
         special_events_str = ""
         if cards["special_events"]:
             special_events_str = "\n🎴 **Special events (peaceful time only):**\n" + "\n".join([f"- {event}" for event in cards["special_events"]])
-
+        
         # Format inventory (compact)
         inventory_str = ""
         if char["inventory"]:
@@ -388,7 +388,7 @@ Card 7♠ to Magic (♥): 7×5 + 0 = 35
         # Get thresholds from any suit (they're all the same)
         any_suit_thresholds = thresholds["spades"]
         thresholds_str = f"Easy {any_suit_thresholds['easy']} | Normal {any_suit_thresholds['normal']} | Hard {any_suit_thresholds['hard']} | Very Hard {any_suit_thresholds['very_hard']}"
-
+        
         # Format checks with FULL BREAKDOWN from pair 1 (no thresholds per line)
         pair1_checks = checks["pair_1"]
         checks_str = []
@@ -396,27 +396,27 @@ Card 7♠ to Magic (♥): 7×5 + 0 = 35
             check = pair1_checks[suit]
             total = check["total"]
             suit_icon = {"spades": "♠", "hearts": "♥", "diamonds": "♦", "clubs": "♣"}[suit]
-
+            
             # Show breakdown: card1 + card2 + stat
             card1_base = check['card1']['base']
             card1_bonus = check['card1']['bonus']
             card2_base = check['card2']['base']
             card2_bonus = check['card2']['bonus']
             stat = check['stat_value']
-
+            
             card1_str = f"{card1_base}+{card1_bonus}" if card1_bonus > 0 else str(card1_base)
             card2_str = f"{card2_base}+{card2_bonus}" if card2_bonus > 0 else str(card2_base)
             breakdown = f"({card1_str} + {card2_str} + {stat} stat)"
-
+            
             checks_str.append(f"{suit_icon}: {total} {breakdown}")
-
+        
         # Format combat (show only best options from pair 1)
         pair1_combat = combat["pair_1"]
         melee_total = pair1_combat["melee_attack"]["total"]
         ranged_total = pair1_combat["ranged_attack"]["total"]
         phys_def_total = pair1_combat["physical_defense"]["total"]
         magic_def_total = pair1_combat["magic_defense"]["total"]
-
+        
         mechanics_text = f"""# 🎲 Game Mechanics
 
 ## Character
@@ -453,9 +453,9 @@ Defense: physical {phys_def_total} | magical {magic_def_total}
 ```
 4. Special events ONLY in peaceful time, NOT in combat
 """
-
+        
         # Log the formatted mechanics for debugging
         logger.info(f"Formatted mechanics block:\n{mechanics_text}")
-
+        
         return mechanics_text
 

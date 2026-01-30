@@ -13,22 +13,22 @@
 ### NPCs - Settlers & Traders
 
 - Include: settlement, role, trading specialty, connections, secrets
-- Example: "Торговец_Морган" (caravan boss, Watson Trading Co., fair prices, knows routes)
+- Example: `Trader_Morgan` (caravan boss, Watson Trading Co., fair prices, knows routes)
 
 ### NPCs - Faction Members
 
 - Include: faction, rank, ideology, equipment, personal goals
-- Example: "Паладин_Хоуп" (Brotherhood of Steel, power armor, tech recovery, doubts leadership)
+- Example: `Paladin_Hope` (Brotherhood of Steel, power armor, tech recovery, doubts leadership)
 
 ### NPCs - Raiders & Outcasts
 
 - Include: gang, role, territory, brutality level, weaknesses
-- Example: "Вожак_Крюк" (Rust Devils, mechanic, Fort Hagen, respects strength)
+- Example: `Boss_Hook` (Rust Devils, mechanic, Fort Hagen, respects strength)
 
 ### NPCs - Ghouls & Mutants
 
 - Include: mental state (feral/sentient), origin, abilities, relationships with humans
-- Example: "Гуль_Хэнкок" (pre-war lawyer, sentient, settlement mayor, distrusts smoothskins)
+- Example: `Ghoul_Hancock` (pre-war lawyer, sentient, settlement mayor, distrusts smoothskins)
 
 ### Locations
 
@@ -62,30 +62,9 @@
 
 ---
 
-## NPC References System
+## Reference Sources for Wasteland World
 
-**IMPORTANT: Create vivid character images through cultural references!**
-
-### When to add references:
-
-Add a `reference` field to NPC quants when:
-- Player has interacted with NPC **3 or more times**
-- NPC is important for ongoing story
-- NPC has distinctive personality/appearance
-
-### How to create references:
-
-Reference should be:
-- **Short** (5-15 words max)
-- **Evocative** - instantly activates GM's knowledge of that character
-- **Modified** - note differences from original
-
-**Reference format in body:**
-```json
-{
-  "reference": "Like [Character] from [Work] but [difference]"
-}
-```
+Use these works and archetypes when creating NPC references (system will add them automatically after 3+ interactions).
 
 ### Good reference examples for Wasteland setting:
 
@@ -101,8 +80,6 @@ Reference should be:
 {"reference": "Elder Maxson's conviction but questions Brotherhood dogma"}
 {"reference": "Strelok from STALKER - anomaly expert, lone wolf"}
 ```
-
-### Reference sources (use these works):
 
 **Post-apocalyptic core:**
 - Fallout series (Lone Wanderer, Courier, Sole Survivor, The Ghoul, Lucy, Nick Valentine, Piper, Preston, Three Dog, Caesar, Elder Maxson)
@@ -123,138 +100,134 @@ Reference should be:
 - The Settlement Leader (protector, weight of responsibility)
 - The Scavenger (knows every ruin, survival instincts)
 
-### Reference rules:
-
-1. **DON'T copy directly** - always add a twist or difference
-2. **DON'T use obscure references** - stick to known post-apocalyptic works
-3. **DO combine references** when NPC has mixed traits
-4. **DO use archetypes** - wastelander, vault dweller, ghoul survivor
-5. **Post-apocalyptic authenticity** - survival, scarcity, hope amid ruin
-
 ---
 
 ## Examples of good quants
 
 ```json
 {
-  "id": "Поселение_Надежда",
-  "type": "location",
-  "synopsis": "fortified settlement in =Локации=, 200 people, farming and trading, needs help with raiders",
-  "body": {
-    "type": "Settlement",
-    "location": "Former factory complex, three days east",
-    "population": "~200 settlers, 30 militia",
-    "defenses": "Concrete walls, guard towers, one working turret",
-    "economy": "Mutfruit farming, water purifier, caravan stop",
-    "leadership": "Mayor Elena, elected council",
-    "problems": "Raider tribute demands increasing, need weapons"
-  },
-  "links": {
-    "Фракции": "independent settlement",
-    "Экономика_и_Торговля": "trade post"
+  "create_Settlement_Hope": {
+    "type": "location",
+    "synopsis": "fortified settlement in =Wasteland=, 200 people, farming and trading, needs help with raiders",
+    "body": {
+      "type": "Settlement",
+      "location": "Former factory complex, three days east",
+      "population": "~200 settlers, 30 militia",
+      "defenses": "Concrete walls, guard towers, one working turret",
+      "economy": "Mutfruit farming, water purifier, caravan stop",
+      "leadership": "Mayor Elena, elected council",
+      "problems": "Raider tribute demands increasing, need weapons"
+    },
+    "links": {
+      "Factions": "independent settlement",
+      "Economy_and_Trade": "trade post"
+    },
+    "is_game": true
   }
 }
 ```
 
 ```json
 {
-  "id": "Торговец_Честер",
-  "type": "npc",
-  "synopsis": "caravan master in =Поселение_Надежда=, knows all routes, fair dealer, has pre-war map collection",
-  "body": {
-    "role": "Caravan Master / Trader",
-    "location": "Travels circuit: Hope - Junction - Oasis - Hope",
-    "personality": "Pragmatic, fair, loves old world maps and stories",
-    "reference": "Like Canterbury Commons trader with Artyom's wanderlust",
-    "appearance": "Weathered face, brahmin leather coat, pre-war compass always visible",
-    "inventory": "General goods, maps, sometimes weapons, always has water",
-    "secret": "Knows location of sealed Vault, waiting for right partner"
-  },
-  "links": {
-    "Экономика_и_Торговля": "major trader",
-    "Локации": "knows routes",
-    "Транспорт_и_Путешествия": "caravan owner"
+  "create_Trader_Chester": {
+    "type": "npc",
+    "synopsis": "caravan master at =Settlement_Hope=, knows all routes, fair dealer, has pre-war map collection",
+    "body": {
+      "role": "Caravan Master / Trader",
+      "location": "Travels circuit: Hope - Junction - Oasis - Hope",
+      "personality": "Pragmatic, fair, loves old world maps and stories",
+      "reference": "Like Canterbury Commons trader with Artyom's wanderlust",
+      "appearance": "Weathered face, brahmin leather coat, pre-war compass always visible",
+      "inventory": "General goods, maps, sometimes weapons, always has water",
+      "secret": "Knows location of sealed Vault, waiting for right partner"
+    },
+    "links": {
+      "Economy_and_Trade": "major trader",
+      "Locations": "knows routes",
+      "Transport_and_Travel": "caravan owner"
+    },
+    "is_game": true
   }
 }
 ```
 
 ```json
 {
-  "id": "Гуль_Доктор_Мозли",
-  "type": "npc",
-  "synopsis": "pre-war surgeon, sentient ghoul, runs clinic in =Локации=, hated and needed",
-  "body": {
-    "role": "Doctor / Surgeon",
-    "origin": "Pre-war trauma surgeon, survived initial blasts",
-    "mental_state": "Fully sentient, 200+ years of medical experience",
-    "personality": "Bitter about prejudice, still feels duty to heal, dark humor",
-    "reference": "Like The Ghoul's cynicism with Doctor Li's medical ethics",
-    "appearance": "Radiation-scarred, wears pre-war doctor's coat, steady hands",
-    "services": "Surgery, radiation treatment, chem detox (expensive)",
-    "secret": "Remembers pre-war government secrets, blackmail material"
-  },
-  "links": {
-    "Мутанты_и_Твари": "sentient ghoul",
-    "Технологии_Пустоши": "medical expertise",
-    "Химия_и_Зависимости": "detox treatment"
+  "create_Ghoul_Doctor_Mosely": {
+    "type": "npc",
+    "synopsis": "pre-war surgeon, sentient ghoul, runs clinic, hated and needed",
+    "body": {
+      "role": "Doctor / Surgeon",
+      "origin": "Pre-war trauma surgeon, survived initial blasts",
+      "mental_state": "Fully sentient, 200+ years of medical experience",
+      "personality": "Bitter about prejudice, still feels duty to heal, dark humor",
+      "reference": "Like The Ghoul's cynicism with Doctor Li's medical ethics",
+      "appearance": "Radiation-scarred, wears pre-war doctor's coat, steady hands",
+      "services": "Surgery, radiation treatment, chem detox (expensive)",
+      "secret": "Remembers pre-war government secrets, blackmail material"
+    },
+    "links": {
+      "Mutants_and_Creatures": "sentient ghoul",
+      "Wasteland_Technology": "medical expertise",
+      "Chems_and_Addiction": "detox treatment"
+    },
+    "is_game": true
   }
 }
 ```
 
 ```json
 {
-  "id": "Банда_Ржавые_Когти",
-  "type": "faction",
-  "synopsis": "raider gang controlling eastern highways in =Локации=, vehicle-focused, demand tribute from caravans",
-  "body": {
-    "type": "Raider Gang",
-    "territory": "Eastern highway, old gas station complex",
-    "size": "40-50 raiders, 12 working vehicles",
-    "leadership": "Warlord 'Chrome' - former mechanic, respects machines",
-    "tactics": "Vehicle ambushes, tribute demands, rarely kill if paid",
-    "reference": "War Boys aesthetic with more practical survival focus",
-    "weakness": "Dependent on fuel supply, rival gang to the south",
-    "relations": "Extort caravans, trade with some settlements, hate Brotherhood"
-  },
-  "links": {
-    "Фракции": "raider faction",
-    "Транспорт_и_Путешествия": "control roads",
-    "Экономика_и_Торговля": "extortion economy"
+  "create_Gang_Rusty_Claws": {
+    "type": "npc",
+    "synopsis": "raider gang controlling eastern highways, vehicle-focused, demand tribute from caravans",
+    "body": {
+      "type": "Raider Gang",
+      "territory": "Eastern highway, old gas station complex",
+      "size": "40-50 raiders, 12 working vehicles",
+      "leadership": "Warlord 'Chrome' - former mechanic, respects machines",
+      "tactics": "Vehicle ambushes, tribute demands, rarely kill if paid",
+      "reference": "War Boys aesthetic with more practical survival focus",
+      "weakness": "Dependent on fuel supply, rival gang to the south",
+      "relations": "Extort caravans, trade with some settlements, hate Brotherhood"
+    },
+    "links": {
+      "Factions": "raider faction",
+      "Transport_and_Travel": "control roads",
+      "Economy_and_Trade": "extortion economy"
+    },
+    "is_game": true
   }
 }
 ```
 
 ```json
 {
-  "id": "Аномалия_Стеклянное_Поле",
-  "type": "location",
-  "synopsis": "radiation anomaly zone in =Локации=, sand fused to glass, contains valuable artifacts",
-  "body": {
-    "type": "Anomaly Zone",
-    "location": "Old military testing ground, 2 days south",
-    "danger": "Extreme radiation, glass shards, electrical discharges",
-    "phenomena": "Sand fused to razor glass, lightning strikes without clouds",
-    "reference": "Zone anomaly from STALKER but more visually striking",
-    "artifacts": "Rumored pre-war military tech buried under glass",
-    "inhabitants": "Feral ghouls, strange glowing creatures, no raiders dare enter"
-  },
-  "links": {
-    "Радиация": "extreme radiation zone",
-    "Технологии_Пустоши": "potential tech cache"
+  "create_Anomaly_Glass_Field": {
+    "type": "location",
+    "synopsis": "radiation anomaly zone, sand fused to glass, contains valuable artifacts",
+    "body": {
+      "type": "Anomaly Zone",
+      "location": "Old military testing ground, 2 days south",
+      "danger": "Extreme radiation, glass shards, electrical discharges",
+      "phenomena": "Sand fused to razor glass, lightning strikes without clouds",
+      "reference": "Zone anomaly from STALKER but more visually striking",
+      "artifacts": "Rumored pre-war military tech buried under glass",
+      "inhabitants": "Feral ghouls, strange glowing creatures, no raiders dare enter"
+    },
+    "links": {
+      "Radiation": "extreme radiation zone",
+      "Wasteland_Technology": "potential tech cache"
+    },
+    "is_game": true
   }
 }
 ```
 
-## Notes for quantizer
+## Notes
 
-- Be creative but stay within post-apocalyptic survival tone
-- Track radiation exposure and faction reputation
-- Create quants for recurring characters, settlements, and threats
-- Link related quants together for context
-- Don't create duplicate quants - update existing ones instead
-- **Add references after 3+ interactions to make NPCs memorable**
-- References help GM maintain consistent character portrayal
 - Wasteland setting = survival, scarcity, factions, radiation, hope amid ruin
 - Resources matter - track what people have and need
 - Pre-war tech is always significant and valuable
 - Every settlement has problems that need solving
+- Track radiation exposure and faction reputation

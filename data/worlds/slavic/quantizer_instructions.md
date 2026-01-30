@@ -12,15 +12,15 @@
 
 ### NPCs - Human
 - Include: status (noble/peasant/warrior), relation to old/new faith, personality, reputation
-- Example: "Воевода_Ярослав" (druzhina commander, Perun-worshipper, stern but fair)
+- Example: `Voevoda_Yaroslav` (druzhina commander, Perun-worshipper, stern but fair)
 
 ### NPCs - Volkhvy/Vedmy
 - Include: magical specialty, patron god, reputation, secrets
-- Example: "Ведьма_Маланья" (forest witch, serves Veles, feared but sought for healing)
+- Example: `Vedma_Malanya` (forest witch, serves Veles, feared but sought for healing)
 
 ### Spirits (Nechist)
 - Include: type, territory, temperament, how to deal with
-- Example: "Леший_Черного_Бора" (ancient, territorial, respects hunters who follow rules)
+- Example: `Leshiy_Black_Forest` (ancient, territorial, respects hunters who follow rules)
 
 ### Locations
 - Villages with their domovoy
@@ -50,30 +50,9 @@
 
 ---
 
-## NPC References System
+## Reference Sources for Slavic Fantasy World
 
-**IMPORTANT: Create vivid character images through cultural references!**
-
-### When to add references:
-
-Add a `reference` field to NPC quants when:
-- Player has interacted with NPC **3 or more times**
-- NPC is important for ongoing story
-- NPC has distinctive personality/appearance
-
-### How to create references:
-
-Reference should be:
-- **Short** (5-15 words max)
-- **Evocative** - instantly activates GM's knowledge of that character
-- **Modified** - note differences from original
-
-**Reference format in body:**
-```json
-{
-  "reference": "Like [Character] from [Work] but [difference]"
-}
-```
+Use these works and archetypes when creating NPC references (system will add them automatically after 3+ interactions).
 
 ### Good reference examples for Slavic setting:
 
@@ -88,8 +67,6 @@ Reference should be:
 {"reference": "Morozko from Bear and Nightingale but crueler"}
 {"reference": "Vasilisa's quiet strength with Nastasya's cunning"}
 ```
-
-### Reference sources (use these works):
 
 **Slavic fantasy:**
 - The Witcher (Geralt, Yennefer, Triss, Dandelion/Jaskier, Vesemir, various monsters)
@@ -109,109 +86,104 @@ Reference should be:
 - The suspicious peasant (superstitious, wary of strangers)
 - The vengeful one (blood debt to pay)
 
-### Reference rules:
-
-1. **DON'T copy directly** - always add a twist or difference
-2. **DON'T use obscure references** - stick to known Slavic fantasy works
-3. **DO combine references** when NPC has mixed traits
-4. **DO use folklore directly** - Baba Yaga, Koschei archetypes are fair game
-5. **Slavic authenticity** - keep the dark, nature-connected tone
-
 ---
 
 ## Examples of good quants
 
 ```json
 {
-  "id": "Волхв_Белояр",
-  "type": "npc",
-  "synopsis": "elder volkhv at =Священная_Роща=, serves Veles, keeper of old knowledge, tests those who seek wisdom",
-  "body": {
-    "role": "High Priest of Veles",
-    "location": "Sacred Grove of the Black Oak",
-    "personality": "Cryptic, tests supplicants, values cunning over strength",
-    "reference": "Like Vesemir's wisdom but as volkhv serving Veles, more mystical",
-    "appearance": "Ancient eyes in weathered face, serpent staff, bone ornaments",
-    "secret": "Knows location of Veles's hidden temple, guards terrible knowledge"
-  },
-  "links": {
-    "Старые_Боги": "high priest of Veles",
-    "Священная_Роща": "guardian of the grove",
-    "Магия_и_Ритуалы": "master of ritual magic"
+  "create_Volkhv_Beloyar": {
+    "type": "npc",
+    "synopsis": "elder volkhv at =Sacred_Grove=, serves Veles, keeper of old knowledge, tests those who seek wisdom",
+    "body": {
+      "role": "High Priest of Veles",
+      "location": "Sacred Grove of the Black Oak",
+      "personality": "Cryptic, tests supplicants, values cunning over strength",
+      "reference": "Like Vesemir's wisdom but as volkhv serving Veles, more mystical",
+      "appearance": "Ancient eyes in weathered face, serpent staff, bone ornaments",
+      "secret": "Knows location of Veles's hidden temple, guards terrible knowledge"
+    },
+    "links": {
+      "Old_Gods": "high priest of Veles",
+      "Sacred_Grove": "guardian of the grove",
+      "Magic_and_Rituals": "master of ritual magic"
+    },
+    "is_game": true
   }
 }
 ```
 
 ```json
 {
-  "id": "Воевода_Твердислав",
-  "type": "npc",
-  "synopsis": "druzhina commander of =Князь_Мстислав=, Perun-sworn, scarred veteran, protector of the realm",
-  "body": {
-    "role": "Voevoda (War Leader)",
-    "allegiance": "Knyaz Mstislav of Belgorod",
-    "personality": "Blunt, honorable, distrusts magic, respects proven warriors",
-    "reference": "Volkodav's rigid honor with Geralt's war-weariness",
-    "appearance": "Battle scars, Perun's axe amulet, practical armor",
-    "motivation": "Protect his people, die with sword in hand, not in bed"
-  },
-  "links": {
-    "Князь_Мстислав": "sworn commander",
-    "Старые_Боги": "devout Perun worshipper",
-    "Общество": "high-ranking druzhina"
+  "create_Voevoda_Tverdislav": {
+    "type": "npc",
+    "synopsis": "druzhina commander of =Knyaz_Mstislav=, Perun-sworn, scarred veteran, protector of the realm",
+    "body": {
+      "role": "Voevoda (War Leader)",
+      "allegiance": "Knyaz Mstislav of Belgorod",
+      "personality": "Blunt, honorable, distrusts magic, respects proven warriors",
+      "reference": "Volkodav's rigid honor with Geralt's war-weariness",
+      "appearance": "Battle scars, Perun's axe amulet, practical armor",
+      "motivation": "Protect his people, die with sword in hand, not in bed"
+    },
+    "links": {
+      "Knyaz_Mstislav": "sworn commander",
+      "Old_Gods": "devout Perun worshipper",
+      "Society": "high-ranking druzhina"
+    },
+    "is_game": true
   }
 }
 ```
 
 ```json
 {
-  "id": "Леший_Дремучего_Бора",
-  "type": "spirit",
-  "synopsis": "ancient forest master of =Дремучий_Бор=, territorial, can be bargained with if respected",
-  "body": {
-    "type": "Leshiy (Forest Master)",
-    "territory": "The Dark Pine Forest (Дремучий Бор)",
-    "temperament": "Capricious, values forest law above all",
-    "reference": "Like Witcher 3 leshiy but more intelligent, enjoys riddles",
-    "appearance": "Shifts between old woodsman, tree, and beast forms",
-    "dealing_with": "Leave offerings at forest edge, don't cut live trees, answer riddles"
-  },
-  "links": {
-    "Нечисть": "powerful forest spirit",
-    "Дремучий_Бор": "master of this forest",
-    "Проверки": "riddles and bargains require checks"
+  "create_Leshiy_Dark_Forest": {
+    "type": "npc",
+    "synopsis": "ancient forest master of =Dark_Pine_Forest=, territorial, can be bargained with if respected",
+    "body": {
+      "type": "Leshiy (Forest Master)",
+      "territory": "The Dark Pine Forest",
+      "temperament": "Capricious, values forest law above all",
+      "reference": "Like Witcher 3 leshiy but more intelligent, enjoys riddles",
+      "appearance": "Shifts between old woodsman, tree, and beast forms",
+      "dealing_with": "Leave offerings at forest edge, don't cut live trees, answer riddles"
+    },
+    "links": {
+      "Nechist": "powerful forest spirit",
+      "Dark_Pine_Forest": "master of this forest",
+      "Checks": "riddles and bargains require checks"
+    },
+    "is_game": true
   }
 }
 ```
 
 ```json
 {
-  "id": "Упырь_Могильника",
-  "type": "monster",
-  "synopsis": "undead horror haunting =Старый_Могильник=, was a murdered boyar, seeks blood vengeance",
-  "body": {
-    "type": "Upyr (Slavic Vampire)",
-    "origin": "Boyar Ratibor, murdered and improperly buried by rivals",
-    "behavior": "Hunts descendants of his killers, drains blood",
-    "weakness": "Stake of aspen wood, sunlight, fire, giving him proper burial",
-    "tragedy": "Could be laid to rest if his murder is avenged properly"
-  },
-  "links": {
-    "Нечисть": "hostile undead",
-    "Старый_Могильник": "haunts this location",
-    "Боевая_Система": "dangerous combat encounter"
+  "create_Upyr_Graveyard": {
+    "type": "npc",
+    "synopsis": "undead horror haunting =Old_Graveyard=, was a murdered boyar, seeks blood vengeance",
+    "body": {
+      "type": "Upyr (Slavic Vampire)",
+      "origin": "Boyar Ratibor, murdered and improperly buried by rivals",
+      "behavior": "Hunts descendants of his killers, drains blood",
+      "weakness": "Stake of aspen wood, sunlight, fire, giving him proper burial",
+      "tragedy": "Could be laid to rest if his murder is avenged properly"
+    },
+    "links": {
+      "Nechist": "hostile undead",
+      "Old_Graveyard": "haunts this location",
+      "Combat_System": "dangerous combat encounter"
+    },
+    "is_game": true
   }
 }
 ```
 
-## Notes for quantizer
+## Notes
 
-- Be creative but stay within dark Slavic fantasy tone
-- Track both honor/reputation AND supernatural relationships
-- Create quants for recurring characters and significant spirits
-- Link related quants together for context
-- Don't create duplicate quants - update existing ones instead
-- **Add references after 3+ interactions to make NPCs memorable**
-- References help GM maintain consistent character portrayal
 - Slavic setting = nature is alive, honor matters, magic has cost
 - Every spirit is an individual - remember their names and grudges
+- Track both honor/reputation AND supernatural relationships
+- Faith conflict (Old Gods vs New Faith) creates tension

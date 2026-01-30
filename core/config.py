@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     # Raw turns management
     raw_turns_keep: int = 5  # How many raw turns to keep after summarization (trimmed to this after summarizer runs)
     raw_turns_max: int = 10  # When raw turns >= this, trigger Summarizer (then trim to raw_turns_keep)
+    quantizer_trigger_turns: int = 3  # Run Quantizer every N turns (starting from turn 3)
     
     # Quants management
     quants_synopsis_window: int = 30  # How many turns back to show quants synopsis for GM/Quantizer

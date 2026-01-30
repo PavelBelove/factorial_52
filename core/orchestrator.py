@@ -82,7 +82,7 @@ class TurnOrchestrator:
         db_session = self.db.get_session_by_id(session_id)
         if not db_session:
             raise ValueError(f"Session {session_id} not found")
-
+        
         # Get user settings for prompts and mechanics
         user_settings = self.db.get_user_settings(db_session.user_id)
         logger.info(f"User settings: difficulty={user_settings['difficulty']}, filter={user_settings['content_filter']}")
@@ -112,20 +112,20 @@ class TurnOrchestrator:
             logger.info("Drawing cards and calculating mechanics")
             cards_data = self.mechanics_manager.draw_cards_for_turn()
             logger.debug(f"Cards drawn: {cards_data['pairs']}")
-
+            
             difficulty = user_settings.get("difficulty", "normal")
             thresholds = self.mechanics_manager.calculate_thresholds(session_id, difficulty)
             logger.debug(f"Thresholds calculated: {list(thresholds.keys())} (difficulty={difficulty})")
-
+            
             checks = self.mechanics_manager.calculate_all_checks(session_id, cards_data, difficulty)
             logger.debug(f"Checks calculated: {len(checks)} checks")
-
+            
             combat = self.mechanics_manager.calculate_all_combat_options(session_id, cards_data)
             logger.debug(f"Combat options calculated: {len(combat)} options")
-
+            
             character_state = self.mechanics_manager.get_character_state(session_id)
             logger.debug(f"Character state: HP={character_state.get('hp')}/{character_state.get('max_hp')}, Mana={character_state.get('mana')}/{character_state.get('max_mana')}")
-
+            
             module_data = {
                 "cards": cards_data,
                 "thresholds": thresholds,
@@ -134,7 +134,7 @@ class TurnOrchestrator:
                 "character": character_state
             }
             logger.info(f"Module data prepared with keys: {list(module_data.keys())}")
-
+        
         # Step 2: Build context (with world-specific prompts and user settings)
         context_messages = self.context_manager.build_context(
             session_id=session_id,
@@ -148,9 +148,22 @@ class TurnOrchestrator:
         logger.debug(f"Context built with {len(context_messages)} messages")
         
         # Step 3: GM generates response
+        # Add reminder to user message (language, rules, etc.)
+        user_language = user_settings.get('language', 'Russian')
+        lang_map = {"ru": "Russian", "en": "English", "de": "German", "fr": "French",
+                    "es": "Spanish", "ja": "Japanese", "ko": "Korean", "zh": "Chinese"}
+        user_language = lang_map.get(user_language, user_language)
+
+        gm_reminder = (
+            f"\n\n[Respond in {user_language}. Use cards when needed. "
+            f"Track stats. NPCs only know what was explicitly shared with them. "
+            f"Don't make decisions for player's character - describe world's reaction and pass the turn.]"
+        )
+        user_message_with_reminder = user_message + gm_reminder
+
         gm_response = await self.gm_agent.generate_response(
             context_messages=context_messages,
-            user_message=user_message,
+            user_message=user_message_with_reminder,
             max_tokens=settings.gm_max_tokens
         )
         
@@ -204,18 +217,38 @@ class TurnOrchestrator:
         )
         
         # Step 5: Check if background processing is needed
-        # Trigger when raw turns reach max (7), not by turn number
         recent_turns_count = len(self.db.get_recent_turns(session_id, limit=settings.raw_turns_max + 1))
-        should_process_memory = (recent_turns_count >= settings.raw_turns_max)
-        
-        if should_process_memory:
-            logger.info(f"Triggering background memory processing ({recent_turns_count} raw turns)")
+
+        # Quantizer: run every N turns (starting from turn 3)
+        should_run_quantizer = (
+            current_turn >= settings.quantizer_trigger_turns and
+            current_turn % settings.quantizer_trigger_turns == 0
+        )
+
+        # Summarizer: run when raw turns reach max
+        should_run_summarizer = (recent_turns_count >= settings.raw_turns_max)
+
+        if should_run_quantizer or should_run_summarizer:
+            # Get user language from settings (already loaded above)
+            lang_code = user_settings.get('language', 'ru')
+            lang_map = {"ru": "Russian", "en": "English", "de": "German", "fr": "French",
+                        "es": "Spanish", "ja": "Japanese", "ko": "Korean", "zh": "Chinese"}
+            user_language = lang_map.get(lang_code, lang_code.capitalize())
+
+            logger.info(
+                f"Triggering background processing: "
+                f"quantizer={should_run_quantizer} (turn {current_turn}), "
+                f"summarizer={should_run_summarizer} ({recent_turns_count} raw turns)"
+            )
             # Run in background (non-blocking) - user gets response immediately
             asyncio.create_task(
                 self._background_memory_processing(
                     session_id=session_id,
                     current_turn=current_turn,
-                    active_quants=active_quants
+                    active_quants=active_quants,
+                    run_quantizer=should_run_quantizer,
+                    user_language=user_language,
+                    run_summarizer=should_run_summarizer
                 )
             )
         
@@ -316,7 +349,7 @@ class TurnOrchestrator:
                 if content:
                     # Save RAW text to database (no JSON parsing!)
                     self.db.update_turn_translation(session_id, turn_number, content)
-                    
+
                     # Save cost
                     if translator_cost > 0:
                         self.db.update_turn_costs(
@@ -339,31 +372,46 @@ class TurnOrchestrator:
         self,
         session_id: int,
         current_turn: int,
-        active_quants: List[Any]
+        active_quants: List[Any],
+        run_quantizer: bool = True,
+        run_summarizer: bool = True,
+        user_language: str = "Russian"
     ):
         """
         Background processing: Quantizer and Summarizer.
         Runs asynchronously while user reads response.
         After completion, trims raw turns window to keep only recent ones.
+
+        Args:
+            session_id: Session ID
+            current_turn: Current turn number
+            active_quants: Currently active quants
+            run_quantizer: Whether to run Quantizer
+            run_summarizer: Whether to run Summarizer
+            user_language: User's language for Quantizer
         """
         try:
-            logger.info("Starting background memory processing")
-            
-            # Run Quantizer and Summarizer in parallel
-            await asyncio.gather(
-                self._run_quantizer(session_id, current_turn, active_quants),
-                self._run_summarizer(session_id),
-                return_exceptions=True
-            )
-            
-            # After summarization, trim old turns (keep last 4)
-            deleted_count = self.db.trim_old_turns(
-                session_id=session_id,
-                keep_last_n=settings.raw_turns_keep
-            )
-            
-            if deleted_count > 0:
-                logger.info(f"Trimmed {deleted_count} old turns, keeping last {settings.raw_turns_keep}")
+            logger.info(f"Starting background processing (quantizer={run_quantizer}, summarizer={run_summarizer})")
+
+            # Build list of tasks to run
+            tasks = []
+            if run_quantizer:
+                tasks.append(self._run_quantizer(session_id, current_turn, active_quants, user_language))
+            if run_summarizer:
+                tasks.append(self._run_summarizer(session_id))
+
+            if tasks:
+                await asyncio.gather(*tasks, return_exceptions=True)
+
+            # After summarization, trim old turns (keep last N)
+            if run_summarizer:
+                deleted_count = self.db.trim_old_turns(
+                    session_id=session_id,
+                    keep_last_n=settings.raw_turns_keep
+                )
+
+                if deleted_count > 0:
+                    logger.info(f"Trimmed {deleted_count} old turns, keeping last {settings.raw_turns_keep}")
             
             logger.info("Background memory processing completed")
         
@@ -374,12 +422,13 @@ class TurnOrchestrator:
         self,
         session_id: int,
         current_turn: int,
-        active_quants: List[Any]
+        active_quants: List[Any],
+        user_language: str = "Russian"
     ):
         """Run Quantizer agent."""
         try:
-            logger.info("Running Quantizer agent")
-            
+            logger.info(f"Running Quantizer agent (language={user_language})")
+
             # Get session to determine world_id
             session = self.db.get_session_by_id(session_id)
             world_id = session.world_id if session else None
@@ -405,13 +454,13 @@ class TurnOrchestrator:
                 else:
                     # No translation - use raw Russian
                     recent_turns.append({
-                        "user_message": t.user_message,
-                        "agent_reply": t.agent_reply
+                    "user_message": t.user_message,
+                    "agent_reply": t.agent_reply
                     })
             
             logger.info(f"Quantizer: {len(recent_turns)} turns in context")
             
-            # Run quantizer with world_id for world-specific instructions
+            # Run quantizer with world_id and user language
             commands = await self.quantizer_agent.process_memory_updates(
                 session_id=session_id,
                 summary_text=summary_text,
@@ -419,7 +468,8 @@ class TurnOrchestrator:
                 active_quants=active_quants,
                 synopsis_list=synopsis_list,
                 current_turn=current_turn,
-                world_id=world_id
+                world_id=world_id,
+                language=user_language
             )
             
             if commands:

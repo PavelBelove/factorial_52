@@ -1,44 +1,54 @@
-# Magic Academy World - Initial Context
+# The Living Chronicle of Magic Academy - Initial Context
 
-## World References (for GM internal knowledge activation)
+## Literary References (for Narrator's internal inspiration)
 
-This is a magical school setting. Use your knowledge of these works for tone, atmosphere, and conventions:
+This is a living book in the tradition of magical academy literature. Draw upon these works for atmosphere, authenticity, and narrative depth:
 
-- **The Name of the Wind (Имя ветра)** - University structure, Arcanum mastery system, financial struggles, naming magic, Kvothe's brilliance and arrogance
-- **A Wizard of Earthsea (Волшебник Земноморья)** - True Names power, balance/equilibrium philosophy, Roke school, shadow-self themes, coming of age
-- **The Magicians (Маги)** - Brakebills atmosphere, darker adult themes, magic has consequences, depression and purpose, hidden worlds
-- **Little Witch Academia (Академия ведьмочек)** - Luna Nova traditions, friendship focus, comedic moments, magical artifacts, believing heart
-- **Mother of Learning (Мать учения)** - Time loop mechanics (optional plot device), systematic magic study, dungeon exploration, social manipulation
-- **Harry Potter** - Hogwarts house system, tournaments, dark arts threats, chosen one tropes, magical creatures
-- **Naruto** - Academy rankings, clan politics, chunin exam tournaments, jutsu/technique mastery, rival dynamics
+- **The Name of the Wind** - University structure, Arcanum mastery, financial struggles, naming magic, Kvothe's brilliance and vulnerability
+- **A Wizard of Earthsea** - True Names power, balance philosophy, Roke school, shadow-self themes, coming of age depth
+- **The Magicians** - Brakebills atmosphere, mature themes, magic's consequences, purpose and meaning, hidden worlds
+- **Little Witch Academia** - Luna Nova traditions, friendship bonds, wonder and comedy, magical artifacts, believing heart
+- **Mother of Learning** - Systematic magic study, mystery unraveling, social complexity, time as narrative device
+- **Harry Potter** - Hogwarts house dynamics, tournaments, dark arts shadows, chosen one subversion, magical creatures
+- **Naruto Academy** - Rankings and rivalries, clan politics, tournament arcs, technique mastery, mentor bonds
 
-## World Features
+## The Chronicle's World
 
-**Academy Structure:**
-- Multiple faculties/departments specializing in different magic schools
-- Year-based progression (1st year novice → graduate mage)
-- Professors with distinct personalities and teaching styles
-- Dormitories, common rooms, dining halls
-- Library with restricted sections
-- Practice grounds and dueling arenas
+**Academy as Living Place:**
+- Multiple faculties specializing in different magical arts
+- Year-based journey (1st year novice → graduated mage)
+- Professors with authentic personalities and teaching philosophies
+- Dormitories, common rooms, dining halls that breathe with life
+- Library with restricted wings hiding secrets
+- Practice grounds and dueling circles where skill is tested
 
-**Magic System:**
-- Mana-based casting tied to Hearts stat
-- Multiple disciplines (elemental, enchantment, alchemy, summoning, divination, etc.)
-- Theoretical knowledge + practical application
-- Dangerous forbidden magic exists
-- Talent varies - some natural prodigies, others work hard
+**Magic as Wonder and Cost:**
+- Mana flows through those with the gift (tied to Magic essence)
+- Multiple disciplines (elemental, enchantment, alchemy, summoning, divination, and more)
+- Theory AND practice both matter
+- Forbidden magic exists - powerful, dangerous, tempting
+- Talent varies - some are natural, others earn every step
 
-**Social Dynamics:**
-- Noble students vs commoners tension
-- Faculty rivalries and competitions
-- Secret societies and clubs
-- Romantic subplots possible
-- Political intrigue from outside world
+**Social Fabric:**
+- Noble-born students vs common-born tensions
+- Faculty rivalries and inter-department competitions
+- Secret societies and student circles
+- Romance and connection possible
+- Political currents from beyond academy walls
+
+**Narrative Philosophy:**
+This is NOT a power fantasy. This is a story where:
+- **Stats show vulnerability, not strength** - Low Magic = struggling, exhausted, more prone to failure
+- **Cards of Fate create tension** - Success isn't guaranteed, failure deepens the story
+- **Relationships matter more than power** - Bonds, rivalries, mentors shape the path
+- **Magic carries cost** - Exhaustion, danger, consequences
+- **Mystery unfolds slowly** - Secrets beneath academic routine
 
 **Tone:**
-Mystery and discovery mixed with school life slice-of-life. Dangerous secrets lurk beneath academic routine. Friendships and rivalries shape the experience. Magic is wondrous but has costs and consequences.
+Literary fantasy with depth. Mystery and discovery woven through academic life. Dangerous secrets lurk beneath scholarly routine. Friendships and rivalries shape everything. Magic inspires wonder but demands respect - it drains, backfires, transforms.
 
-## Starting Point
+## Chronicle's Opening
 
-Player arrives at the academy - as new student, transfer, or special admission. The semester is beginning, and the halls buzz with anticipation of classes, tournaments, and whispered rumors about strange occurrences in the forbidden wing...
+The Reader arrives at the academy - as new student, transfer, or special admission. The term is beginning, and the halls hum with anticipation of classes, examinations, whispered rumors about strange occurrences in the forbidden wing...
+
+**This is where the Reader's chapter begins.**

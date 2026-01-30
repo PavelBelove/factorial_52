@@ -13,22 +13,22 @@
 ### NPCs - Spacers
 
 - Include: role (Ranger/Trader/Mercenary/Pilot), ship, reputation, faction ties
-- Example: "Рейнджер_Кассиус" (veteran ranger, patched armor, knows the frontier, owes favors)
+- Example: `Ranger_Cassius` (veteran ranger, patched armor, knows the frontier, owes favors)
 
 ### NPCs - Military
 
 - Include: rank, fleet, combat experience, agenda
-- Example: "Капитан_Сторм" (Imperium frigate commander, by-the-book but fair, hunting pirates)
+- Example: `Captain_Storm` (Imperium frigate commander, by-the-book but fair, hunting pirates)
 
 ### NPCs - Aliens
 
 - Include: species, role in their society, attitude to humans, unique abilities
-- Example: "Инсектоид_Клик" (hive diplomat, speaks through translator, seeks mutual profit)
+- Example: `Insectoid_Klik` (hive diplomat, speaks through translator, seeks mutual profit)
 
 ### Factions & Organizations
 
 - Include: territory, leadership, goals, relations with others
-- Example: "Гильдия_Торговцев" (free traders, profit above politics, information network)
+- Example: `Traders_Guild` (free traders, profit above politics, information network)
 
 ### Locations
 
@@ -63,30 +63,9 @@
 
 ---
 
-## NPC References System
+## Reference Sources for Space World
 
-**IMPORTANT: Create vivid character images through cultural references!**
-
-### When to add references:
-
-Add a `reference` field to NPC quants when:
-- Player has interacted with NPC **3 or more times**
-- NPC is important for ongoing story
-- NPC has distinctive personality/appearance
-
-### How to create references:
-
-Reference should be:
-- **Short** (5-15 words max)
-- **Evocative** - instantly activates GM's knowledge of that character
-- **Modified** - note differences from original
-
-**Reference format in body:**
-```json
-{
-  "reference": "Like [Character] from [Work] but [difference]"
-}
-```
+Use these works and archetypes when creating NPC references (system will add them automatically after 3+ interactions).
 
 ### Good reference examples for Space setting:
 
@@ -102,8 +81,6 @@ Reference should be:
 {"reference": "Inquisitor aesthetic but actually investigating, not executing"}
 {"reference": "Malcolm Reynolds if he joined a proper organization"}
 ```
-
-### Reference sources (use these works):
 
 **Space opera core:**
 - Warhammer 40,000 (Space Marines, Inquisitors, Imperial Guard, Rogue Traders, grimdark aesthetic)
@@ -125,114 +102,108 @@ Reference should be:
 - The explorer (mysteries call)
 - The engineer (ships are life)
 
-### Reference rules:
-
-1. **DON'T copy directly** - always add a twist or difference
-2. **DON'T use obscure references** - stick to known space opera works
-3. **DO combine references** when NPC has mixed traits
-4. **DO use archetypes** - lone gunslinger, noble captain, wise alien
-5. **Space opera authenticity** - epic scope, personal stakes, alien wonders
-
 ---
 
 ## Examples of good quants
 
 ```json
 {
-  "id": "Рейнджер_Кассиус",
-  "type": "npc",
-  "synopsis": "veteran ranger in =Пограничье=, old ship, knows the frontier better than anyone",
-  "body": {
-    "role": "Ranger Corps veteran",
-    "ship": "Modified scout 'Следопыт', 30 years old, still flies",
-    "personality": "Tired but dedicated, dry humor, seen everything, still does the job",
-    "reference": "Like Malcolm Reynolds joined Space Rangers - cynical idealist",
-    "appearance": "Weathered face, patched uniform, old but maintained gear",
-    "reputation": "Reliable, fair, doesn't give up, owes favors across the sector",
-    "secret": "Knows location of precursor archive, waiting for right person to share"
-  },
-  "links": {
-    "Рейнджеры": "veteran member",
-    "Пограничье": "works the frontier",
-    "Звездолёты": "owns scout ship"
+  "create_Ranger_Cassius": {
+    "type": "npc",
+    "synopsis": "veteran ranger in =Frontier=, old ship, knows the frontier better than anyone",
+    "body": {
+      "role": "Ranger Corps veteran",
+      "ship": "Modified scout 'Pathfinder', 30 years old, still flies",
+      "personality": "Tired but dedicated, dry humor, seen everything, still does the job",
+      "reference": "Like Malcolm Reynolds joined Space Rangers - cynical idealist",
+      "appearance": "Weathered face, patched uniform, old but maintained gear",
+      "reputation": "Reliable, fair, doesn't give up, owes favors across the sector",
+      "secret": "Knows location of precursor archive, waiting for right person to share"
+    },
+    "links": {
+      "Rangers": "veteran member",
+      "Frontier": "works the frontier",
+      "Starships": "owns scout ship"
+    },
+    "is_game": true
   }
 }
 ```
 
 ```json
 {
-  "id": "Инсектоид_Посол_Кликс",
-  "type": "npc",
-  "synopsis": "insectoid diplomat at =Станция_Порог=, seeks trade agreements, thinks in swarm terms",
-  "body": {
-    "role": "Hive Confederacy Ambassador",
-    "species": "Insectoid, warrior-diplomat caste",
-    "personality": "Alien logic, values collective benefit, surprisingly honorable",
-    "reference": "Thane Krios's alien dignity with Elcor formal speech patterns",
-    "appearance": "Chitin armor natural, four arms, compound eyes, translator on thorax",
-    "motivation": "Establish trade for resources hive needs, prevent war with Imperium",
-    "quirk": "Always refers to self as 'we', genuinely confused by human individualism"
-  },
-  "links": {
-    "Расы": "Insectoid Confederacy",
-    "Станция_Порог": "stationed here",
-    "Фракции": "diplomatic mission"
+  "create_Insectoid_Ambassador_Klix": {
+    "type": "npc",
+    "synopsis": "insectoid diplomat at =Station_Threshold=, seeks trade agreements, thinks in swarm terms",
+    "body": {
+      "role": "Hive Confederacy Ambassador",
+      "species": "Insectoid, warrior-diplomat caste",
+      "personality": "Alien logic, values collective benefit, surprisingly honorable",
+      "reference": "Thane Krios's alien dignity with Elcor formal speech patterns",
+      "appearance": "Chitin armor natural, four arms, compound eyes, translator on thorax",
+      "motivation": "Establish trade for resources hive needs, prevent war with Imperium",
+      "quirk": "Always refers to self as 'we', genuinely confused by human individualism"
+    },
+    "links": {
+      "Races": "Insectoid Confederacy",
+      "Station_Threshold": "stationed here",
+      "Factions": "diplomatic mission"
+    },
+    "is_game": true
   }
 }
 ```
 
 ```json
 {
-  "id": "Крейсер_Немезида",
-  "type": "entity",
-  "synopsis": "pirate cruiser in =Пограничье=, converted military ship, feared raider",
-  "body": {
-    "type": "Heavy Cruiser (converted)",
-    "origin": "Former Imperium patrol cruiser, captured in mutiny",
-    "captain": "Known as 'The Admiral', identity unknown",
-    "capabilities": "Military-grade weapons, fighter bay, experienced crew",
-    "reputation": "Takes cargo, rarely kills unless provoked, honors ransoms",
-    "danger": "Imperium bounty, will fight rather than surrender"
-  },
-  "links": {
-    "Пираты": "major pirate asset",
-    "Звездолёты": "heavy cruiser class",
-    "Пограничье": "operates here"
+  "create_Cruiser_Nemesis": {
+    "type": "item",
+    "synopsis": "pirate cruiser in =Frontier=, converted military ship, feared raider",
+    "body": {
+      "type": "Heavy Cruiser (converted)",
+      "origin": "Former Imperium patrol cruiser, captured in mutiny",
+      "captain": "Known as 'The Admiral', identity unknown",
+      "capabilities": "Military-grade weapons, fighter bay, experienced crew",
+      "reputation": "Takes cargo, rarely kills unless provoked, honors ransoms",
+      "danger": "Imperium bounty, will fight rather than surrender"
+    },
+    "links": {
+      "Pirates": "major pirate asset",
+      "Starships": "heavy cruiser class",
+      "Frontier": "operates here"
+    },
+    "is_game": true
   }
 }
 ```
 
 ```json
 {
-  "id": "Станция_Порог",
-  "type": "location",
-  "synopsis": "frontier station at edge of =Пограничье=, neutral ground, all races welcome",
-  "body": {
-    "type": "Space Station / Trade Hub",
-    "location": "Border between Imperium and frontier space",
-    "atmosphere": "Busy, diverse, slightly lawless, opportunity everywhere",
-    "governance": "Station Council, representatives of major factions",
-    "services": "Fuel, repairs, market, jobs board, cantina, information",
-    "rule": "No weapons fire inside. Disputes settled by council or outside"
-  },
-  "links": {
-    "Локации": "major frontier hub",
-    "Фракции": "neutral ground",
-    "Расы": "all welcome"
+  "create_Station_Threshold": {
+    "type": "location",
+    "synopsis": "frontier station at edge of =Frontier=, neutral ground, all races welcome",
+    "body": {
+      "type": "Space Station / Trade Hub",
+      "location": "Border between Imperium and frontier space",
+      "atmosphere": "Busy, diverse, slightly lawless, opportunity everywhere",
+      "governance": "Station Council, representatives of major factions",
+      "services": "Fuel, repairs, market, jobs board, cantina, information",
+      "rule": "No weapons fire inside. Disputes settled by council or outside"
+    },
+    "links": {
+      "Locations": "major frontier hub",
+      "Factions": "neutral ground",
+      "Races": "all welcome"
+    },
+    "is_game": true
   }
 }
 ```
 
-## Notes for quantizer
+## Notes
 
-- Be creative but stay within space opera tone
-- Track reputation with different factions
-- Create quants for recurring characters, ships, and locations
-- Link related quants together for context
-- Don't create duplicate quants - update existing ones instead
-- **Add references after 3+ interactions to make NPCs memorable**
-- References help GM maintain consistent character portrayal
 - Space opera = epic scope, personal stakes, alien wonders, adventure
 - Ships are characters too - give them personality
 - Alien is alien - don't just make humans with makeup
 - The galaxy is vast but individuals matter
+- Track reputation with different factions and alien races

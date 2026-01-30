@@ -139,23 +139,29 @@ class GMAgent:
             except json.JSONDecodeError:
                 pass
         
-        # Try extracting "narrative" field from incomplete JSON
-        # This helps when JSON is truncated or malformed
-        narrative_match = re.search(r'"narrative"\s*:\s*"([^"]*(?:\\"[^"]*)*)"', content, re.DOTALL)
+        # Try extracting "narrative" field from incomplete/truncated JSON
+        # This helps when JSON is truncated or malformed (e.g., hit token limit)
+        # Pattern allows for missing closing quote (truncated response)
+        narrative_match = re.search(
+            r'"(?:narrative|gm_narrative)"\s*:\s*"((?:[^"\\]|\\.)*)(?:"|\Z)',
+            content,
+            re.DOTALL
+        )
         if narrative_match:
             try:
                 narrative_text = narrative_match.group(1)
                 # Unescape JSON string
-                narrative_text = narrative_text.replace('\\"', '"').replace('\\n', '\n')
-                logger.info("Extracted 'narrative' field from incomplete JSON")
-                
+                narrative_text = narrative_text.replace('\\n', '\n').replace('\\t', '\t')
+                narrative_text = narrative_text.replace('\\"', '"').replace('\\\\', '\\')
+                logger.info(f"Extracted 'narrative' from incomplete JSON ({len(narrative_text)} chars)")
+
                 # Try to extract quant_requests too
                 quants_match = re.search(r'"quant_requests"\s*:\s*\[(.*?)\]', content, re.DOTALL)
                 quants = []
                 if quants_match:
                     quants_str = quants_match.group(1)
                     quants = re.findall(r'"([^"]+)"', quants_str)
-                
+
                 return {
                     "reply": narrative_text,
                     "quants": quants,

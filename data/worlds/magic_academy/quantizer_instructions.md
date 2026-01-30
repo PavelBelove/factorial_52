@@ -1,199 +1,145 @@
-# Quantizer Instructions: Magic Academy World
+# Magic Academy Chronicle - Memory Specifics
 
-## Key concepts for this world
+## Key Story Elements
 
-- **Academy Structure**: Years 1-5, faculties/houses, professors, student hierarchy
-- **Magic Disciplines**: Elemental, enchantment, alchemy, naming, divination, illusion, battle magic, healing
-- **Social Dynamics**: Nobles vs commoners, faculty rivalries, cliques, romance, reputation
-- **Academic Life**: Classes, exams, homework, study groups, library research
-- **Mysteries**: Restricted sections, secret societies, ancient artifacts, hidden passages
-
-## Typical quants to create
-
-### NPCs - Students
-- Include: year, faculty, social class (noble/commoner/scholarship), personality, academic strengths
-- Example: "Элиза_Третьекурсница" (3rd year, Arcane faculty, noble, studious but kind)
-
-### NPCs - Staff
-- Include: position, subject taught, personality, quirks, potential plot hooks
-- Example: "Профессор_Моран" (Battle Magic, strict but fair, veteran of mage wars)
-
-### Locations - Academy
-- Classrooms, dormitories, library sections
-- Common rooms, dining hall, courtyards
-- Secret passages, restricted areas
-- Practice grounds, dueling arena
-
-### Academic Elements
-- Specific classes and their content
-- Exams and assignments
-- Research projects
-- Club activities
-
-### Items & Artifacts
-- Personal wands/staves
-- Academy-issued equipment
-- Rare books and scrolls
-- Mysterious artifacts found in plot
-
-### Mysteries & Plots
-- Secret society activities
-- Ancient academy secrets
-- Political intrigues
-- Forbidden magic discoveries
-
-## World-specific rules
-
-1. **Track academic progress**: Year, grades, professor relationships
-2. **Manage social standing**: Noble politics, friendship networks, rivalries
-3. **Handle magic learning**: Which disciplines studied, skill progression
-4. **Create layered mysteries**: Not everything revealed at once, clues over time
-5. **Develop relationships**: Friends, rivals, mentors, romantic interests evolve
+- **Academy Life**: Years 1-5, faculties/houses, professors, student hierarchies
+- **Magical Arts**: Elemental, enchantment, alchemy, naming, divination, illusion, battle magic, healing
+- **Social Fabric**: Nobles vs commoners, faculty rivalries, friendships, reputation, romance
+- **Academic Journey**: Classes, exams, studies, research, discovery
+- **Hidden Depths**: Restricted sections, secret societies, ancient artifacts, concealed passages
 
 ---
 
-## NPC References System
+## Typical Chronicle Elements
 
-**IMPORTANT: Create vivid character images through cultural references!**
+### Characters - Students
+- Include: year, faculty, social standing (noble/common/scholar), personality, academic strengths
+- Example: `Elena_Third_Year` (3rd year, Arcane faculty, noble, studious but kind)
 
-### When to add references:
+### Characters - Faculty
+- Include: position, subject taught, personality, quirks, potential story threads
+- Example: `Professor_Moran` (Battle Magic, strict but fair, war veteran)
 
-Add a `reference` field to NPC quants when:
-- Player has interacted with NPC **3 or more times**
-- NPC is important for ongoing story
-- NPC has distinctive personality/appearance
+### Places - Academy Grounds
+- Lecture halls, dormitories, library wings
+- Common rooms, dining hall, courtyards
+- Hidden passages, forbidden areas
+- Practice grounds, dueling circles
 
-### How to create references:
+### Story Elements - Academic
+- Specific classes and their nature
+- Examinations and assignments
+- Research threads, student societies
 
-Reference should be:
-- **Short** (5-15 words max)
-- **Evocative** - instantly activates GM's knowledge of that character
-- **Modified** - note differences from original
+### Objects & Mysteries
+- Personal wands/staves
+- Academy-issued tools
+- Rare grimoires, scrolls, enigmatic artifacts
 
-**Reference format in body:**
-```json
-{
-  "reference": "Like [Character] from [Work] but [difference]"
-}
-```
+### Plot Threads & Secrets
+- Secret society activities
+- Ancient academy mysteries
+- Political intrigue
+- Forbidden knowledge discoveries
 
-### Good reference examples for academy setting:
+---
+
+## Chronicle-Specific Principles
+
+1. **Track story progression**: Academic year, relationships growth, character development
+2. **Manage social web**: Noble politics, friendship networks, rivalries evolving
+3. **Handle magical learning**: Which disciplines studied, breakthroughs, setbacks
+4. **Weave mysteries slowly**: Not everything revealed at once, clues over chapters
+5. **Develop authentic bonds**: Friends, rivals, mentors, romantic threads deepen naturally
+
+---
+
+## Reference Sources for Magic Academy Chronicle
+
+Use these works and archetypes when creating character references (system will add them automatically after 3+ interactions).
+
+### Good reference examples for Magic Academy setting:
 
 ```json
 {"reference": "Like Hermione but from noble family, more politically aware"}
 {"reference": "Snape's strictness with Dumbledore's hidden warmth"}
 {"reference": "Kvothe's brilliance but without the arrogance, shy"}
 {"reference": "Akko from Little Witch Academia but actually talented"}
-{"reference": "Zorian from Mother of Learning but extroverted"}
-{"reference": "Draco's pride with Neville's hidden courage"}
-{"reference": "Quentin from Magicians but less depressed, more curious"}
-{"reference": "Rock Lee's dedication with Shikamaru's intellect"}
 ```
 
-### Reference sources (use these works):
-
-**Magic school media:**
+**Magic academy literature:**
 - Harry Potter (Harry, Hermione, Ron, Draco, Snape, Dumbledore, McGonagall, Luna, Neville)
 - The Name of the Wind (Kvothe, Denna, Ambrose, Elodin, Kilvin)
 - A Wizard of Earthsea (Ged, Ogion, Jasper, Vetch)
 - The Magicians (Quentin, Alice, Eliot, Margo, Penny)
 - Little Witch Academia (Akko, Diana, Sucy, Lotte, Ursula)
 - Mother of Learning (Zorian, Zach, Xvim, Ilsa, Taiven)
-- Naruto Academy (Iruka, young Naruto/Sasuke/Sakura dynamics)
 
-**Personality archetypes:**
+**Character archetypes:**
 - The prodigy (effortless talent)
-- The hard worker (determination over talent)
-- The noble snob (privileged but possibly redeemable)
+- The determined scholar (grit over gifts)
+- The noble with layers (privileged but complex)
 - The mysterious professor (hidden depths)
-- The kind mentor (supportive teacher)
-- The strict master (harsh but effective)
-- The rival (competitive but respectful)
-- The trickster (chaos agent, comic relief)
-
-### Reference rules:
-
-1. **DON'T copy directly** - always add a twist or difference
-2. **DON'T use obscure references** - stick to well-known works
-3. **DO combine references** when NPC has mixed traits
-4. **DO update references** if character develops significantly
-5. **Academic context** - consider their role (student/professor/staff)
+- The kind mentor (supportive guide)
+- The demanding master (harsh but effective)
+- The worthy rival (competitive but respectful)
 
 ---
 
-## Examples of good quants
+## Example Chronicle Entries
 
 ```json
 {
-  "id": "Профессор_Элдрин",
-  "type": "npc",
-  "synopsis": "Naming professor at =Факультет_Арканы=, eccentric genius, tests students unconventionally",
-  "body": {
-    "role": "Professor of Naming",
-    "faculty": "Arcane Studies",
-    "personality": "Eccentric, speaks in riddles, genuinely cares but shows it oddly",
-    "reference": "Elodin from Name of the Wind but calmer, with Luna Lovegood's dreaminess",
-    "teaching_style": "No textbooks, strange assignments, rewards creativity over memorization",
-    "secret": "Can hear the true names of things, slowly going deaf to normal speech"
-  },
-  "links": {
-    "Факультеты": "teaches at Arcane faculty",
-    "Магические_Дисциплины": "master of Naming",
-    "Тайны_Академии": "knows more than he tells"
+  "create_Professor_Eldrin": {
+    "type": "npc",
+    "synopsis": "Naming professor at =Arcane_Faculty=, eccentric genius, tests students unconventionally",
+    "body": {
+      "role": "Professor of Naming",
+      "faculty": "Arcane Studies",
+      "personality": "Eccentric, speaks in riddles, genuinely cares but shows it oddly",
+      "reference": "Elodin from Name of the Wind but calmer, with Luna Lovegood's dreaminess",
+      "teaching_style": "No textbooks, strange assignments, rewards creativity",
+      "secret": "Can hear true names of things, slowly going deaf to normal speech"
+    },
+    "links": {
+      "Faculties": "teaches at Arcane faculty",
+      "Magic_Disciplines": "master of Naming",
+      "Academy_Secrets": "knows more than he tells"
+    },
+    "is_game": true
   }
 }
 ```
 
 ```json
 {
-  "id": "Виктор_Аристов",
-  "type": "npc",
-  "synopsis": "4th year noble student, =Факультет_Боевой_Магии=, arrogant rival but honorable in duels",
-  "body": {
-    "year": "4th",
-    "faculty": "Battle Magic",
-    "social_class": "High noble - Duke's son",
-    "personality": "Proud, competitive, secretly respects genuine skill",
-    "reference": "Draco Malfoy's pride mixed with Sasuke's combat focus, but more honorable",
-    "appearance": "Silver-blond hair, always immaculate uniform, family signet ring",
-    "motivation": "Prove worthy of family name, conflicted about father's expectations"
-  },
-  "links": {
-    "Факультеты": "star of Battle Magic faculty",
-    "Турниры": "three-time dueling champion",
-    "Социальная_Динамика": "leader of noble clique"
+  "create_Viktor_Aristov": {
+    "type": "npc",
+    "synopsis": "4th year noble, =Battle_Magic_Faculty=, proud rival but honorable",
+    "body": {
+      "year": "4th",
+      "faculty": "Battle Magic",
+      "social_class": "High noble - Duke's son",
+      "personality": "Proud, competitive, secretly respects genuine skill",
+      "reference": "Draco Malfoy's pride mixed with Sasuke's combat focus, but more honorable",
+      "appearance": "Silver-blond hair, immaculate uniform, family signet ring"
+    },
+    "links": {
+      "Faculties": "star of Battle Magic faculty",
+      "Academy_Events": "three-time dueling champion",
+      "Social_Dynamics": "leader of noble circle"
+    },
+    "is_game": true
   }
 }
 ```
 
-```json
-{
-  "id": "Мира_Стипендиатка",
-  "type": "npc",
-  "synopsis": "2nd year scholarship student, =Факультет_Природы=, talented alchemist, shy but fierce when pushed",
-  "body": {
-    "year": "2nd",
-    "faculty": "Natural Magic",
-    "social_class": "Scholarship - village healer's daughter",
-    "personality": "Quiet, hardworking, sharp tongue when provoked",
-    "reference": "Hermione's work ethic with Sucy's alchemy obsession, less confident",
-    "appearance": "Ink-stained fingers, herbs in pockets, secondhand robes",
-    "motivation": "Send money home, prove commoners can excel, discover new potions"
-  },
-  "links": {
-    "Факультеты": "top of her class in Alchemy",
-    "Социальная_Динамика": "target of noble bullying, has loyal friends"
-  }
-}
-```
+---
 
-## Notes for quantizer
+## Notes
 
-- Be creative but stay within magic school genre conventions
-- Track both academic progress AND social relationships
-- Create quants for recurring characters, not one-time mentions
-- Link related quants together for context
-- Don't create duplicate quants - update existing ones instead
-- **Add references after 3+ interactions to make NPCs memorable**
-- References help GM maintain consistent character portrayal
-- Academy setting = relationships matter as much as magic
+- Magic Academy chronicle = relationships matter as much as magic
+- Track both academic progress AND evolving social bonds
+- Academy life weaves routine with mystery
+- Every character should feel authentic, memorable
+- Focus on story elements, not game mechanics

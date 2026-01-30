@@ -43,11 +43,12 @@ class QuantizerAgent:
         active_quants: List[Quant],
         synopsis_list: str,
         current_turn: int,
-        world_id: Optional[str] = None
+        world_id: Optional[str] = None,
+        language: str = "Russian"
     ) -> Dict[str, Any]:
         """
         Analyze recent dialogue and generate memory update commands.
-        
+
         Args:
             summary_text: Current session summary
             recent_turns: Recent conversation turns
@@ -55,7 +56,8 @@ class QuantizerAgent:
             synopsis_list: Synopsis of recent quants for navigation
             current_turn: Current turn number
             world_id: World ID for world-specific instructions (optional)
-        
+            language: User's language for quant names (default: Russian)
+
         Returns:
             Dict with commands in format:
             {
@@ -74,38 +76,58 @@ class QuantizerAgent:
             synopsis_list,
             current_turn
         )
-        
+
         # System prompt for quantizer (with world-specific instructions if available)
-        system_prompt = self._get_quantizer_system_prompt(world_id)
+        system_prompt = self._get_quantizer_system_prompt(world_id, language=language)
         
         try:
-            # Call LLM with max_tokens
+            # Call LLM with max_tokens - get raw response first
             from core.config import settings
-            response = await self.llm.json_completion(
-                prompt=context,
-                system_prompt=system_prompt,
+
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": context}
+            ]
+
+            raw_response = await self.llm.chat_completion(
+                messages=messages,
                 model=self.model,
-                temperature=0.5,  # Lower temperature for more consistent structure
-                max_tokens=settings.quantizer_max_tokens
+                temperature=0.5,
+                max_tokens=settings.quantizer_max_tokens,
+                response_format={"type": "json_object"}
             )
-            
+
+            # Extract and log raw content BEFORE parsing
+            raw_content = self.llm.extract_content(raw_response)
+            logger.info(f"Quantizer raw response ({len(raw_content)} chars): {raw_content[:500]}...")
+
+            # Parse JSON
+            response = self.llm.extract_json(raw_response)
+
+            # Check for empty response
+            if not response:
+                logger.warning(f"Quantizer: extract_json returned empty dict. Raw content was: {raw_content[:1000]}")
+
             # Validate commands
             result = self._validate_commands(response)
-            
-            # Log agent call for debugging
+
+            # Log result
+            if result:
+                logger.info(f"Quantizer generated {len(result)} commands: {list(result.keys())}")
+            else:
+                logger.info("Quantizer: no memory updates needed (empty response)")
+
+            # Log agent call for debugging - include raw content
             log_agent_call(
                 agent_name="quantizer",
-                context=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": context}
-                ],
-                response=result
+                context=messages,
+                response={"raw_content": raw_content, "parsed": result}
             )
-            
+
             return result
-        
+
         except Exception as e:
-            logger.error(f"Error in Quantizer agent: {e}")
+            logger.error(f"Error in Quantizer agent: {e}", exc_info=True)
             return {}
     
     def _build_quantizer_context(
@@ -169,57 +191,94 @@ class QuantizerAgent:
         
         return "\n\n".join(context_parts)
     
-    def _get_quantizer_system_prompt(self, world_id: Optional[str] = None) -> str:
+    def _get_quantizer_system_prompt(self, world_id: Optional[str] = None, language: str = "Russian") -> str:
         """
-        System prompt for Quantizer - loads from file.
-        If world_id is provided and has specific instructions, uses those instead of default.
+        System prompt for Quantizer - combines base prompt with world-specific instructions.
+        Base prompt contains command format and general rules.
+        World-specific instructions add world-specific guidance.
+
+        Args:
+            world_id: World ID for world-specific instructions
+            language: User's language for template rendering
         """
+        template_vars = {"language": language}
+
         try:
-            # Try to load world-specific instructions first
+            # Load and render base prompt (contains command format, general rules)
+            from core.utils import render_prompt, render_world_prompt, PROMPT_QUANTIZER
+            base_prompt = render_prompt(PROMPT_QUANTIZER, variables=template_vars)
+            logger.info(f"Loaded base Quantizer prompt (language: {language})")
+
+            # Try to load world-specific instructions
             if world_id:
                 from core.config import world_manager
                 world_instructions = world_manager.get_quantizer_instructions(world_id)
-                
+
                 if world_instructions:
-                    logger.info(f"Using world-specific Quantizer instructions for world: {world_id}")
-                    return world_instructions
-            
-            # Fallback to default prompt if no world-specific instructions
-            logger.info("Using default Quantizer prompt")
-            from core.utils import get_prompt, PROMPT_QUANTIZER
-            base_prompt = get_prompt(PROMPT_QUANTIZER)
+                    # Render world prompt with same variables
+                    rendered_world = render_world_prompt(world_instructions, variables=template_vars)
+                    # COMBINE base + world-specific
+                    combined = f"{base_prompt}\n\n---\n\n# World-Specific Instructions: {world_id}\n\n{rendered_world}"
+                    logger.info(f"Combined base prompt with world-specific instructions for: {world_id}")
+                    return combined
+
             return base_prompt
-            
+
         except Exception as e:
             logger.error(f"Failed to load Quantizer prompt from file: {e}")
-            # Fallback (should never happen)
-            return """# Role: Memory Quantizer
+            # Fallback
+            return f"""# Role: Memory Quantizer
 You manage long-term memory. Create and update quants (atomic memory units) for NPCs, locations, items, events.
-Write all content in ENGLISH, keep quant names/IDs in RUSSIAN."""
+Write quant names/IDs in {language}. Write all content (synopsis, body, links) in English.
+
+## Command Format
+Return JSON with commands:
+- "create_Name": {{type, synopsis, body, links}} - create new quant
+- "append_Name_field": "value" - add to existing field
+- "replace_Name_field": "value" - replace field value
+- "delete_Name": null - delete quant"""
     
     def _validate_commands(self, response: Dict[str, Any]) -> Dict[str, Any]:
         """Validate command structure."""
         if not isinstance(response, dict):
             logger.warning("Quantizer response is not a dict")
             return {}
-        
+
+        # Check if response is a raw quant structure instead of commands
+        # LLM sometimes returns {"id": "...", "type": "...", "body": {...}}
+        # instead of {"create_Name": {...}}
+        if "id" in response and ("type" in response or "body" in response or "synopsis" in response):
+            logger.info("Detected raw quant format, converting to create command")
+            quant_id = response.pop("id")
+            return {f"create_{quant_id}": response}
+
+        # Check if response is a list of quants
+        if isinstance(response, list):
+            logger.info(f"Detected list of {len(response)} quants, converting to create commands")
+            commands = {}
+            for item in response:
+                if isinstance(item, dict) and "id" in item:
+                    quant_id = item.pop("id")
+                    commands[f"create_{quant_id}"] = item
+            return commands
+
         # Filter out invalid commands
         valid_commands = {}
-        
+
         for key, value in response.items():
             # Check command format
             parts = key.split("_", 1)
             if len(parts) < 2:
                 logger.warning(f"Invalid command format: {key}")
                 continue
-            
+
             action = parts[0].lower()
-            
+
             if action not in ["create", "append", "replace", "delete"]:
                 logger.warning(f"Unknown action: {action}")
                 continue
-            
+
             valid_commands[key] = value
-        
+
         return valid_commands
 

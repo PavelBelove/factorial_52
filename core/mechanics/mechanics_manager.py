@@ -461,7 +461,7 @@ class MechanicsManager:
             logger.error(f"Invalid item_data type: {type(item_data)}, value: {item_data}")
             changes_log.append(f"Invalid item data format")
             return
-        
+            
         # Graceful item creation with fallback
         try:
             new_item = Item(**sanitized_data)

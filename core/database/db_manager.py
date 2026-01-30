@@ -46,7 +46,7 @@ class DatabaseManager:
         
         # Create tables
         Base.metadata.create_all(bind=self.engine)
-
+    
         # Run simple migrations for new columns
         self._run_migrations()
 

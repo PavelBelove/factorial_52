@@ -60,24 +60,77 @@ class PlexMemBot:
         self.dp.message.register(self.cmd_cost, Command("cost"))
         self.dp.message.register(self.cmd_help, Command("help"))
         
-        # Register game message handler LAST (catches all other text in game state)
+        # Register game message handler for IN_GAME state
         self.dp.message.register(self.handle_game_message, GameStates.IN_GAME, F.text)
-        
+
+        # Fallback handler for text messages when state is lost (after restart)
+        # This catches messages when user is NOT in IN_GAME state but has active session
+        self.dp.message.register(self.handle_orphan_message, F.text)
+
         # Store last message for retry
         self.last_user_messages = {}
     
+    # ============= SESSION RESTORATION =============
+
+    async def handle_orphan_message(self, message: Message, state: FSMContext):
+        """
+        Handle text messages when FSM state is lost (after bot/API restart).
+        Tries to restore session from DB and process the message.
+        """
+        user_id = message.from_user.id
+
+        # Try to restore session from DB
+        session_id = await self._restore_session_if_needed(user_id, state)
+
+        if session_id:
+            # Session restored! Process message as normal game message
+            logger.info(f"Restored session {session_id} for orphan message from user {user_id}")
+            self.last_user_messages[user_id] = message.text
+            await self._process_game_message(message, session_id, message.text)
+        else:
+            # No active session - prompt user to use menu
+            await message.answer(
+                "👋 Привет! У вас нет активной игры.\n\n"
+                "Используйте /menu чтобы начать новую игру или продолжить сохранённую."
+            )
+
+    async def _restore_session_if_needed(self, user_id: int, state: FSMContext) -> Optional[int]:
+        """
+        Restore session from DB if not in FSM state.
+        Returns session_id or None if no active session.
+        """
+        state_data = await state.get_data()
+        session_id = state_data.get('session_id')
+
+        if session_id:
+            return session_id
+
+        # Try to restore from DB
+        active_session = db.get_session_by_platform_id(str(user_id))
+
+        if active_session and active_session.is_active:
+            # Restore FSM state
+            await state.update_data(
+                session_id=active_session.id,
+                world_id=active_session.world_id
+            )
+            await state.set_state(GameStates.IN_GAME)
+            logger.info(f"Session {active_session.id} restored for user {user_id}")
+            return active_session.id
+
+        return None
+
     # ============= IN-GAME MESSAGE HANDLING =============
-    
+
     async def handle_game_message(self, message: Message, state: FSMContext):
         """Handle messages during active game."""
         user_id = message.from_user.id
-        
-        # Get session_id from state
-        state_data = await state.get_data()
-        session_id = state_data.get('session_id')
-                
+
+        # Try to get or restore session
+        session_id = await self._restore_session_if_needed(user_id, state)
+
         if not session_id:
-            await message.answer("❌ Ошибка сессии. Используйте /menu для возврата в меню")
+            await message.answer("❌ Нет активной игры. Используйте /menu для начала")
             return
                 
         # Save for retry
@@ -107,19 +160,50 @@ class PlexMemBot:
                 
                 if response.status_code == 200:
                     data = response.json()
-                    
+
                     # Extract only narrative if reply contains JSON
                     reply_text = data['reply']
-                    
+
                     # Try to parse as JSON and extract narrative
                     import json as json_module
-                    try:
-                        if reply_text.strip().startswith('{'):
+                    import re
+
+                    if reply_text.strip().startswith('{'):
+                        extracted = False
+
+                        # Method 1: Try full JSON parse
+                        try:
                             parsed = json_module.loads(reply_text)
                             if 'narrative' in parsed:
                                 reply_text = parsed['narrative']
-                    except:
-                        pass  # If not JSON, use as is
+                                extracted = True
+                            elif 'gm_narrative' in parsed:
+                                reply_text = parsed['gm_narrative']
+                                extracted = True
+                        except json_module.JSONDecodeError:
+                            pass
+
+                        # Method 2: Regex for truncated JSON
+                        if not extracted:
+                            # Try to extract narrative field from truncated JSON
+                            match = re.search(r'"(?:narrative|gm_narrative)"\s*:\s*"((?:[^"\\]|\\.)*)(?:"|\Z)', reply_text, re.DOTALL)
+                            if match:
+                                narrative = match.group(1)
+                                # Unescape JSON string
+                                narrative = narrative.replace('\\n', '\n').replace('\\t', '\t').replace('\\"', '"').replace('\\\\', '\\')
+                                reply_text = narrative
+                                extracted = True
+                                logger.info("Extracted narrative from truncated JSON via regex")
+
+                        # Method 3: Last resort - strip JSON wrapper
+                        if not extracted:
+                            # Try to extract any readable text from malformed JSON
+                            # Remove JSON structure and clean up
+                            cleaned = re.sub(r'^[\s\{]*"[^"]*"\s*:\s*"?', '', reply_text)
+                            cleaned = re.sub(r'"\s*[,\}].*$', '', cleaned, flags=re.DOTALL)
+                            if len(cleaned) > 50:  # Only use if substantial content
+                                reply_text = cleaned.replace('\\n', '\n').replace('\\"', '"')
+                                logger.warning("Used last-resort JSON cleanup")
                     
                     reply = f"🎲 Ход #{data['turn_number']}\n\n{reply_text}"
                     
@@ -163,22 +247,21 @@ class PlexMemBot:
     async def cmd_menu(self, message: Message, state: FSMContext):
         """Return to main menu."""
         from telegram.handlers.menu import show_main_menu
-        await show_main_menu(message, state, message.from_user.id)
+        await show_main_menu(message, state, message.from_user.id, edit=False)
     
     async def cmd_retry(self, message: Message, state: FSMContext):
         """Retry last message."""
         user_id = message.from_user.id
-        
+
         last_msg = self.last_user_messages.get(user_id)
         if not last_msg:
             await message.answer("❌ Нет сообщения для повтора")
             return
-        
-        state_data = await state.get_data()
-        session_id = state_data.get('session_id')
-        
+
+        session_id = await self._restore_session_if_needed(user_id, state)
+
         if not session_id:
-            await message.answer("❌ Нет активной игры")
+            await message.answer("❌ Нет активной игры. Используйте /menu")
             return
         
         try:
@@ -205,11 +288,11 @@ class PlexMemBot:
     
     async def cmd_undo(self, message: Message, state: FSMContext):
         """Undo last turn."""
-        state_data = await state.get_data()
-        session_id = state_data.get('session_id')
-        
+        user_id = message.from_user.id
+        session_id = await self._restore_session_if_needed(user_id, state)
+
         if not session_id:
-            await message.answer("❌ Нет активной игры")
+            await message.answer("❌ Нет активной игры. Используйте /menu")
             return
         
         try:
@@ -235,11 +318,11 @@ class PlexMemBot:
     
     async def cmd_stats(self, message: Message, state: FSMContext):
         """Show character stats."""
-        state_data = await state.get_data()
-        session_id = state_data.get('session_id')
-        
+        user_id = message.from_user.id
+        session_id = await self._restore_session_if_needed(user_id, state)
+
         if not session_id:
-            await message.answer("❌ Нет активной игры")
+            await message.answer("❌ Нет активной игры. Используйте /menu")
             return
         
         try:
@@ -272,11 +355,11 @@ class PlexMemBot:
     
     async def cmd_inventory(self, message: Message, state: FSMContext):
         """Show inventory."""
-        state_data = await state.get_data()
-        session_id = state_data.get('session_id')
-        
+        user_id = message.from_user.id
+        session_id = await self._restore_session_if_needed(user_id, state)
+
         if not session_id:
-            await message.answer("❌ Нет активной игры")
+            await message.answer("❌ Нет активной игры. Используйте /menu")
             return
         
         try:
@@ -330,11 +413,11 @@ class PlexMemBot:
     
     async def cmd_session(self, message: Message, state: FSMContext):
         """Show session stats."""
-        state_data = await state.get_data()
-        session_id = state_data.get('session_id')
-        
+        user_id = message.from_user.id
+        session_id = await self._restore_session_if_needed(user_id, state)
+
         if not session_id:
-            await message.answer("❌ Нет активной игры")
+            await message.answer("❌ Нет активной игры. Используйте /menu")
             return
         
         try:
@@ -359,11 +442,11 @@ class PlexMemBot:
     
     async def cmd_cost(self, message: Message, state: FSMContext):
         """Show cost breakdown."""
-        state_data = await state.get_data()
-        session_id = state_data.get('session_id')
-        
+        user_id = message.from_user.id
+        session_id = await self._restore_session_if_needed(user_id, state)
+
         if not session_id:
-            await message.answer("❌ Нет активной игры")
+            await message.answer("❌ Нет активной игры. Используйте /menu")
             return
         
         try:

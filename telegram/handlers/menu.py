@@ -40,29 +40,6 @@ db = DatabaseManager()
 
 # ============= START & LANGUAGE SELECTION =============
 
-async def show_main_menu(message: Message, state: FSMContext, user_id: int):
-    """Show main menu to user."""
-    user = db.get_or_create_user(str(user_id))
-    loc = get_localization(user.language)
-    
-    # Check if user has active session
-    active_session = db.get_session_by_platform_id(str(user_id))
-    
-    # Clear any existing state
-    await state.clear()
-    
-    if active_session and active_session.is_active:
-        # User has active game - show game menu with continue option
-        text = loc.get_main_menu_message()
-        keyboard = get_main_menu_keyboard(has_active_game=True, language=user.language)
-    else:
-        # No active game - show menu without continue option
-        text = loc.get_main_menu_message()
-        keyboard = get_main_menu_keyboard(has_active_game=False, language=user.language)
-    
-    await message.answer(text, reply_markup=keyboard)
-
-
 @router.message(Command("start"))
 async def cmd_start(message: Message, state: FSMContext):
     """
@@ -80,8 +57,8 @@ async def cmd_start(message: Message, state: FSMContext):
         
         # Check if user already has language set
         if user.language:
-            # Existing user - show main menu
-            await show_main_menu(message, state, user_id)
+            # Existing user - show main menu (send new message)
+            await show_main_menu(message, state, user_id, edit=False)
         else:
             # New user - show language selection
             await state.set_state(GameStates.LANGUAGE_SELECTION)
@@ -115,8 +92,8 @@ async def process_language_selection(callback: CallbackQuery, state: FSMContext)
         
         await callback.answer(f"Язык установлен: {lang_code}")
         
-        # Show main menu
-        await show_main_menu(callback.message, state, user_id)
+        # Show main menu (edit existing message)
+        await show_main_menu(callback.message, state, user_id, edit=True)
         
     except Exception as e:
         logger.error(f"Error in language selection: {e}", exc_info=True)
@@ -125,7 +102,7 @@ async def process_language_selection(callback: CallbackQuery, state: FSMContext)
 
 # ============= MAIN MENU =============
 
-async def show_main_menu(message: Message, state: FSMContext, user_id: int):
+async def show_main_menu(message: Message, state: FSMContext, user_id: int, edit: bool = True):
     """
     Show main menu to user.
     
@@ -133,6 +110,7 @@ async def show_main_menu(message: Message, state: FSMContext, user_id: int):
         message: Message object (can be from callback)
         state: FSM context
         user_id: Telegram user ID
+        edit: If True, edit existing message. If False, send new message.
     """
     try:
         # Get user from DB
@@ -153,10 +131,11 @@ async def show_main_menu(message: Message, state: FSMContext, user_id: int):
         await state.set_state(GameStates.MAIN_MENU)
         
         # Send or edit message
-        if isinstance(message.chat, type(message)):
-            # It's a callback query message
+        if edit:
+            # Edit existing message (from callback)
             await message.edit_text(text, reply_markup=keyboard)
         else:
+            # Send new message (from command)
             await message.answer(text, reply_markup=keyboard)
             
     except Exception as e:
@@ -166,7 +145,7 @@ async def show_main_menu(message: Message, state: FSMContext, user_id: int):
 @router.callback_query(F.data == "back_to_menu")
 async def back_to_menu(callback: CallbackQuery, state: FSMContext):
     """Go back to main menu."""
-    await show_main_menu(callback.message, state, callback.from_user.id)
+    await show_main_menu(callback.message, state, callback.from_user.id, edit=True)
     await callback.answer()
 
 
@@ -498,7 +477,7 @@ async def process_save_slot(callback: CallbackQuery, state: FSMContext):
         
         if success:
             await callback.answer(loc.get_game_saved_message(slot))
-            await show_main_menu(callback.message, state, user_id)
+            await show_main_menu(callback.message, state, user_id, edit=True)
         else:
             await callback.answer("Ошибка при сохранении")
             
