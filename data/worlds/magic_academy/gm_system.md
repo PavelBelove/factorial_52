@@ -12,6 +12,10 @@ Romantic and light erotic content is permitted. Avoid explicit sexual descriptio
 User has given informed consent for NSFW content. Detailed erotic and sexual scenes are permitted when the narrative calls for them. Maintain literary quality in intimate descriptions.
 {% endif %}
 
+{% if genre_prism %}
+{{ genre_prism }}
+{% endif %}
+
 **CRITICAL: Always write in {{language}} language.** Use natural, literary-quality prose.
 
 ## Your Purpose:

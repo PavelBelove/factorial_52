@@ -14,9 +14,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-from core.config import settings
+from core.config import settings, get_localization
 from core.utils.logger import setup_logging
 from core.database.db_manager import DatabaseManager
+from telegram.utils import convert_markdown_to_html
 
 # Import handlers
 from telegram.handlers import menu_router
@@ -148,6 +149,10 @@ class PlexMemBot:
             
             logger.debug(f"Sending to API: session={session_id}, user={user_id}")
             
+            # Get user localization
+            user = db.get_or_create_user(str(user_id))
+            loc = get_localization(user.language)
+            
             # Send to API (long timeout for LLM)
             async with httpx.AsyncClient(timeout=180.0) as client:
                 response = await client.post(
@@ -205,11 +210,14 @@ class PlexMemBot:
                                 reply_text = cleaned.replace('\\n', '\n').replace('\\"', '"')
                                 logger.warning("Used last-resort JSON cleanup")
                     
-                    reply = f"🎲 Ход #{data['turn_number']}\n\n{reply_text}"
+                    reply = f"{loc.get_chapter_label(data['turn_number'])}\n\n{reply_text}"
+                    
+                    # Convert markdown to HTML
+                    reply = convert_markdown_to_html(reply)
                     
                     # Split long messages
                     if len(reply) > 4000:
-                        header = f"🎲 Ход #{data['turn_number']}\n\n"
+                        header = f"{loc.get_chapter_label(data['turn_number'])}\n\n"
                         content = reply_text  # Use extracted narrative, not raw reply!
                         chunk_size = 3900
                         
@@ -224,11 +232,11 @@ class PlexMemBot:
                         logger.info(f"Message split into {len(chunks)} chunks")
                         
                         for idx, chunk in enumerate(chunks):
-                            await message.answer(chunk, parse_mode=None)
+                            await message.answer(chunk, parse_mode="HTML")
                             if idx < len(chunks) - 1:
                                 await asyncio.sleep(0.5)
                     else:
-                        await message.answer(reply, parse_mode=None)
+                        await message.answer(reply, parse_mode="HTML")
                     
                     logger.info(f"Turn {data['turn_number']} completed for user {user_id}")
                 else:
@@ -295,6 +303,10 @@ class PlexMemBot:
             await message.answer("❌ Нет активной игры. Используйте /menu")
             return
         
+        # Get user localization
+        user = db.get_or_create_user(str(user_id))
+        loc = get_localization(user.language)
+        
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
@@ -304,11 +316,11 @@ class PlexMemBot:
                 if response.status_code == 200:
                     data = response.json()
                     await message.answer(
-                        f"✅ Ход отменён. Теперь ход #{data['current_turn']}\n"
+                        f"{loc.get_undo_success(data['current_turn'])}"
                         f"Напиши новое сообщение или /retry для повтора."
                     )
                 elif response.status_code == 400:
-                    await message.answer("❌ Нечего отменять (игра на 0 ходу)")
+                    await message.answer(loc.get_undo_nothing_to_undo())
                 else:
                     await message.answer(f"❌ Ошибка отмены: {response.status_code}")
         
@@ -362,6 +374,10 @@ class PlexMemBot:
             await message.answer("❌ Нет активной игры. Используйте /menu")
             return
         
+        # Get user localization
+        user = db.get_or_create_user(str(user_id))
+        loc = get_localization(user.language)
+        
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.get(f"{API_BASE_URL}/sessions/{session_id}/inventory")
@@ -400,7 +416,7 @@ class PlexMemBot:
                         
                         await message.answer(inv_text)
                     else:
-                        await message.answer("🎒 Инвентарь пуст")
+                        await message.answer(loc.get_empty_inventory_message())
                         
                 elif response.status_code == 404:
                     await message.answer("❌ Персонаж не создан")

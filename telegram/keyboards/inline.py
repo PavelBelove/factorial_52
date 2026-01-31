@@ -181,7 +181,7 @@ def get_settings_keyboard(current_settings: dict = None, loc=None) -> InlineKeyb
         loc = get_localization("ru")
     
     if not current_settings:
-        current_settings = {"language": "ru", "difficulty": "normal", "content_filter": "safe"}
+        current_settings = {"language": "ru", "difficulty": "normal", "content_filter": "safe", "genre_prism": "balanced"}
 
     # Format current values
     lang_map = {"ru": "🇷🇺 RU", "en": "🇬🇧 EN"}
@@ -190,12 +190,19 @@ def get_settings_keyboard(current_settings: dict = None, loc=None) -> InlineKeyb
     diff_val = loc.get_difficulty_label(current_settings.get("difficulty", "normal"))
     filter_val = loc.get_content_filter_label(current_settings.get("content_filter", "safe"))
     
+    # Get prism emoji and name
+    from core.genre_prisms import get_prism_info
+    language = current_settings.get("language", "ru")
+    prism_info = get_prism_info(current_settings.get("genre_prism", "balanced"), language)
+    prism_val = f"{prism_info['emoji']} {prism_info['name']}"
+    
     buttons = loc.get_settings_buttons()
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=f"{buttons['language']}: {lang_val}", callback_data="settings:language")],
         [InlineKeyboardButton(text=f"{buttons['difficulty']}: {diff_val}", callback_data="settings:difficulty")],
         [InlineKeyboardButton(text=f"{buttons['content']}: {filter_val}", callback_data="settings:content")],
+        [InlineKeyboardButton(text=f"🎭 {'Жанровые призмы' if loc.language == 'ru' else 'Genre Prisms'}: {prism_val}", callback_data="settings:prism")],
         [InlineKeyboardButton(text=loc.get_back_button(), callback_data="back_to_menu")]
     ])
     return keyboard
@@ -254,6 +261,64 @@ def get_adult_consent_keyboard(loc=None) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=loc.get_confirm_button(), callback_data="confirm_adult:yes")],
         [InlineKeyboardButton(text=loc.get_cancel_button(), callback_data="confirm_adult:no")]
+    ])
+    return keyboard
+
+
+def get_genre_prism_keyboard(current: str = "balanced", loc=None) -> InlineKeyboardMarkup:
+    """Genre prism selection keyboard - 2 columns."""
+    if loc is None:
+        from core.config import get_localization
+        loc = get_localization("ru")
+    
+    from core.genre_prisms import get_all_prisms
+    prisms = get_all_prisms(loc.language)
+    
+    buttons = []
+    row = []
+    
+    for prism in prisms:
+        marker = "✅ " if prism["id"] == current else ""
+        button_text = f"{marker}{prism['emoji']} {prism['name']}"
+        
+        row.append(InlineKeyboardButton(
+            text=button_text,
+            callback_data=f"prism:{prism['id']}"
+        ))
+        
+        # 2 columns
+        if len(row) == 2:
+            buttons.append(row)
+            row = []
+    
+    # Add remaining button if odd number
+    if row:
+        buttons.append(row)
+    
+    # Back button
+    buttons.append([InlineKeyboardButton(
+        text=loc.get_back_button(),
+        callback_data="settings"
+    )])
+    
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def get_prism_description_keyboard(prism_id: str, loc=None) -> InlineKeyboardMarkup:
+    """Keyboard for prism description page with select/back buttons."""
+    if loc is None:
+        from core.config import get_localization
+        loc = get_localization("ru")
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=loc.get_select_button() if hasattr(loc, 'get_select_button') else "✅ Выбрать" if loc.language == "ru" else "✅ Select",
+            callback_data=f"select_prism:{prism_id}"
+        )],
+        [InlineKeyboardButton(
+            text=loc.get_back_button(),
+            callback_data="settings:prism"
+        )]
     ])
     return keyboard
 

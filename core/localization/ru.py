@@ -8,6 +8,8 @@ from .base import BaseLocalization
 class RussianLocalization(BaseLocalization):
     """Russian language implementation."""
     
+    language = "ru"  # Add language attribute
+    
     def get_language_code(self) -> str:
         return "ru"
     
@@ -135,6 +137,28 @@ class RussianLocalization(BaseLocalization):
             "• 🔞 18+ — взрослый контент"
         )
     
+    def get_genre_prism_settings_message(self) -> str:
+        return (
+            "🎭 <b>Жанровые призмы</b>\n\n"
+            "Выбор призмы меняет угол зрения рассказчика. Мир и судьба остаются теми же, "
+            "но акценты смещаются. Призму можно менять в любой момент истории.\n\n"
+            "⚠️ — для продвинутых читателей"
+        )
+    
+    def get_genre_prism_description(self, prism_id: str) -> str:
+        """Get detailed description for prism selection."""
+        from core.genre_prisms import get_prism_info
+        info = get_prism_info(prism_id, "ru")
+        
+        warning = "\n\n⚠️ <i>Для продвинутых: требует вдумчивого участия</i>" if info["advanced"] else ""
+        
+        return (
+            f"{info['emoji']} <b>{info['name']}</b>\n\n"
+            f"{info['description']}\n\n"
+            f"<b>Примеры:</b>\n{info['examples']}"
+            f"{warning}"
+        )
+    
     # Keyboard labels
     def get_difficulty_label(self, difficulty: str) -> str:
         labels = {
@@ -184,8 +208,10 @@ class RussianLocalization(BaseLocalization):
         elif page == 2:
             return self.get_help_bot_control()
         elif page == 3:
-            return self.get_help_character_creation()
+            return self.get_help_genre_prisms()
         elif page == 4:
+            return self.get_help_character_creation()
+        elif page == 5:
             return self.get_help_mechanics()
         return self.get_help_about_book()
     
@@ -241,7 +267,7 @@ class RussianLocalization(BaseLocalization):
             "♦ <b>Стойкость</b> — защита, выносливость, торговля\n"
             "♣ <b>Ловкость</b> — дальний бой, акробатика, скрытность\n\n"
             
-            "<i>Страница 3 из 4</i>"
+            "<i>Страница 4 из 5</i>"
         )
     
     def get_help_mechanics(self) -> str:
@@ -279,7 +305,7 @@ class RussianLocalization(BaseLocalization):
             "За успешную проверку +1 XP к характеристике. "
             "При 10 XP: +1 к характеристике, +1 к HP и мане.\n\n"
             
-            "<i>Страница 4 из 4</i>"
+            "<i>Страница 5 из 5</i>"
         )
     
     def get_help_bot_control(self) -> str:
@@ -312,7 +338,42 @@ class RussianLocalization(BaseLocalization):
             "Используйте закладки (до 5 книг одновременно) "
             "для переключения между разными историями.\n\n"
             
-            "<i>Страница 2 из 4</i>"
+            "<i>Страница 2 из 5</i>"
+        )
+    
+    def get_help_genre_prisms(self) -> str:
+        """Help page 3: Genre prisms."""
+        return (
+            "🎭 <b>Жанровые призмы</b>\n\n"
+            
+            "<b>Что это?</b>\n"
+            "«Призма» — это <b>угол зрения Рассказчика</b>. Она меняет <b>тон повествования</b>, "
+            "не меняя сам мир или события.\n\n"
+            
+            "<b>Как работает?</b>\n"
+            "• <b>Мир остаётся тем же</b> — киберпанк останется киберпанком\n"
+            "• <b>Меняются акценты</b> — что выходит на первый план\n"
+            "• <b>Можно менять в любой момент</b> через ⚙️ Настройки → Жанровые призмы\n\n"
+            
+            "<b>Примеры:</b>\n"
+            "🔥 Экшен — больше боёв и погонь\n"
+            "🕸 Интриги — скрытые мотивы и манипуляции\n"
+            "❤️ Романтика — чувства на первом плане\n"
+            "👁 Хоррор — гнетущая атмосфера\n"
+            "🧠 Психология — сложные отношения\n\n"
+            
+            "<b>Комбинации работают!</b>\n"
+            "Киберпанк-романтика, исекай-хоррор — <b>не баг, а фича</b>.\n\n"
+            
+            "<b>⚠️ Продвинутые призмы:</b>\n"
+            "Призмы с символом ⚠️ (Сюрреализм, Временные петли) требуют вдумчивого участия. "
+            "Круто, но нужно активнее направлять сюжет, иначе может выйти из-под контроля.\n\n"
+            
+            "<b>Игровой эффект:</b>\n"
+            "Призмы могут сделать историю более игровой (Level Up, Выживание) или наоборот, "
+            "глубокой и философской.\n\n"
+            
+            "<i>Страница 3 из 5</i>"
         )
     
     # Additional game messages
@@ -322,6 +383,36 @@ class RussianLocalization(BaseLocalization):
             f"Ваша история начинается.\n\n"
             f"Опишите своего героя или напишите первое действие!"
         )
+    
+    def get_story_started_header(self) -> str:
+        return "📖 <b>История началась!</b>\n\n"
+    
+    def get_story_continues_header(self) -> str:
+        return "▶️ <b>История продолжается</b>\n\n"
+    
+    def get_chapter_label(self, chapter_num: int) -> str:
+        return f"📖 Глава #{chapter_num}"
+    
+    def get_last_chapter_label(self, chapter_num: int) -> str:
+        return f"<b>📝 Последняя глава #{chapter_num}:</b>\n\n"
+    
+    def get_undo_success(self, current_chapter: int) -> str:
+        return f"✅ Глава отменена. Теперь глава #{current_chapter}\n"
+    
+    def get_undo_nothing_to_undo(self) -> str:
+        return "❌ Нечего отменять (история только началась)"
+    
+    def get_error_message(self) -> str:
+        return "❌ Ошибка"
+    
+    def get_creating_world_message(self) -> str:
+        return (
+            "⏳ Создаю новый мир и готовлю приключение...\n\n"
+            "Это может занять минуту."
+        )
+    
+    def get_empty_inventory_message(self) -> str:
+        return "🎒 Инвентарь пуст"
     
     def get_continue_game_message(self) -> str:
         return (

@@ -11,7 +11,9 @@ from .inline import (
     get_help_keyboard,
     get_difficulty_keyboard,
     get_content_filter_keyboard,
-    get_adult_consent_keyboard
+    get_adult_consent_keyboard,
+    get_genre_prism_keyboard,
+    get_prism_description_keyboard
 )
 
 __all__ = [
@@ -26,6 +28,8 @@ __all__ = [
     'get_help_keyboard',
     'get_difficulty_keyboard',
     'get_content_filter_keyboard',
-    'get_adult_consent_keyboard'
+    'get_adult_consent_keyboard',
+    'get_genre_prism_keyboard',
+    'get_prism_description_keyboard'
 ]
 

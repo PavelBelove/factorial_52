@@ -29,6 +29,7 @@ class UserDB(Base):
     # Game settings
     difficulty = Column(String(20), default="normal")  # easy, normal, hard
     content_filter = Column(String(20), default="safe")  # safe, romantic, adult
+    genre_prism = Column(String(50), default="balanced")  # Genre prism modifier
 
     # Relationships
     sessions = relationship("SessionDB", back_populates="user", cascade="all, delete-orphan")

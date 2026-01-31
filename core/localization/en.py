@@ -8,6 +8,8 @@ from .base import BaseLocalization
 class EnglishLocalization(BaseLocalization):
     """English language implementation."""
     
+    language = "en"  # Add language attribute
+    
     def get_language_code(self) -> str:
         return "en"
     
@@ -135,6 +137,28 @@ class EnglishLocalization(BaseLocalization):
             "• 🔞 18+ — adult content"
         )
     
+    def get_genre_prism_settings_message(self) -> str:
+        return (
+            "🎭 <b>Genre Prisms</b>\n\n"
+            "Choosing a prism changes the narrator's perspective. The world and fate remain the same, "
+            "but the accents shift. You can change the prism at any moment in the story.\n\n"
+            "⚠️ — for advanced readers"
+        )
+    
+    def get_genre_prism_description(self, prism_id: str) -> str:
+        """Get detailed description for prism selection."""
+        from core.genre_prisms import get_prism_info
+        info = get_prism_info(prism_id, "en")
+        
+        warning = "\n\n⚠️ <i>For advanced: requires thoughtful participation</i>" if info["advanced"] else ""
+        
+        return (
+            f"{info['emoji']} <b>{info['name']}</b>\n\n"
+            f"{info['description']}\n\n"
+            f"<b>Examples:</b>\n{info['examples']}"
+            f"{warning}"
+        )
+    
     # Keyboard labels
     def get_difficulty_label(self, difficulty: str) -> str:
         labels = {
@@ -184,8 +208,10 @@ class EnglishLocalization(BaseLocalization):
         elif page == 2:
             return self.get_help_bot_control()
         elif page == 3:
-            return self.get_help_character_creation()
+            return self.get_help_genre_prisms()
         elif page == 4:
+            return self.get_help_character_creation()
+        elif page == 5:
             return self.get_help_mechanics()
         return self.get_help_about_book()
     
@@ -241,7 +267,7 @@ class EnglishLocalization(BaseLocalization):
             "♦ <b>Stamina</b> — defense, endurance, trading\n"
             "♣ <b>Agility</b> — ranged combat, acrobatics, stealth\n\n"
             
-            "<i>Page 3 of 4</i>"
+            "<i>Page 4 of 5</i>"
         )
     
     def get_help_mechanics(self) -> str:
@@ -279,7 +305,7 @@ class EnglishLocalization(BaseLocalization):
             "For a successful check +1 XP to characteristic. "
             "At 10 XP: +1 to characteristic, +1 to HP and mana.\n\n"
             
-            "<i>Page 4 of 4</i>"
+            "<i>Page 5 of 5</i>"
         )
     
     def get_help_bot_control(self) -> str:
@@ -312,7 +338,42 @@ class EnglishLocalization(BaseLocalization):
             "Use bookmarks (up to 5 books simultaneously) "
             "to switch between different stories.\n\n"
             
-            "<i>Page 2 of 4</i>"
+            "<i>Page 2 of 5</i>"
+        )
+    
+    def get_help_genre_prisms(self) -> str:
+        """Help page 3: Genre prisms."""
+        return (
+            "🎭 <b>Genre Prisms</b>\n\n"
+            
+            "<b>What are they?</b>\n"
+            "A 'prism' is the <b>Narrator's perspective</b>. It changes the <b>tone of the narrative</b> "
+            "without changing the world or events themselves.\n\n"
+            
+            "<b>How does it work?</b>\n"
+            "• <b>The world stays the same</b> — cyberpunk remains cyberpunk\n"
+            "• <b>Accents shift</b> — what comes to the foreground\n"
+            "• <b>Can be changed at any time</b> via ⚙️ Settings → Genre Prisms\n\n"
+            
+            "<b>Examples:</b>\n"
+            "🔥 Action — more battles and chases\n"
+            "🕸 Intrigue — hidden motives and manipulations\n"
+            "❤️ Romance — feelings take center stage\n"
+            "👁 Horror — oppressive atmosphere\n"
+            "🧠 Psychology — complex relationships\n\n"
+            
+            "<b>Combinations work!</b>\n"
+            "Cyberpunk-romance, isekai-horror — <b>not a bug, it's a feature</b>.\n\n"
+            
+            "<b>⚠️ Advanced prisms:</b>\n"
+            "Prisms marked with ⚠️ (Surrealism, Time Loops) require thoughtful participation. "
+            "Cool, but you need to guide the plot more actively, or it might get out of control.\n\n"
+            
+            "<b>Gameplay effect:</b>\n"
+            "Prisms can make the story more game-like (Level Up, Survival) or, conversely, "
+            "deep and philosophical.\n\n"
+            
+            "<i>Page 3 of 5</i>"
         )
     
     # Additional game messages
@@ -322,6 +383,36 @@ class EnglishLocalization(BaseLocalization):
             f"Your story begins.\n\n"
             f"Describe your hero or write the first action!"
         )
+    
+    def get_story_started_header(self) -> str:
+        return "📖 <b>Story started!</b>\n\n"
+    
+    def get_story_continues_header(self) -> str:
+        return "▶️ <b>Story continues</b>\n\n"
+    
+    def get_chapter_label(self, chapter_num: int) -> str:
+        return f"📖 Chapter #{chapter_num}"
+    
+    def get_last_chapter_label(self, chapter_num: int) -> str:
+        return f"<b>📝 Last chapter #{chapter_num}:</b>\n\n"
+    
+    def get_undo_success(self, current_chapter: int) -> str:
+        return f"✅ Chapter undone. Now at chapter #{current_chapter}\n"
+    
+    def get_undo_nothing_to_undo(self) -> str:
+        return "❌ Nothing to undo (story just started)"
+    
+    def get_error_message(self) -> str:
+        return "❌ Error"
+    
+    def get_creating_world_message(self) -> str:
+        return (
+            "⏳ Creating a new world and preparing an adventure...\n\n"
+            "This may take a minute."
+        )
+    
+    def get_empty_inventory_message(self) -> str:
+        return "🎒 Inventory is empty"
     
     def get_continue_game_message(self) -> str:
         return (

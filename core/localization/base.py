@@ -152,6 +152,16 @@ class BaseLocalization(ABC):
         """Content filter settings message."""
         pass
     
+    @abstractmethod
+    def get_genre_prism_settings_message(self) -> str:
+        """Genre prism settings message."""
+        pass
+    
+    @abstractmethod
+    def get_genre_prism_description(self, prism_id: str) -> str:
+        """Get genre prism detailed description for selection screen."""
+        pass
+    
     # Keyboard labels
     @abstractmethod
     def get_difficulty_label(self, difficulty: str) -> str:
@@ -200,24 +210,74 @@ class BaseLocalization(ABC):
         pass
     
     @abstractmethod
+    def get_help_bot_control(self) -> str:
+        """Help page 2: Bot control."""
+        pass
+    
+    @abstractmethod
+    def get_help_genre_prisms(self) -> str:
+        """Help page 3: Genre prisms."""
+        pass
+    
+    @abstractmethod
     def get_help_character_creation(self) -> str:
-        """Help page 2: Character creation."""
+        """Help page 4: Character creation."""
         pass
     
     @abstractmethod
     def get_help_mechanics(self) -> str:
-        """Help page 3: Game mechanics."""
-        pass
-    
-    @abstractmethod
-    def get_help_bot_control(self) -> str:
-        """Help page 4: Bot control."""
+        """Help page 5: Game mechanics."""
         pass
     
     # Additional game messages
     @abstractmethod
     def get_initial_game_message(self, world_id: str) -> str:
         """Message shown when starting a new game."""
+        pass
+    
+    @abstractmethod
+    def get_story_started_header(self) -> str:
+        """'Story started' header for new game."""
+        pass
+    
+    @abstractmethod
+    def get_story_continues_header(self) -> str:
+        """'Story continues' header for continuing game."""
+        pass
+    
+    @abstractmethod
+    def get_chapter_label(self, chapter_num: int) -> str:
+        """'Chapter #' label for turn number."""
+        pass
+    
+    @abstractmethod
+    def get_last_chapter_label(self, chapter_num: int) -> str:
+        """'Last chapter #' label."""
+        pass
+    
+    @abstractmethod
+    def get_undo_success(self, current_chapter: int) -> str:
+        """Message when undo is successful."""
+        pass
+    
+    @abstractmethod
+    def get_undo_nothing_to_undo(self) -> str:
+        """Message when there's nothing to undo."""
+        pass
+    
+    @abstractmethod
+    def get_error_message(self) -> str:
+        """Generic error message."""
+        pass
+    
+    @abstractmethod
+    def get_creating_world_message(self) -> str:
+        """'Creating world' message."""
+        pass
+    
+    @abstractmethod
+    def get_empty_inventory_message(self) -> str:
+        """'Inventory is empty' message."""
         pass
     
     @abstractmethod

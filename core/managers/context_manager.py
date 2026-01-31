@@ -167,6 +167,7 @@ class ContextManager:
         # Extract settings
         language = user_settings.get("language", "ru") if user_settings else "ru"
         content_filter = user_settings.get("content_filter", "safe") if user_settings else "safe"
+        genre_prism = user_settings.get("genre_prism", "balanced") if user_settings else "balanced"
 
         # ALWAYS use world-specific prompt
         if not world_id:
@@ -177,14 +178,15 @@ class ContextManager:
         world_prompt = world_manager.get_gm_system_prompt(
             world_id,
             language=language,
-            content_filter=content_filter
+            content_filter=content_filter,
+            genre_prism=genre_prism
         )
         
         if not world_prompt:
             logger.error(f"Failed to load GM prompt for world {world_id}")
             raise FileNotFoundError(f"GM prompt not found for world {world_id}")
         
-        logger.info(f"Loaded GM prompt for {world_id} (lang={language}, filter={content_filter})")
+        logger.info(f"Loaded GM prompt for {world_id} (lang={language}, filter={content_filter}, prism={genre_prism})")
         return world_prompt
     
     def _get_summary(self, session_id: int) -> str:

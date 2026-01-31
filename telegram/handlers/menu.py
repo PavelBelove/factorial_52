@@ -13,6 +13,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
 from telegram.states import GameStates
+from telegram.utils import convert_markdown_to_html
 from telegram.keyboards import (
     get_language_keyboard,
     get_main_menu_keyboard,
@@ -25,7 +26,9 @@ from telegram.keyboards import (
     get_help_keyboard,
     get_difficulty_keyboard,
     get_content_filter_keyboard,
-    get_adult_consent_keyboard
+    get_adult_consent_keyboard,
+    get_genre_prism_keyboard,
+    get_prism_description_keyboard
 )
 from core.config import settings, get_localization, world_manager
 from core.database.db_manager import DatabaseManager
@@ -98,7 +101,7 @@ async def process_language_selection(callback: CallbackQuery, state: FSMContext)
         
     except Exception as e:
         logger.error(f"Error in language selection: {e}", exc_info=True)
-        await callback.answer("Ошибка при выборе языка")
+        await callback.answer(loc.get_error_message())
 
 
 # ============= MAIN MENU =============
@@ -175,7 +178,7 @@ async def new_game_handler(callback: CallbackQuery, state: FSMContext):
         
     except Exception as e:
         logger.error(f"Error in new_game_handler: {e}", exc_info=True)
-        await callback.answer("Ошибка при выборе мира")
+        await callback.answer(loc.get_error_message())
 
 
 @router.callback_query(F.data.startswith("world:"))
@@ -220,7 +223,7 @@ async def process_world_selection(callback: CallbackQuery, state: FSMContext):
         
     except Exception as e:
         logger.error(f"Error in world selection: {e}", exc_info=True)
-        await callback.answer("Ошибка при загрузке мира")
+        await callback.answer(loc.get_error_message())
 
 
 @router.callback_query(F.data == "back_to_worlds")
@@ -305,7 +308,7 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
         await state.set_state(GameStates.IN_GAME)
         
         # Показываем сообщение о создании игры
-        await callback.message.edit_text("⏳ Создаю новый мир и готовлю приключение...\nЭто может занять минуту.")
+        await callback.message.edit_text(loc.get_creating_world_message())
         await callback.answer()
         
         # Отправляем первый запрос к ГМ от имени игрока
@@ -333,7 +336,11 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
                     if gm_response:
                         # Отправляем ответ ГМ игроку
                         # Telegram лимит - 4096 символов, разбиваем на части если нужно
-                        header = "🎮 <b>Игра началась!</b>\n\n"
+                        header = loc.get_story_started_header()
+                        
+                        # Convert markdown to HTML
+                        gm_response = convert_markdown_to_html(gm_response)
+                        
                         full_message = header + gm_response
                         
                         if len(full_message) > 4000:
@@ -385,7 +392,7 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
         
     except Exception as e:
         logger.error(f"Error starting new game: {e}", exc_info=True)
-        await callback.answer("Ошибка при создании игры")
+        await callback.answer(loc.get_error_message())
 
 
 # ============= CONTINUE GAME =============
@@ -424,8 +431,8 @@ async def continue_game(callback: CallbackQuery, state: FSMContext):
                 reply_text = reply_text[:max_reply_length] + "..."
             
             message = (
-                f"▶️ <b>Игра продолжается</b>\n\n"
-                f"<b>📝 Последний ход #{last_turn.turn_number}:</b>\n\n"
+                f"{loc.get_story_continues_header()}"
+                f"{loc.get_last_chapter_label(last_turn.turn_number)}"
                 f"{reply_text}\n\n"
                 f"─────────────────────\n"
                 f"Напишите свое действие, чтобы продолжить приключение!"
@@ -438,7 +445,7 @@ async def continue_game(callback: CallbackQuery, state: FSMContext):
         
     except Exception as e:
         logger.error(f"Error continuing game: {e}", exc_info=True)
-        await callback.answer("Ошибка при продолжении игры")
+        await callback.answer(loc.get_error_message())
 
 
 # ============= SAVE GAME =============
@@ -479,7 +486,7 @@ async def save_game_menu(callback: CallbackQuery, state: FSMContext):
         
     except Exception as e:
         logger.error(f"Error showing save menu: {e}", exc_info=True)
-        await callback.answer("Ошибка при открытии меню сохранения")
+        await callback.answer(loc.get_error_message())
 
 
 @router.callback_query(F.data.startswith("save_slot:"))
@@ -505,7 +512,7 @@ async def process_save_slot(callback: CallbackQuery, state: FSMContext):
             await callback.answer(loc.get_game_saved_message(slot))
             await show_main_menu(callback.message, state, user_id, edit=True)
         else:
-            await callback.answer("Ошибка при сохранении")
+            await callback.answer(loc.get_error_message())
             
     except Exception as e:
         logger.error(f"Error saving game: {e}", exc_info=True)
@@ -548,7 +555,7 @@ async def load_game_menu(callback: CallbackQuery, state: FSMContext):
         
     except Exception as e:
         logger.error(f"Error showing load menu: {e}", exc_info=True)
-        await callback.answer("Ошибка при открытии меню загрузки")
+        await callback.answer(loc.get_error_message())
 
 
 @router.callback_query(F.data.startswith("load_slot:"))
@@ -598,8 +605,8 @@ async def process_load_slot(callback: CallbackQuery, state: FSMContext):
                 reply_text = reply_text[:max_reply_length] + "..."
             
             message = (
-                f"▶️ <b>Игра загружена!</b>\n\n"
-                f"<b>📝 Последний ход #{last_turn.turn_number}:</b>\n\n"
+                f"▶️ <b>История загружена!</b>\n\n"
+                f"{loc.get_last_chapter_label(last_turn.turn_number)}"
                 f"{reply_text}\n\n"
                 f"─────────────────────\n"
                 f"Напишите свое действие, чтобы продолжить приключение!"
@@ -612,7 +619,7 @@ async def process_load_slot(callback: CallbackQuery, state: FSMContext):
         
     except Exception as e:
         logger.error(f"Error loading game: {e}", exc_info=True)
-        await callback.answer("Ошибка при загрузке")
+        await callback.answer(loc.get_error_message())
 
 
 # ============= SETTINGS =============
@@ -635,7 +642,7 @@ async def settings_menu(callback: CallbackQuery, state: FSMContext):
 
     except Exception as e:
         logger.error(f"Error showing settings: {e}", exc_info=True)
-        await callback.answer("Ошибка")
+        await callback.answer(loc.get_error_message())
 
 
 @router.callback_query(F.data == "settings:language")
@@ -651,7 +658,7 @@ async def settings_language(callback: CallbackQuery, state: FSMContext):
 
     except Exception as e:
         logger.error(f"Error showing language settings: {e}", exc_info=True)
-        await callback.answer("Ошибка")
+        await callback.answer(loc.get_error_message())
 
 
 @router.callback_query(F.data == "settings:difficulty")
@@ -672,7 +679,7 @@ async def settings_difficulty(callback: CallbackQuery, state: FSMContext):
 
     except Exception as e:
         logger.error(f"Error showing difficulty settings: {e}", exc_info=True)
-        await callback.answer("Ошибка")
+        await callback.answer(loc.get_error_message())
 
 
 @router.callback_query(F.data.startswith("set_difficulty:"))
@@ -693,7 +700,7 @@ async def process_difficulty_selection(callback: CallbackQuery, state: FSMContex
 
     except Exception as e:
         logger.error(f"Error setting difficulty: {e}", exc_info=True)
-        await callback.answer("Ошибка")
+        await callback.answer(loc.get_error_message())
 
 
 @router.callback_query(F.data == "settings:content")
@@ -714,7 +721,7 @@ async def settings_content(callback: CallbackQuery, state: FSMContext):
 
     except Exception as e:
         logger.error(f"Error showing content settings: {e}", exc_info=True)
-        await callback.answer("Ошибка")
+        await callback.answer(loc.get_error_message())
 
 
 @router.callback_query(F.data.startswith("set_content:"))
@@ -745,7 +752,7 @@ async def process_content_selection(callback: CallbackQuery, state: FSMContext):
 
     except Exception as e:
         logger.error(f"Error setting content filter: {e}", exc_info=True)
-        await callback.answer("Ошибка")
+        await callback.answer(loc.get_error_message())
 
 
 @router.callback_query(F.data.startswith("confirm_adult:"))
@@ -767,7 +774,77 @@ async def process_adult_consent(callback: CallbackQuery, state: FSMContext):
 
     except Exception as e:
         logger.error(f"Error processing adult consent: {e}", exc_info=True)
-        await callback.answer("Ошибка")
+        await callback.answer(loc.get_error_message())
+
+
+@router.callback_query(F.data == "settings:prism")
+async def settings_prism(callback: CallbackQuery, state: FSMContext):
+    """Show genre prism settings."""
+    try:
+        user_id = callback.from_user.id
+        user = db.get_or_create_user(str(user_id))
+        loc = get_localization(user.language)
+        current = db.get_user_genre_prism(user.id)
+
+        keyboard = get_genre_prism_keyboard(current, loc)
+        text = loc.get_genre_prism_settings_message()
+
+        await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="HTML")
+        await state.set_state(GameStates.SETTINGS_MENU)
+        await callback.answer()
+
+    except Exception as e:
+        logger.error(f"Error showing prism settings: {e}", exc_info=True)
+        await callback.answer(loc.get_error_message())
+
+
+@router.callback_query(F.data.startswith("prism:"))
+async def show_prism_description(callback: CallbackQuery, state: FSMContext):
+    """Show detailed prism description."""
+    try:
+        prism_id = callback.data.split(":")[1]
+        user_id = callback.from_user.id
+        user = db.get_or_create_user(str(user_id))
+        loc = get_localization(user.language)
+
+        from telegram.keyboards import get_prism_description_keyboard
+        keyboard = get_prism_description_keyboard(prism_id, loc)
+        text = loc.get_genre_prism_description(prism_id)
+
+        await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="HTML")
+        await callback.answer()
+
+    except Exception as e:
+        logger.error(f"Error showing prism description: {e}", exc_info=True)
+        await callback.answer(loc.get_error_message())
+
+
+@router.callback_query(F.data.startswith("select_prism:"))
+async def process_prism_selection(callback: CallbackQuery, state: FSMContext):
+    """Process genre prism selection."""
+    try:
+        prism_id = callback.data.split(":")[1]
+        user_id = callback.from_user.id
+        user = db.get_or_create_user(str(user_id))
+        loc = get_localization(user.language)
+
+        # Set the prism
+        db.set_user_genre_prism(user.id, prism_id)
+
+        from core.genre_prisms import get_prism_info
+        prism_info = get_prism_info(prism_id, user.language)
+        
+        await callback.answer(
+            f"Призма установлена: {prism_info['emoji']} {prism_info['name']}" if user.language == "ru"
+            else f"Prism set: {prism_info['emoji']} {prism_info['name']}"
+        )
+
+        # Return to settings
+        await settings_menu(callback, state)
+
+    except Exception as e:
+        logger.error(f"Error setting prism: {e}", exc_info=True)
+        await callback.answer(loc.get_error_message())
 
 
 # ============= HELP =============
@@ -789,7 +866,7 @@ async def help_menu(callback: CallbackQuery, state: FSMContext):
         
     except Exception as e:
         logger.error(f"Error showing help: {e}", exc_info=True)
-        await callback.answer("Ошибка")
+        await callback.answer(loc.get_error_message())
 
 
 @router.callback_query(F.data.startswith("help:page:"))
@@ -809,5 +886,5 @@ async def help_page_navigation(callback: CallbackQuery, state: FSMContext):
         
     except Exception as e:
         logger.error(f"Error navigating help pages: {e}", exc_info=True)
-        await callback.answer("Ошибка")
+        await callback.answer(loc.get_error_message())
 

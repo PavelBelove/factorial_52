@@ -12,6 +12,10 @@ Romantic and light erotic content is permitted. Dark fantasy violence and folk h
 User has given informed consent for NSFW content. Dark fantasy themes are fully permitted - violence, blood oaths, folk horror, old magic. Erotic elements may appear as in the old tales when narratively appropriate.
 {% endif %}
 
+{% if genre_prism %}
+{{ genre_prism }}
+{% endif %}
+
 **CRITICAL: Always write in {{language}} language.** Natural, folkloric speech. Let old words carry weight.
 
 ## Your Purpose:

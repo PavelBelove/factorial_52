@@ -264,7 +264,8 @@ class WorldManager:
         self,
         world_id: str,
         language: str = "ru",
-        content_filter: str = "safe"
+        content_filter: str = "safe",
+        genre_prism: str = "balanced"
     ) -> str:
         """
         Get world-specific GM system prompt with dynamic variable substitution.
@@ -273,6 +274,7 @@ class WorldManager:
             world_id: World identifier
             language: User's language preference (ru/en)
             content_filter: Content filter level (safe/romantic/adult)
+            genre_prism: Genre prism modifier (balanced/action/intrigue/etc)
 
         Returns:
             GM system prompt text with variables substituted
@@ -297,6 +299,10 @@ class WorldManager:
                 "es": "Spanish",
             }
             language_name = language_map.get(language, "Russian")
+            
+            # Get genre prism prompt
+            from core.genre_prisms import get_prism_prompt
+            prism_instruction = get_prism_prompt(genre_prism)
 
             # Render Jinja2 template
             template = Template(content)
@@ -304,13 +310,14 @@ class WorldManager:
             rendered_content = template.render(
                 language=language_name,
                 content_filter=content_filter,
+                genre_prism=prism_instruction,
                 min_tokens=settings.gm_response_min_tokens,
                 max_tokens=settings.gm_response_max_tokens,
                 min_quants=settings.gm_quants_min_request,
                 max_quants=settings.gm_quants_max_request
             )
 
-            logger.debug(f"Loaded GM prompt for {world_id} (lang={language_name}, filter={content_filter})")
+            logger.debug(f"Loaded GM prompt for {world_id} (lang={language_name}, filter={content_filter}, prism={genre_prism})")
             return rendered_content
         except Exception as e:
             logger.error(f"Error reading gm_system.md for {world_id}: {e}")

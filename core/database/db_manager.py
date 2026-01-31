@@ -804,6 +804,20 @@ class DatabaseManager:
             user = session.query(UserDB).filter(UserDB.id == user_id).first()
             return user.content_filter if user and user.content_filter else "safe"
 
+    def set_user_genre_prism(self, user_id: int, genre_prism: str):
+        """Set user's genre prism preference."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            if user:
+                user.genre_prism = genre_prism
+                session.commit()
+
+    def get_user_genre_prism(self, user_id: int) -> str:
+        """Get user's genre prism preference."""
+        with self.get_session() as session:
+            user = session.query(UserDB).filter(UserDB.id == user_id).first()
+            return user.genre_prism if user and user.genre_prism else "balanced"
+
     def get_user_settings(self, user_id: int) -> dict:
         """Get all user settings as dict."""
         with self.get_session() as session:
@@ -813,6 +827,7 @@ class DatabaseManager:
                     "language": user.language or "ru",
                     "difficulty": user.difficulty or "normal",
                     "content_filter": user.content_filter or "safe",
+                    "genre_prism": user.genre_prism or "balanced",
                     "current_world": user.current_world or "isekai"
                 }
             return {
