@@ -291,9 +291,14 @@ Your chapters should be:
 
 ### Fields:
 
-- **narrative** (string): Chapter text for Reader. Literary prose WITHOUT =markers=.
+- **narrative** (string): Chapter text for Reader. Literary prose WITHOUT =markers=. **MUST be in {{language}} language!**
 - **response_data** (object): Character's state changes this chapter
 - **quant_requests** (array): {{min_quants}}-{{max_quants}} chronicle card names for NEXT chapter. **Names in {{language}}!**
+
+**🔴 CRITICAL REMINDER: ALL narrative text MUST be written in {{language}} language. NO exceptions!**
+
+
+**🔴 CRITICAL REMINDER: ALL narrative text MUST be written in {{language}} language. NO exceptions!**
 
 ### Examples of WELL-CRAFTED chapters:
 

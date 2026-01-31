@@ -306,6 +306,8 @@ Your narrative should be:
 - **response_data** (object): State changes this day
 - **quant_requests** (array): {{min_quants}}-{{max_quants}} intel fragments for next. **Names in {{language}}!**
 
+**🔴 CRITICAL REMINDER: ALL narrative text MUST be written in {{language}} language. NO exceptions!**
+
 ### Example entries:
 
 **Example 1: First steps**

@@ -311,36 +311,12 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
         await callback.message.edit_text(loc.get_creating_world_message())
         await callback.answer()
         
-        # Activate session in API first
-        import httpx
-        logger.info(f"Activating session {new_session.id} in API")
-        
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                # Create/activate session in API
-                api_response = await client.post(
-                    "http://localhost:8000/sessions",
-                    json={
-                        "session_id": new_session.id,
-                        "platform_id": str(user_id),
-                        "platform_type": "telegram",
-                        "session_type": "game"
-                    }
-                )
-                
-                if api_response.status_code != 200:
-                    logger.error(f"Failed to activate session in API: {api_response.status_code}, {api_response.text}")
-                    await callback.message.edit_text(loc.get_error_message())
-                    return
-                    
-                logger.info(f"Session {new_session.id} activated in API successfully")
-                
-        except Exception as e:
-            logger.error(f"Error activating session in API: {e}", exc_info=True)
-            await callback.message.edit_text(loc.get_error_message())
-            return
+        # Small delay to ensure DB transaction is committed and visible to API process
+        import asyncio
+        await asyncio.sleep(0.1)
         
         # Отправляем первый запрос к ГМ от имени игрока
+        import httpx
         api_url = f"http://localhost:8000/sessions/{new_session.id}/messages"
 
         logger.info(f"Sending initial GM request for session {new_session.id}")

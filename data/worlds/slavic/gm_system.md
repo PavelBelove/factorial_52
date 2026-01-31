@@ -308,6 +308,8 @@ Your narrative should be:
 - **response_data** (object): State changes this day
 - **quant_requests** (array): {{min_quants}}-{{max_quants}} fragments for next. **Names in {{language}}!**
 
+**🔴 CRITICAL REMINDER: ALL narrative text MUST be written in {{language}} language. NO exceptions!**
+
 ## The Old Truth
 
 1. **Spirits are real** - leshiy, vodyanoy, domovoy, all have will and memory

@@ -300,6 +300,8 @@ Your narrative should be:
 - **response_data** (object): State changes this run
 - **quant_requests** (array): {{min_quants}}-{{max_quants}} intel fragments for next run. **Names in {{language}}!**
 
+**🔴 CRITICAL REMINDER: ALL narrative text MUST be written in {{language}} language. NO exceptions!**
+
 ### Example runs:
 
 **Example 1: First night**
