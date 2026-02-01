@@ -348,18 +348,14 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
                         full_message = header + gm_response
                         
                         if len(full_message) > 4000:
-                            # Разбиваем на части по 3900 символов (запас для безопасности)
-                            chunk_size = 3900
-                            chunks = []
+                            # Умное разбиение по абзацам
+                            from telegram.utils.markdown_converter import split_message_into_chunks
                             
-                            for i in range(0, len(gm_response), chunk_size):
-                                chunk = gm_response[i:i + chunk_size]
-                                if i == 0:
-                                    chunks.append(header + chunk)
-                                else:
-                                    chunks.append(chunk)
+                            # Split with first chunk having header
+                            gm_chunks = split_message_into_chunks(gm_response, max_length=3900)
+                            chunks = [header + gm_chunks[0]] + gm_chunks[1:]
                             
-                            logger.info(f"Initial message split into {len(chunks)} chunks")
+                            logger.info(f"Initial message split into {len(chunks)} chunks (smart paragraph splitting)")
                             
                             # Первый chunk заменяет текущее сообщение
                             await callback.message.edit_text(chunks[0], parse_mode="HTML")
@@ -367,7 +363,7 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
                             # Остальные отправляем как новые сообщения
                             for chunk in chunks[1:]:
                                 await asyncio.sleep(0.5)
-                                await callback.message.answer(chunk, parse_mode=None)
+                                await callback.message.answer(chunk, parse_mode="HTML")
                         else:
                             # Сообщение короткое, отправляем целиком
                             await callback.message.edit_text(full_message, parse_mode="HTML")

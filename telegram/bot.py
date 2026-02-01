@@ -215,21 +215,18 @@ class PlexMemBot:
                     # Convert markdown to HTML
                     reply = convert_markdown_to_html(reply)
                     
-                    # Split long messages
+                    # Split long messages with smart paragraph breaking
                     if len(reply) > 4000:
+                        from telegram.utils.markdown_converter import split_message_into_chunks
+                        
                         header = f"{loc.get_chapter_label(data['turn_number'])}\n\n"
-                        content = reply_text  # Use extracted narrative, not raw reply!
-                        chunk_size = 3900
+                        # Convert content to HTML before splitting
+                        content_html = convert_markdown_to_html(reply_text)
                         
-                        chunks = []
-                        for i in range(0, len(content), chunk_size):
-                            chunk = content[i:i + chunk_size]
-                            if i == 0:
-                                chunks.append(header + chunk)
-                            else:
-                                chunks.append(chunk)
+                        # Smart split
+                        chunks = split_message_into_chunks(header + content_html, max_length=4000)
                         
-                        logger.info(f"Message split into {len(chunks)} chunks")
+                        logger.info(f"Message split into {len(chunks)} chunks (smart paragraph splitting)")
                         
                         for idx, chunk in enumerate(chunks):
                             await message.answer(chunk, parse_mode="HTML")

@@ -15,8 +15,7 @@ from core.agents.summarizer_agent import SummarizerAgent
 from core.agents.translator_agent import TranslatorAgent
 from core.llm.openrouter_client import OpenRouterClient
 from core.mechanics.mechanics_manager import MechanicsManager
-from core.config import settings
-from core.utils import load_initial_summary, load_initial_quants
+from core.config import settings, world_manager
 
 logger = logging.getLogger(__name__)
 
@@ -101,8 +100,8 @@ class TurnOrchestrator:
         logger.info(f"Character exists: {character_exists}")
         
         if not character_exists:
-            # First turn - character creation
-            logger.info("Character doesn't exist, generating creation cards")
+            # First turn - character creation (all worlds including sandbox)
+            logger.info(f"Generating creation cards (world={db_session.world_id})")
             module_data = {
                 "character_creation": self.mechanics_manager.generate_character_cards()
             }
@@ -500,14 +499,26 @@ class TurnOrchestrator:
             logger.error(f"Error running Quantizer: {e}", exc_info=True)
     
     async def _load_initial_data(self, session_id: int):
-        """Load initial summary and quants for a new session."""
+        """Load initial summary and quants for a new session (world-specific)."""
         try:
-            logger.info(f"Loading initial data for session {session_id}")
-            
-            # Load initial summary
-            initial_summary = load_initial_summary()
+            # Get session to determine world_id
+            db_session = self.db.get_session_by_id(session_id)
+            world_id = db_session.world_id if db_session else None
+
+            logger.info(f"Loading initial data for session {session_id} (world={world_id})")
+
+            # Load world-specific initial summary
+            initial_summary = ""
+            if world_id:
+                initial_summary = world_manager.get_initial_summary(world_id)
+
+            if not initial_summary:
+                # Fallback to default world if world-specific not found
+                logger.warning(f"No initial summary for world {world_id}, using default")
+                initial_summary = world_manager.get_initial_summary(settings.default_world)
+
             logger.info(f"Loaded initial summary ({len(initial_summary)} chars)")
-            
+
             # Save summary to database
             self.db.create_summary(
                 session_id=session_id,
@@ -516,26 +527,34 @@ class TurnOrchestrator:
                 turns_end=0,
                 is_full_rewrite=False
             )
-            
-            # Load initial quants
-            initial_quants_data = load_initial_quants()
-            logger.info(f"Loading {len(initial_quants_data)} initial quants")
-            
+
+            # Load world-specific initial quants
+            initial_quants_data = []
+            if world_id:
+                initial_quants_data = world_manager.get_initial_quants(world_id)
+
+            if not initial_quants_data:
+                # Fallback to default world if world-specific not found
+                logger.warning(f"No initial quants for world {world_id}, using default")
+                initial_quants_data = world_manager.get_initial_quants(settings.default_world)
+
+            logger.info(f"Loading {len(initial_quants_data)} initial quants for world {world_id}")
+
             # Create quants in database
             commands = {}
             for quant_data in initial_quants_data:
                 quant_id = quant_data.pop("id")
                 commands[f"create_{quant_id}"] = quant_data
-            
+
             # Process commands
             self.memory_manager.process_commands(
                 session_id=session_id,
                 commands=commands,
                 current_turn=0
             )
-            
+
             logger.info("Initial data loaded successfully")
-        
+
         except Exception as e:
             logger.error(f"Error loading initial data: {e}", exc_info=True)
             raise
