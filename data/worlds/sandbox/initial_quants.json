@@ -1,13 +1,83 @@
 [
   {
-    "id": "CreationMode",
-    "type": "meta",
-    "name": "Режим создания",
-    "description": "Пользователь создаёт мир и героя с помощью креативного гида",
-    "state": "active",
-    "properties": {
-      "world_created": false,
-      "note": "Используй креативный prompt gm_system_creator.md до world_created: true"
-    }
+    "id": "Карточная_Система",
+    "type": "concept",
+    "synopsis": "core card-based RPG system 'Factorial 52!', uses standard 52-card deck for all checks and combat",
+    "body": {
+      "description": "Card-based tabletop RPG system. All actions resolved by drawing cards. No dice needed - only standard 52-card deck.",
+      "core_principle": "Cards are drawn BEFORE player declares action. GM sees results and uses them for narrative. Player describes intent, GM interprets based on drawn cards.",
+      "card_drawing": "Always draw 2 cards as a pair. Bot draws 2 pairs (4 cards) per turn for flexibility.",
+      "key_mechanics": [
+        "Card value = rank × 10",
+        "Suit/color bonuses add +10 or +20",
+        "Character stat adds to total",
+        "Compare vs threshold for success"
+      ]
+    },
+    "links": {
+      "Значение_Карт": "card rank values and face card meanings",
+      "Система_Мастей": "four suits tied to characteristics",
+      "Проверки": "out-of-combat skill checks",
+      "Боевая_Система": "combat system",
+      "Особые_События": "special results from aces, twos, face cards"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Значение_Карт",
+    "type": "concept",
+    "synopsis": "card rank values: 2-10 face value, J=11, Q=12, K=13, A=15",
+    "body": {
+      "rank_values": {
+        "2-10": "face value",
+        "Jack": "11",
+        "Queen": "12",
+        "King": "13",
+        "Ace": "15 (highest)"
+      }
+    },
+    "links": {
+      "Карточная_Система": "part of this system"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Система_Мастей",
+    "type": "concept",
+    "synopsis": "four card suits correspond to four character stats",
+    "body": {
+      "suits": {
+        "♠ Spades": "Strength/Power - physical might, close combat, intimidation, willpower",
+        "♥ Hearts": "Gift - unique ability, magical defense, wisdom, communication",
+        "♦ Diamonds": "Resilience - physical defense, endurance, charisma, trading",
+        "♣ Clubs": "Precision - ranged combat, acrobatics, accuracy, stealth"
+      },
+      "matching_bonus": "+10 when card suit matches characteristic being tested"
+    },
+    "links": {
+      "Карточная_Система": "part of this system",
+      "Характеристики": "four stats that match suits"
+    },
+    "is_game": true
+  },
+  {
+    "id": "Характеристики",
+    "type": "concept",
+    "synopsis": "four character stats: ♠Strength, ♥Gift, ♦Resilience, ♣Precision",
+    "body": {
+      "stats": {
+        "♠ Strength (Spades)": "Physical power, close combat, intimidation, willpower",
+        "♥ Gift (Hearts)": "Unique ability/power, magical resistance, wisdom",
+        "♦ Resilience (Diamonds)": "Physical defense, endurance, charisma, trading",
+        "♣ Precision (Clubs)": "Ranged combat, acrobatics, accuracy, stealth"
+      },
+      "stat_ranges": "Typically 10-30, heroes average 15-20 at start",
+      "suit_matching": "If card suit matches stat, add +10 bonus"
+    },
+    "links": {
+      "Система_Мастей": "stats correspond to card suits",
+      "Проверки": "stats used in skill checks"
+    },
+    "is_game": true
   }
 ]

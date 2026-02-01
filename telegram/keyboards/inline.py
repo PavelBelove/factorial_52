@@ -185,7 +185,7 @@ def get_settings_keyboard(current_settings: dict = None, loc=None) -> InlineKeyb
 
     # Format current values
     lang_map = {"ru": "🇷🇺 RU", "en": "🇬🇧 EN"}
-    
+
     lang_val = lang_map.get(current_settings.get("language", "ru"), "🇷🇺 RU")
     diff_val = loc.get_difficulty_label(current_settings.get("difficulty", "normal"))
     filter_val = loc.get_content_filter_label(current_settings.get("content_filter", "safe"))

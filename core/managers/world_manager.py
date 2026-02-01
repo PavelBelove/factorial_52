@@ -292,7 +292,7 @@ class WorldManager:
                 # Fallback to regular prompt
                 gm_system_file = self.worlds_dir / world_id / "gm_system.md"
         else:
-            gm_system_file = self.worlds_dir / world_id / "gm_system.md"
+        gm_system_file = self.worlds_dir / world_id / "gm_system.md"
         
         if not gm_system_file.exists():
             logger.debug(f"No GM system prompt found for {world_id}")

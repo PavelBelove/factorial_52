@@ -135,12 +135,12 @@ class TurnOrchestrator:
             logger.info(f"Module data prepared with keys: {list(module_data.keys())}")
         
         # Check if world is created (for sandbox mode)
+        # Look for [WORLD_NOT_CREATED] marker in summary
+        existing_summary = self.db.get_latest_summary(session_id)
         world_created = True
-        for quant in active_quants:
-            if quant.type == "meta" and "world_created" in quant.properties:
-                world_created = quant.properties.get("world_created", True)
-                logger.info(f"World creation status from quant '{quant.name}': {world_created}")
-                break
+        if existing_summary and "[WORLD_NOT_CREATED]" in existing_summary.summary_text:
+            world_created = False
+            logger.info("Sandbox world not created yet - using CREATOR mode")
         
         # Step 2: Build context (with world-specific prompts and user settings)
         context_messages = self.context_manager.build_context(
@@ -187,13 +187,7 @@ class TurnOrchestrator:
             logger.info("🎨 World creation completed! Triggering World Lock summarization...")
             # Trigger World Lock immediately (blocking, before saving turn)
             await self._run_world_lock_summarizer(session_id, current_turn)
-            
-            # Update CreationMode quant to mark world as created
-            creation_quant = next((q for q in active_quants if q.id == "CreationMode"), None)
-            if creation_quant:
-                creation_quant.properties["world_created"] = True
-                self.memory_manager.update_quant(session_id, creation_quant)
-                logger.info("✅ Updated CreationMode quant: world_created = true")
+            logger.info("✅ World Lock complete - summary updated, narrative mode activated")
         
         # Step 3.5: Apply game mechanics changes
         if response_data:
