@@ -102,4 +102,5 @@ PROMPT_GM = "gm_system"
 PROMPT_QUANTIZER = "quantizer_system"
 PROMPT_SUMMARIZER_APPEND = "summarizer_append"
 PROMPT_SUMMARIZER_REWRITE = "summarizer_rewrite"
+PROMPT_SUMMARIZER_WORLD_LOCK = "summarizer_world_lock"
 

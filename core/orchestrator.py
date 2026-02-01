@@ -134,6 +134,14 @@ class TurnOrchestrator:
             }
             logger.info(f"Module data prepared with keys: {list(module_data.keys())}")
         
+        # Check if world is created (for sandbox mode)
+        world_created = True
+        for quant in active_quants:
+            if quant.type == "meta" and "world_created" in quant.properties:
+                world_created = quant.properties.get("world_created", True)
+                logger.info(f"World creation status from quant '{quant.name}': {world_created}")
+                break
+        
         # Step 2: Build context (with world-specific prompts and user settings)
         context_messages = self.context_manager.build_context(
             session_id=session_id,
@@ -142,7 +150,8 @@ class TurnOrchestrator:
             system_prompt_parts=system_prompt_parts,
             module_data=module_data,
             world_id=db_session.world_id,
-            user_settings=user_settings
+            user_settings=user_settings,
+            world_created=world_created
         )
         logger.debug(f"Context built with {len(context_messages)} messages")
         
@@ -171,6 +180,20 @@ class TurnOrchestrator:
         response_data = gm_response.get("response_data", {})
         
         logger.info(f"GM response generated. Requested quants: {requested_quants}")
+        
+        # Check if world was just created (sandbox mode)
+        world_just_created = response_data.get("world_created", False)
+        if world_just_created and not character_exists:
+            logger.info("🎨 World creation completed! Triggering World Lock summarization...")
+            # Trigger World Lock immediately (blocking, before saving turn)
+            await self._run_world_lock_summarizer(session_id, current_turn)
+            
+            # Update CreationMode quant to mark world as created
+            creation_quant = next((q for q in active_quants if q.id == "CreationMode"), None)
+            if creation_quant:
+                creation_quant.properties["world_created"] = True
+                self.memory_manager.update_quant(session_id, creation_quant)
+                logger.info("✅ Updated CreationMode quant: world_created = true")
         
         # Step 3.5: Apply game mechanics changes
         if response_data:
@@ -699,4 +722,80 @@ class TurnOrchestrator:
         
         except Exception as e:
             logger.error(f"Error running Summarizer: {e}", exc_info=True)
+    
+    async def _run_world_lock_summarizer(self, session_id: int, current_turn: int):
+        """
+        Special mode for sandbox world: when world_created becomes true,
+        "lock" the world by creating a structured permanent summary.
+        """
+        try:
+            from core.utils import get_prompt, PROMPT_SUMMARIZER_WORLD_LOCK
+            
+            logger.info("Running World Lock Summarizer for sandbox world")
+            
+            # Get ALL turns from world creation dialogue
+            all_turns = self.db.get_recent_turns(session_id, limit=100)  # Get up to 100 turns
+            
+            if not all_turns:
+                logger.warning("No turns found for world lock")
+                return
+            
+            # Build dialogue context
+            dialogue_parts = []
+            for turn in reversed(all_turns):  # Chronological order
+                dialogue_parts.append(f"**Narrator**: {turn.agent_reply}")
+                dialogue_parts.append(f"**Reader**: {turn.user_message}")
+            
+            dialogue = "\n\n".join(dialogue_parts)
+            
+            # Get world lock system prompt
+            system_prompt = get_prompt(PROMPT_SUMMARIZER_WORLD_LOCK)
+            
+            # Call LLM
+            world_summary = await self.llm.simple_completion(
+                prompt=dialogue,
+                system_prompt=system_prompt,
+                model=self.summarizer_agent.model,
+                temperature=0.5,
+                max_tokens=settings.summarizer_max_tokens
+            )
+            
+            logger.info(f"World Lock Summary created ({len(world_summary)} chars)")
+            
+            # Save as summary (replacing any existing initial summary)
+            # Delete old summaries first
+            old_summaries = self.db.get_all_summaries(session_id)
+            for old_summary in old_summaries:
+                from core.database.models import SummaryDB
+                with self.db.get_session() as db_session:
+                    summary_obj = db_session.query(SummaryDB).filter_by(id=old_summary.id).first()
+                    if summary_obj:
+                        db_session.delete(summary_obj)
+                    db_session.commit()
+            
+            # Save new world lock summary
+            self.db.create_summary(
+                session_id=session_id,
+                summary_text=world_summary,
+                turns_start=1,
+                turns_end=current_turn,
+                is_full_rewrite=True
+            )
+            
+            logger.info("✅ World Lock complete - world is now permanent!")
+            
+            # Log for debugging
+            from core.utils.agent_logger import log_agent_call
+            log_agent_call(
+                agent_name="summarizer_world_lock",
+                context=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": dialogue}
+                ],
+                response=world_summary,
+                model=self.summarizer_agent.model
+            )
+            
+        except Exception as e:
+            logger.error(f"Error running World Lock Summarizer: {e}", exc_info=True)
 

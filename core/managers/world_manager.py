@@ -265,7 +265,8 @@ class WorldManager:
         world_id: str,
         language: str = "ru",
         content_filter: str = "safe",
-        genre_prism: str = "balanced"
+        genre_prism: str = "balanced",
+        world_created: bool = True
     ) -> str:
         """
         Get world-specific GM system prompt with dynamic variable substitution.
@@ -275,13 +276,26 @@ class WorldManager:
             language: User's language preference (ru/en)
             content_filter: Content filter level (safe/romantic/adult)
             genre_prism: Genre prism modifier (balanced/action/intrigue/etc)
+            world_created: If False and creator prompt exists, use creator mode
 
         Returns:
             GM system prompt text with variables substituted
         """
-        gm_system_file = self.worlds_dir / world_id / "gm_system.md"
+        # For sandbox world, check if world is created
+        # If not - use creator prompt
+        if not world_created:
+            creator_file = self.worlds_dir / world_id / "gm_system_creator.md"
+            if creator_file.exists():
+                logger.info(f"Using CREATOR prompt for {world_id} (world not created yet)")
+                gm_system_file = creator_file
+            else:
+                # Fallback to regular prompt
+                gm_system_file = self.worlds_dir / world_id / "gm_system.md"
+        else:
+            gm_system_file = self.worlds_dir / world_id / "gm_system.md"
+        
         if not gm_system_file.exists():
-            logger.debug(f"No world-specific gm_system.md for {world_id}")
+            logger.debug(f"No GM system prompt found for {world_id}")
             return ""
 
         try:
@@ -317,10 +331,11 @@ class WorldManager:
                 max_quants=settings.gm_quants_max_request
             )
 
-            logger.debug(f"Loaded GM prompt for {world_id} (lang={language_name}, filter={content_filter}, prism={genre_prism})")
+            prompt_type = "CREATOR" if not world_created and creator_file.exists() else "NARRATIVE"
+            logger.debug(f"Loaded GM prompt ({prompt_type}) for {world_id} (lang={language_name}, filter={content_filter}, prism={genre_prism})")
             return rendered_content
         except Exception as e:
-            logger.error(f"Error reading gm_system.md for {world_id}: {e}")
+            logger.error(f"Error reading GM system prompt for {world_id}: {e}")
             return ""
 
     def clear_cache(self):

@@ -37,7 +37,8 @@ class ContextManager:
         system_prompt_parts: Optional[Dict[str, str]] = None,
         module_data: Optional[Dict[str, Any]] = None,
         world_id: Optional[str] = None,
-        user_settings: Optional[Dict[str, str]] = None
+        user_settings: Optional[Dict[str, str]] = None,
+        world_created: bool = True
     ) -> List[Dict[str, str]]:
         """
         Build complete context for agent turn.
@@ -50,6 +51,7 @@ class ContextManager:
             module_data: Optional data from modules (game rules, emotions, etc.)
             world_id: Optional world ID for world-specific prompts
             user_settings: User preferences (language, content_filter, difficulty)
+            world_created: Flag for sandbox mode (use creator prompt if False)
 
         Returns:
             List of messages for LLM
@@ -57,7 +59,7 @@ class ContextManager:
         messages = []
 
         # 1. System prompt
-        system_prompt = self._build_system_prompt(system_prompt_parts, module_data, world_id, user_settings)
+        system_prompt = self._build_system_prompt(system_prompt_parts, module_data, world_id, user_settings, world_created)
         messages.append({
             "role": "system",
             "content": system_prompt
@@ -119,7 +121,8 @@ class ContextManager:
         parts: Optional[Dict[str, str]],
         module_data: Optional[Dict[str, Any]],
         world_id: Optional[str] = None,
-        user_settings: Optional[Dict[str, str]] = None
+        user_settings: Optional[Dict[str, str]] = None,
+        world_created: bool = True
     ) -> str:
         """
         Build modular system prompt.
@@ -135,7 +138,7 @@ class ContextManager:
             parts = {}
 
         # Default base prompt (with user settings for language and content filter)
-        base = parts.get("base", self._default_base_prompt(world_id, user_settings))
+        base = parts.get("base", self._default_base_prompt(world_id, user_settings, world_created))
         
         prompt_sections = [base]
         
@@ -161,7 +164,8 @@ class ContextManager:
     def _default_base_prompt(
         self,
         world_id: Optional[str] = None,
-        user_settings: Optional[Dict[str, str]] = None
+        user_settings: Optional[Dict[str, str]] = None,
+        world_created: bool = True
     ) -> str:
         """Load world-specific GM system prompt with dynamic settings."""
         # Extract settings
@@ -179,14 +183,16 @@ class ContextManager:
             world_id,
             language=language,
             content_filter=content_filter,
-            genre_prism=genre_prism
+            genre_prism=genre_prism,
+            world_created=world_created
         )
         
         if not world_prompt:
             logger.error(f"Failed to load GM prompt for world {world_id}")
             raise FileNotFoundError(f"GM prompt not found for world {world_id}")
         
-        logger.info(f"Loaded GM prompt for {world_id} (lang={language}, filter={content_filter}, prism={genre_prism})")
+        prompt_type = "CREATOR" if not world_created else "NARRATIVE"
+        logger.info(f"Loaded {prompt_type} GM prompt for {world_id} (lang={language}, filter={content_filter}, prism={genre_prism})")
         return world_prompt
     
     def _get_summary(self, session_id: int) -> str:
