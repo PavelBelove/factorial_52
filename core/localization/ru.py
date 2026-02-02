@@ -445,5 +445,15 @@ class RussianLocalization(BaseLocalization):
             
             "<b>Наслаждайтесь игрой! 🎭</b>"
         )
+    
+    # Loading indicators
+    def get_thinking_message(self) -> str:
+        return "Думаю..."
+    
+    def get_creating_story_message(self) -> str:
+        return "⏳ Создаю новый мир и готовлю приключение..."
+    
+    def get_retrying_message(self) -> str:
+        return "Модель перегружена, пробую еще раз..."
 
 

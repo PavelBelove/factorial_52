@@ -18,6 +18,7 @@ from core.config import settings, get_localization
 from core.utils.logger import setup_logging
 from core.database.db_manager import DatabaseManager
 from telegram.utils import convert_markdown_to_html
+from telegram.utils.loading_indicator import LoadingIndicator
 
 # Import handlers
 from telegram.handlers import menu_router
@@ -144,108 +145,151 @@ class PlexMemBot:
         """Process game message and send to API."""
         user_id = message.from_user.id
         
+        # Get user localization
+        user = db.get_or_create_user(str(user_id))
+        loc = get_localization(user.language)
+        
+        # Start loading indicator
+        loading = LoadingIndicator(
+            bot=self.bot,
+            chat_id=user_id,
+            initial_text=loc.get_thinking_message()
+        )
+        await loading.start()
+        
         try:
-            await self.bot.send_chat_action(user_id, "typing")
-            
             logger.debug(f"Sending to API: session={session_id}, user={user_id}")
             
-            # Get user localization
-            user = db.get_or_create_user(str(user_id))
-            loc = get_localization(user.language)
+            # Retry logic for overloaded models
+            max_retries = 2
+            retry_count = 0
+            last_error = None
             
-            # Send to API (long timeout for LLM)
-            async with httpx.AsyncClient(timeout=180.0) as client:
-                response = await client.post(
-                    f"{API_BASE_URL}/sessions/{session_id}/messages",
-                    json={
-                        "session_id": session_id,
-                        "message": text
-                    }
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-
-                    # Extract only narrative if reply contains JSON
-                    reply_text = data['reply']
-
-                    # Try to parse as JSON and extract narrative
-                    import json as json_module
-                    import re
-
-                    if reply_text.strip().startswith('{'):
-                        extracted = False
-
-                        # Method 1: Try full JSON parse
-                        try:
-                            parsed = json_module.loads(reply_text)
-                            if 'narrative' in parsed:
-                                reply_text = parsed['narrative']
-                                extracted = True
-                            elif 'gm_narrative' in parsed:
-                                reply_text = parsed['gm_narrative']
-                                extracted = True
-                        except json_module.JSONDecodeError:
-                            pass
-
-                        # Method 2: Regex for truncated JSON
-                        if not extracted:
-                            # Try to extract narrative field from truncated JSON
-                            match = re.search(r'"(?:narrative|gm_narrative)"\s*:\s*"((?:[^"\\]|\\.)*)(?:"|\Z)', reply_text, re.DOTALL)
-                            if match:
-                                narrative = match.group(1)
-                                # Unescape JSON string
-                                narrative = narrative.replace('\\n', '\n').replace('\\t', '\t').replace('\\"', '"').replace('\\\\', '\\')
-                                reply_text = narrative
-                                extracted = True
-                                logger.info("Extracted narrative from truncated JSON via regex")
-
-                        # Method 3: Last resort - strip JSON wrapper
-                        if not extracted:
-                            # Try to extract any readable text from malformed JSON
-                            # Remove JSON structure and clean up
-                            cleaned = re.sub(r'^[\s\{]*"[^"]*"\s*:\s*"?', '', reply_text)
-                            cleaned = re.sub(r'"\s*[,\}].*$', '', cleaned, flags=re.DOTALL)
-                            if len(cleaned) > 50:  # Only use if substantial content
-                                reply_text = cleaned.replace('\\n', '\n').replace('\\"', '"')
-                                logger.warning("Used last-resort JSON cleanup")
+            while retry_count < max_retries:
+                try:
+                    # Update indicator on retry
+                    if retry_count > 0:
+                        await loading.update_text(loc.get_retrying_message())
                     
-                    reply = f"{loc.get_chapter_label(data['turn_number'])}\n\n{reply_text}"
+                    # Send to API (long timeout for LLM)
+                    async with httpx.AsyncClient(timeout=180.0) as client:
+                        response = await client.post(
+                            f"{API_BASE_URL}/sessions/{session_id}/messages",
+                            json={
+                                "session_id": session_id,
+                                "message": text
+                            }
+                        )
                     
-                    # Convert markdown to HTML
-                    reply = convert_markdown_to_html(reply)
+                    # Break retry loop if successful
+                    break
                     
-                    # Split long messages with smart paragraph breaking
-                    if len(reply) > 4000:
-                        from telegram.utils.markdown_converter import split_message_into_chunks
-                        
-                        header = f"{loc.get_chapter_label(data['turn_number'])}\n\n"
-                        # Convert content to HTML before splitting
-                        content_html = convert_markdown_to_html(reply_text)
-                        
-                        # Smart split
-                        chunks = split_message_into_chunks(header + content_html, max_length=4000)
-                        
-                        logger.info(f"Message split into {len(chunks)} chunks (smart paragraph splitting)")
-                        
-                        for idx, chunk in enumerate(chunks):
-                            await message.answer(chunk, parse_mode="HTML")
-                            if idx < len(chunks) - 1:
-                                await asyncio.sleep(0.5)
+                except httpx.TimeoutException as e:
+                    logger.warning(f"Timeout on attempt {retry_count + 1}/{max_retries}")
+                    last_error = e
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        await asyncio.sleep(2)  # Wait before retry
+                        continue
                     else:
-                        await message.answer(reply, parse_mode="HTML")
+                        raise
+                except httpx.RequestError as e:
+                    logger.error(f"Request error on attempt {retry_count + 1}: {e}")
+                    last_error = e
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        await asyncio.sleep(2)
+                        continue
+                    else:
+                        raise
+                
+            if response.status_code == 200:
+                data = response.json()
+
+                # Extract only narrative if reply contains JSON
+                reply_text = data['reply']
+
+                # Try to parse as JSON and extract narrative
+                import json as json_module
+                import re
+
+                if reply_text.strip().startswith('{'):
+                    extracted = False
+
+                    # Method 1: Try full JSON parse
+                    try:
+                        parsed = json_module.loads(reply_text)
+                        if 'narrative' in parsed:
+                            reply_text = parsed['narrative']
+                            extracted = True
+                        elif 'gm_narrative' in parsed:
+                            reply_text = parsed['gm_narrative']
+                            extracted = True
+                    except json_module.JSONDecodeError:
+                        pass
+
+                    # Method 2: Regex for truncated JSON
+                    if not extracted:
+                        # Try to extract narrative field from truncated JSON
+                        match = re.search(r'"(?:narrative|gm_narrative)"\s*:\s*"((?:[^"\\]|\\.)*)(?:"|\Z)', reply_text, re.DOTALL)
+                        if match:
+                            narrative = match.group(1)
+                            # Unescape JSON string
+                            narrative = narrative.replace('\\n', '\n').replace('\\t', '\t').replace('\\"', '"').replace('\\\\', '\\')
+                            reply_text = narrative
+                            extracted = True
+                            logger.info("Extracted narrative from truncated JSON via regex")
+
+                    # Method 3: Last resort - strip JSON wrapper
+                    if not extracted:
+                        # Try to extract any readable text from malformed JSON
+                        # Remove JSON structure and clean up
+                        cleaned = re.sub(r'^[\s\{]*"[^"]*"\s*:\s*"?', '', reply_text)
+                        cleaned = re.sub(r'"\s*[,\}].*$', '', cleaned, flags=re.DOTALL)
+                        if len(cleaned) > 50:  # Only use if substantial content
+                            reply_text = cleaned.replace('\\n', '\n').replace('\\"', '"')
+                            logger.warning("Used last-resort JSON cleanup")
+                
+                reply = f"{loc.get_chapter_label(data['turn_number'])}\n\n{reply_text}"
+                
+                # Convert markdown to HTML
+                reply = convert_markdown_to_html(reply)
+                
+                # Split long messages with smart paragraph breaking
+                if len(reply) > 4000:
+                    from telegram.utils.markdown_converter import split_message_into_chunks
                     
-                    logger.info(f"Turn {data['turn_number']} completed for user {user_id}")
+                    header = f"{loc.get_chapter_label(data['turn_number'])}\n\n"
+                    # Convert content to HTML before splitting
+                    content_html = convert_markdown_to_html(reply_text)
+                    
+                    # Smart split
+                    chunks = split_message_into_chunks(header + content_html, max_length=4000)
+                    
+                    logger.info(f"Message split into {len(chunks)} chunks (smart paragraph splitting)")
+                    
+                    # Replace loading indicator with first chunk
+                    await loading.replace_with_text(chunks[0], parse_mode="HTML")
+                    
+                    # Send remaining chunks as new messages
+                    for idx, chunk in enumerate(chunks[1:], 1):
+                        await asyncio.sleep(0.5)
+                        await message.answer(chunk, parse_mode="HTML")
                 else:
-                    await message.answer("❌ Ошибка API")
+                    # Replace loading indicator with full message
+                    await loading.replace_with_text(reply, parse_mode="HTML")
+                
+                logger.info(f"Turn {data['turn_number']} completed for user {user_id}")
+            else:
+                await loading.replace_with_text("❌ Ошибка API")
         
         except httpx.TimeoutException:
             logger.error("API timeout")
-            await message.answer("⏱️ Превышено время ожидания. Попробуй /retry")
+            await loading.replace_with_text("⏱️ Превышено время ожидания. Попробуй /retry")
         
         except Exception as e:
             logger.error(f"Error processing message: {e}", exc_info=True)
-            await message.answer(f"❌ Ошибка: {str(e)[:100]}")
+            await loading.replace_with_text(f"❌ Ошибка: {str(e)[:100]}")
     
     # ============= COMMAND HANDLERS =============
     

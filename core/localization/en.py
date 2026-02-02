@@ -445,5 +445,15 @@ class EnglishLocalization(BaseLocalization):
             
             "<b>Enjoy the story! 📖</b>"
         )
+    
+    # Loading indicators
+    def get_thinking_message(self) -> str:
+        return "Thinking..."
+    
+    def get_creating_story_message(self) -> str:
+        return "⏳ Creating a new world and preparing an adventure..."
+    
+    def get_retrying_message(self) -> str:
+        return "Model overloaded, trying again..."
 
 

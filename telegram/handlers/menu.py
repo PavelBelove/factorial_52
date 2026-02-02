@@ -14,6 +14,7 @@ from aiogram.fsm.context import FSMContext
 
 from telegram.states import GameStates
 from telegram.utils import convert_markdown_to_html
+from telegram.utils.loading_indicator import LoadingIndicator
 from telegram.keyboards import (
     get_language_keyboard,
     get_main_menu_keyboard,
@@ -309,8 +310,13 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
         await state.update_data(session_id=new_session.id, world_id=world_id)
         await state.set_state(GameStates.IN_GAME)
         
-        # Показываем сообщение о создании игры
-        await callback.message.edit_text(loc.get_creating_world_message())
+        # Start loading indicator
+        loading = LoadingIndicator(
+            bot=callback.bot,
+            chat_id=callback.from_user.id,
+            initial_text=loc.get_creating_story_message()
+        )
+        await loading.start()
         await callback.answer()
         
         # Small delay to ensure DB transaction is committed and visible to API process
@@ -323,72 +329,106 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
 
         logger.info(f"Sending initial GM request for session {new_session.id}")
 
-        try:
-            async with httpx.AsyncClient(timeout=120.0) as client:
-                response = await client.post(
-                    api_url,
-                    json={
-                        "session_id": new_session.id,
-                        "message": "Объясни правила игры, и давай создадим персонажа"
-                    }
-                )
+        # Retry logic for overloaded models
+        max_retries = 2
+        retry_count = 0
+        last_error = None
+        
+        while retry_count < max_retries:
+            try:
+                # Update indicator on retry
+                if retry_count > 0:
+                    await loading.update_text(loc.get_retrying_message())
                 
-                logger.info(f"GM response status: {response.status_code}")
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    gm_response = result.get("reply", "")
-                    
-                    if gm_response:
-                        # Отправляем ответ ГМ игроку
-                        # Telegram лимит - 4096 символов, разбиваем на части если нужно
-                        header = loc.get_story_started_header()
-                        
-                        # Convert markdown to HTML
-                        gm_response = convert_markdown_to_html(gm_response)
-                        
-                        full_message = header + gm_response
-                        
-                        if len(full_message) > 4000:
-                            # Умное разбиение по абзацам
-                            from telegram.utils.markdown_converter import split_message_into_chunks
-                            
-                            # Split with first chunk having header
-                            gm_chunks = split_message_into_chunks(gm_response, max_length=3900)
-                            chunks = [header + gm_chunks[0]] + gm_chunks[1:]
-                            
-                            logger.info(f"Initial message split into {len(chunks)} chunks (smart paragraph splitting)")
-                            
-                            # Первый chunk заменяет текущее сообщение
-                            await callback.message.edit_text(chunks[0], parse_mode="HTML")
-                            
-                            # Остальные отправляем как новые сообщения
-                            for chunk in chunks[1:]:
-                                await asyncio.sleep(0.5)
-                                await callback.message.answer(chunk, parse_mode="HTML")
-                        else:
-                            # Сообщение короткое, отправляем целиком
-                            await callback.message.edit_text(full_message, parse_mode="HTML")
-                        
-                        logger.info("Successfully sent initial GM message")
-                    else:
-                        logger.error("Empty GM response")
-                        await callback.message.edit_text(
-                            "❌ Ошибка: ГМ вернул пустой ответ. Попробуйте написать что-нибудь."
-                        )
-                else:
-                    logger.error(f"GM API error: {response.status_code}, {response.text}")
-                    await callback.message.edit_text(
-                        f"❌ Ошибка API ({response.status_code}). Попробуйте написать что-нибудь для начала игры."
+                async with httpx.AsyncClient(timeout=180.0) as client:
+                    response = await client.post(
+                        api_url,
+                        json={
+                            "session_id": new_session.id,
+                            "message": "Объясни правила игры, и давай создадим персонажа"
+                        }
                     )
+                    
+                    # Break retry loop if successful
+                    break
+                    
+            except httpx.TimeoutException as e:
+                logger.warning(f"Timeout on attempt {retry_count + 1}/{max_retries}")
+                last_error = e
+                retry_count += 1
+                if retry_count < max_retries:
+                    await asyncio.sleep(2)  # Wait before retry
+                    continue
+                else:
+                    raise
+            except Exception as e:
+                logger.error(f"Error on attempt {retry_count + 1}: {e}")
+                last_error = e
+                retry_count += 1
+                if retry_count < max_retries:
+                    await asyncio.sleep(2)
+                    continue
+                else:
+                    raise
+        
+        try:
+                
+            logger.info(f"GM response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                gm_response = result.get("reply", "")
+                
+                if gm_response:
+                    # Отправляем ответ ГМ игроку
+                    # Telegram лимит - 4096 символов, разбиваем на части если нужно
+                    header = loc.get_story_started_header()
+                    
+                    # Convert markdown to HTML
+                    gm_response = convert_markdown_to_html(gm_response)
+                    
+                    full_message = header + gm_response
+                    
+                    if len(full_message) > 4000:
+                        # Умное разбиение по абзацам
+                        from telegram.utils.markdown_converter import split_message_into_chunks
+                        
+                        # Split with first chunk having header
+                        gm_chunks = split_message_into_chunks(gm_response, max_length=3900)
+                        chunks = [header + gm_chunks[0]] + gm_chunks[1:]
+                        
+                        logger.info(f"Initial message split into {len(chunks)} chunks (smart paragraph splitting)")
+                        
+                        # Replace loading indicator with first chunk
+                        await loading.replace_with_text(chunks[0], parse_mode="HTML")
+                        
+                        # Остальные отправляем как новые сообщения
+                        for chunk in chunks[1:]:
+                            await asyncio.sleep(0.5)
+                            await callback.bot.send_message(callback.from_user.id, chunk, parse_mode="HTML")
+                    else:
+                        # Replace loading indicator with full message
+                        await loading.replace_with_text(full_message, parse_mode="HTML")
+                    
+                    logger.info("Successfully sent initial GM message")
+                else:
+                    logger.error("Empty GM response")
+                    await loading.replace_with_text(
+                        "❌ Ошибка: ГМ вернул пустой ответ. Попробуйте написать что-нибудь."
+                    )
+            else:
+                logger.error(f"GM API error: {response.status_code}, {response.text}")
+                await loading.replace_with_text(
+                    f"❌ Ошибка API ({response.status_code}). Попробуйте написать что-нибудь для начала игры."
+                )
         except httpx.TimeoutException as e:
             logger.error(f"Timeout sending initial GM message: {e}")
-            await callback.message.edit_text(
+            await loading.replace_with_text(
                 "⏱️ Превышено время ожидания. Напишите что-нибудь для начала игры."
             )
         except Exception as e:
             logger.error(f"Error sending initial GM message: {e}", exc_info=True)
-            await callback.message.edit_text(
+            await loading.replace_with_text(
                 f"❌ Ошибка: {str(e)[:100]}\n\nНапишите что-нибудь для начала игры."
             )
         

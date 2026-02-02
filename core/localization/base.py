@@ -289,5 +289,21 @@ class BaseLocalization(ABC):
     def get_game_rules(self) -> str:
         """Game rules message."""
         pass
+    
+    # Loading indicators
+    @abstractmethod
+    def get_thinking_message(self) -> str:
+        """'Thinking...' message for LLM response loading."""
+        pass
+    
+    @abstractmethod
+    def get_creating_story_message(self) -> str:
+        """'Creating story...' message for world creation."""
+        pass
+    
+    @abstractmethod
+    def get_retrying_message(self) -> str:
+        """'Model overloaded, retrying...' message."""
+        pass
 
 
