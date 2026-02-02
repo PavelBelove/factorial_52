@@ -1,83 +1,42 @@
 [
   {
-    "id": "Карточная_Система",
-    "type": "concept",
-    "synopsis": "core card-based RPG system 'Factorial 52!', uses standard 52-card deck for all checks and combat",
+    "id": "СозданиеМира",
+    "type": "meta",
+    "synopsis": "World creation process orchestrator - guides user through creation, NO game rules here",
     "body": {
-      "description": "Card-based tabletop RPG system. All actions resolved by drawing cards. No dice needed - only standard 52-card deck.",
-      "core_principle": "Cards are drawn BEFORE player declares action. GM sees results and uses them for narrative. Player describes intent, GM interprets based on drawn cards.",
-      "card_drawing": "Always draw 2 cards as a pair. Bot draws 2 pairs (4 cards) per turn for flexibility.",
-      "key_mechanics": [
-        "Card value = rank × 10",
-        "Suit/color bonuses add +10 or +20",
-        "Character stat adds to total",
-        "Compare vs threshold for success"
+      "role": "WORLD CREATION GUIDE ONLY - not a rules explainer!",
+      "priority": "CRITICAL",
+      "your_job": "Guide user through 7 steps of world/hero/Gift creation. Cards are ONLY step 6, after everything creative is done.",
+      "process": {
+        "step_1": "TELL user: we create world + hero + unique Gift together",
+        "step_2": "GET user's creative ideas (genre, setting, hero, ability)",
+        "step_3": "CONFIRM: repeat back what you understood, ask if correct",
+        "step_4": "FILL GAPS: ONLY if user says 'придумай сам' - add missing creative details",
+        "step_5": "GET APPROVAL: 'Всё готово? Начинаем?'",
+        "step_6_CARDS": "AFTER approval → show 5 cards, explain, distribute to stats",
+        "step_7_FLAG": "Set world_created: true in response_data"
+      },
+      "forbidden": {
+        "no_premature_cards": "DO NOT mention cards before step 6",
+        "no_inventing": "DO NOT invent details without explicit permission",
+        "no_rules_talk": "DO NOT explain game mechanics - focus on creativity!",
+        "hearts_not_magic": "DO NOT call ♥ Hearts 'magic' - it's whatever Gift user described"
+      },
+      "step_6_cards_only": {
+        "when": "ONLY after world/hero/Gift confirmed and approved",
+        "show": "Display 5 cards: value = rank (J=11, Q=12, K=13, A=15)",
+        "explain": "Discard worst, distribute 4 best to: ♠ Strength, ♥ Gift (user's!), ♦ Resilience, ♣ Precision",
+        "bonus": "+10 if card suit matches stat suit (example: K♠ in ♠ Strength = 13+10=23)",
+        "then": "Return world_created:true with create_character stats in response_data"
+      },
+      "remember": [
+        "YOU ARE NOT A RULES TEACHER - you are a creative guide",
+        "User's creativity comes FIRST, mechanics come LAST",
+        "♥ Gift = whatever user created (tech/mutation/skill/supernatural/magic)",
+        "Be honest if you don't know a reference - ask for alternatives"
       ]
     },
-    "links": {
-      "Значение_Карт": "card rank values and face card meanings",
-      "Система_Мастей": "four suits tied to characteristics",
-      "Проверки": "out-of-combat skill checks",
-      "Боевая_Система": "combat system",
-      "Особые_События": "special results from aces, twos, face cards"
-    },
-    "is_game": true
-  },
-  {
-    "id": "Значение_Карт",
-    "type": "concept",
-    "synopsis": "card rank values: 2-10 face value, J=11, Q=12, K=13, A=15",
-    "body": {
-      "rank_values": {
-        "2-10": "face value",
-        "Jack": "11",
-        "Queen": "12",
-        "King": "13",
-        "Ace": "15 (highest)"
-      }
-    },
-    "links": {
-      "Карточная_Система": "part of this system"
-    },
-    "is_game": true
-  },
-  {
-    "id": "Система_Мастей",
-    "type": "concept",
-    "synopsis": "four card suits correspond to four character stats",
-    "body": {
-      "suits": {
-        "♠ Spades": "Strength/Power - physical might, close combat, intimidation, willpower",
-        "♥ Hearts": "Gift - unique ability, magical defense, wisdom, communication",
-        "♦ Diamonds": "Resilience - physical defense, endurance, charisma, trading",
-        "♣ Clubs": "Precision - ranged combat, acrobatics, accuracy, stealth"
-      },
-      "matching_bonus": "+10 when card suit matches characteristic being tested"
-    },
-    "links": {
-      "Карточная_Система": "part of this system",
-      "Характеристики": "four stats that match suits"
-    },
-    "is_game": true
-  },
-  {
-    "id": "Характеристики",
-    "type": "concept",
-    "synopsis": "four character stats: ♠Strength, ♥Gift, ♦Resilience, ♣Precision",
-    "body": {
-      "stats": {
-        "♠ Strength (Spades)": "Physical power, close combat, intimidation, willpower",
-        "♥ Gift (Hearts)": "Unique ability/power, magical resistance, wisdom",
-        "♦ Resilience (Diamonds)": "Physical defense, endurance, charisma, trading",
-        "♣ Precision (Clubs)": "Ranged combat, acrobatics, accuracy, stealth"
-      },
-      "stat_ranges": "Typically 10-30, heroes average 15-20 at start",
-      "suit_matching": "If card suit matches stat, add +10 bonus"
-    },
-    "links": {
-      "Система_Мастей": "stats correspond to card suits",
-      "Проверки": "stats used in skill checks"
-    },
-    "is_game": true
+    "links": {},
+    "is_game": false
   }
 ]

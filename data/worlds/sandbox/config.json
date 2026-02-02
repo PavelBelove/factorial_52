@@ -1,16 +1,17 @@
 {
   "id": "sandbox",
   "name": {
-    "ru": "Чистый Лист",
-    "en": "Blank Canvas"
+    "ru": "🎨 Чистый Лист",
+    "en": "🎨 Blank Canvas"
   },
   "description": {
     "ru": "Создайте свой мир с нуля. Опишите сеттинг, героя, правила — Рассказчик воплотит вашу идею. Больше подготовки, но полная свобода.",
     "en": "Create your world from scratch. Describe the setting, hero, rules — the Narrator will bring your vision to life. More setup, but complete freedom."
   },
-  "icon": "📝",
+  "icon": "🎨",
   "enabled": true,
   "has_content": true,
+  "order": 999,
   "features": {
     "custom_world": true,
     "user_defined_setting": true,

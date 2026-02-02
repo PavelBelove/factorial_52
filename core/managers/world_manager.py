@@ -118,9 +118,13 @@ class WorldManager:
                 'name': config.get('name', {}).get(language, config.get('name', {}).get('ru', world_id)),
                 'description': config.get('description', {}).get(language, config.get('description', {}).get('ru', '')),
                 'icon': config.get('icon', '🌍'),
-                'tags': config.get('tags', [])
+                'tags': config.get('tags', []),
+                'order': config.get('order', 100)  # Default order = 100
             }
             available.append(world_info)
+        
+        # Sort by order field (lower number = earlier in list)
+        available.sort(key=lambda w: w['order'])
         
         logger.info(f"Found {len(available)} available worlds")
         return available
@@ -292,7 +296,7 @@ class WorldManager:
                 # Fallback to regular prompt
                 gm_system_file = self.worlds_dir / world_id / "gm_system.md"
         else:
-        gm_system_file = self.worlds_dir / world_id / "gm_system.md"
+            gm_system_file = self.worlds_dir / world_id / "gm_system.md"
         
         if not gm_system_file.exists():
             logger.debug(f"No GM system prompt found for {world_id}")
