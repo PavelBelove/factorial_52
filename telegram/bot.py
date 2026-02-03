@@ -5,7 +5,6 @@ Integrates menu system with game logic.
 import asyncio
 import logging
 from typing import Optional
-import httpx
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
 from aiogram.types import Message
@@ -17,6 +16,9 @@ from aiogram.enums import ParseMode
 from core.config import settings, get_localization
 from core.utils.logger import setup_logging
 from core.database.db_manager import DatabaseManager
+from core.llm.openrouter_client import OpenRouterClient
+from core.orchestrator import TurnOrchestrator
+from core.streaming import StreamingMessageUpdater, LoadingAnimation
 from telegram.utils import convert_markdown_to_html
 from telegram.utils.loading_indicator import LoadingIndicator
 
@@ -27,9 +29,6 @@ from telegram.states import GameStates
 # Setup logging
 setup_logging()
 logger = logging.getLogger(__name__)
-
-# API configuration
-API_BASE_URL = "http://localhost:8000"
 
 # Initialize database
 db = DatabaseManager()
@@ -47,6 +46,14 @@ class PlexMemBot:
         )
         self.storage = MemoryStorage()
         self.dp = Dispatcher(storage=self.storage)
+        
+        # Initialize orchestrator for direct game logic
+        llm_client = OpenRouterClient(
+            api_key=settings.openrouter_api_key,
+            base_url=settings.openrouter_base_url
+        )
+        self.orchestrator = TurnOrchestrator(db, llm_client)
+        logger.info("✅ Orchestrator initialized for streaming")
         
         # Include menu router
         self.dp.include_router(menu_router)
@@ -142,154 +149,118 @@ class PlexMemBot:
         await self._process_game_message(message, session_id, message.text)
     
     async def _process_game_message(self, message: Message, session_id: int, text: str):
-        """Process game message and send to API."""
+        """Process game message with streaming."""
         user_id = message.from_user.id
         
         # Get user localization
         user = db.get_or_create_user(str(user_id))
         loc = get_localization(user.language)
         
-        # Start loading indicator
-        loading = LoadingIndicator(
-            bot=self.bot,
-            chat_id=user_id,
-            initial_text=loc.get_thinking_message()
-        )
-        await loading.start()
+        # Send initial loading message
+        loading_msg = await message.answer(loc.get_thinking_message())
         
         try:
-            logger.debug(f"Sending to API: session={session_id}, user={user_id}")
+            logger.debug(f"Processing turn: session={session_id}, user={user_id}")
             
-            # Retry logic for overloaded models
-            max_retries = 2
-            retry_count = 0
-            last_error = None
+            # Get session to determine turn number
+            db_session = db.get_session(session_id)
+            if not db_session:
+                await loading_msg.edit_text("❌ Сессия не найдена")
+                return
             
-            while retry_count < max_retries:
-                try:
-                    # Update indicator on retry
-                    if retry_count > 0:
-                        await loading.update_text(loc.get_retrying_message())
-                    
-                    # Send to API (long timeout for LLM)
-                    async with httpx.AsyncClient(timeout=180.0) as client:
-                        response = await client.post(
-                            f"{API_BASE_URL}/sessions/{session_id}/messages",
-                            json={
-                                "session_id": session_id,
-                                "message": text
-                            }
-                        )
-                    
-                    # Break retry loop if successful
-                    break
-                    
-                except httpx.TimeoutException as e:
-                    logger.warning(f"Timeout on attempt {retry_count + 1}/{max_retries}")
-                    last_error = e
-                    retry_count += 1
-                    if retry_count < max_retries:
-                        await asyncio.sleep(2)  # Wait before retry
-                        continue
-                    else:
-                        raise
-                except httpx.RequestError as e:
-                    logger.error(f"Request error on attempt {retry_count + 1}: {e}")
-                    last_error = e
-                    retry_count += 1
-                    if retry_count < max_retries:
-                        await asyncio.sleep(2)
-                        continue
-                    else:
-                        raise
+            turn_number = db_session.current_turn + 1
+            
+            # Streaming mode enabled?
+            if settings.enable_streaming:
+                logger.info("🎬 Using streaming mode")
                 
-            if response.status_code == 200:
-                data = response.json()
-
-                # Extract only narrative if reply contains JSON
-                reply_text = data['reply']
-
-                # Try to parse as JSON and extract narrative
-                import json as json_module
-                import re
-
-                if reply_text.strip().startswith('{'):
-                    extracted = False
-
-                    # Method 1: Try full JSON parse
-                    try:
-                        parsed = json_module.loads(reply_text)
-                        if 'narrative' in parsed:
-                            reply_text = parsed['narrative']
-                            extracted = True
-                        elif 'gm_narrative' in parsed:
-                            reply_text = parsed['gm_narrative']
-                            extracted = True
-                    except json_module.JSONDecodeError:
-                        pass
-
-                    # Method 2: Regex for truncated JSON
-                    if not extracted:
-                        # Try to extract narrative field from truncated JSON
-                        match = re.search(r'"(?:narrative|gm_narrative)"\s*:\s*"((?:[^"\\]|\\.)*)(?:"|\Z)', reply_text, re.DOTALL)
-                        if match:
-                            narrative = match.group(1)
-                            # Unescape JSON string
-                            narrative = narrative.replace('\\n', '\n').replace('\\t', '\t').replace('\\"', '"').replace('\\\\', '\\')
-                            reply_text = narrative
-                            extracted = True
-                            logger.info("Extracted narrative from truncated JSON via regex")
-
-                    # Method 3: Last resort - strip JSON wrapper
-                    if not extracted:
-                        # Try to extract any readable text from malformed JSON
-                        # Remove JSON structure and clean up
-                        cleaned = re.sub(r'^[\s\{]*"[^"]*"\s*:\s*"?', '', reply_text)
-                        cleaned = re.sub(r'"\s*[,\}].*$', '', cleaned, flags=re.DOTALL)
-                        if len(cleaned) > 50:  # Only use if substantial content
-                            reply_text = cleaned.replace('\\n', '\n').replace('\\"', '"')
-                            logger.warning("Used last-resort JSON cleanup")
+                # Create streaming updater
+                updater = StreamingMessageUpdater(
+                    bot=self.bot,
+                    chat_id=user_id,
+                    message_id=loading_msg.message_id,
+                    update_interval=settings.streaming_chunk_interval
+                )
                 
-                reply = f"{loc.get_chapter_label(data['turn_number'])}\n\n{reply_text}"
+                # Define streaming callback
+                async def on_narrative_update(narrative: str):
+                    """Called progressively as narrative is generated."""
+                    # Format with turn number
+                    formatted = f"{loc.get_chapter_label(turn_number)}\n\n{narrative}"
+                    # Convert markdown to HTML
+                    formatted_html = convert_markdown_to_html(formatted)
+                    # Schedule update
+                    await updater.schedule_update(formatted_html)
                 
-                # Convert markdown to HTML
-                reply = convert_markdown_to_html(reply)
+                # Call orchestrator with streaming
+                result = await self.orchestrator.process_turn(
+                    session_id=session_id,
+                    user_message=text,
+                    on_narrative_update=on_narrative_update
+                )
                 
-                # Split long messages with smart paragraph breaking
-                if len(reply) > 4000:
-                    from telegram.utils.markdown_converter import split_message_into_chunks
-                    
-                    header = f"{loc.get_chapter_label(data['turn_number'])}\n\n"
-                    # Convert content to HTML before splitting
-                    content_html = convert_markdown_to_html(reply_text)
-                    
-                    # Smart split
-                    chunks = split_message_into_chunks(header + content_html, max_length=4000)
-                    
-                    logger.info(f"Message split into {len(chunks)} chunks (smart paragraph splitting)")
-                    
-                    # Replace loading indicator with first chunk
-                    await loading.replace_with_text(chunks[0], parse_mode="HTML")
-                    
-                    # Send remaining chunks as new messages
-                    for idx, chunk in enumerate(chunks[1:], 1):
-                        await asyncio.sleep(0.5)
-                        await message.answer(chunk, parse_mode="HTML")
-                else:
-                    # Replace loading indicator with full message
-                    await loading.replace_with_text(reply, parse_mode="HTML")
+                # Get final response
+                reply_text = result['reply']
+                turn_number = result['turn_number']
                 
-                logger.info(f"Turn {data['turn_number']} completed for user {user_id}")
             else:
-                await loading.replace_with_text("❌ Ошибка API")
-        
-        except httpx.TimeoutException:
-            logger.error("API timeout")
-            await loading.replace_with_text("⏱️ Превышено время ожидания. Попробуй /retry")
+                logger.info("📄 Using non-streaming mode (fallback)")
+                
+                # Call orchestrator without streaming
+                result = await self.orchestrator.process_turn(
+                    session_id=session_id,
+                    user_message=text
+                )
+                
+                reply_text = result['reply']
+                turn_number = result['turn_number']
+            
+            # Format final response
+            reply = f"{loc.get_chapter_label(turn_number)}\n\n{reply_text}"
+            
+            # Convert markdown to HTML
+            reply_html = convert_markdown_to_html(reply)
+            
+            # Handle long messages
+            if len(reply_html) > 4000:
+                from telegram.utils.markdown_converter import split_message_into_chunks
+                
+                header = f"{loc.get_chapter_label(turn_number)}\n\n"
+                content_html = convert_markdown_to_html(reply_text)
+                
+                # Smart split
+                chunks = split_message_into_chunks(header + content_html, max_length=4000)
+                
+                logger.info(f"Message split into {len(chunks)} chunks")
+                
+                if settings.enable_streaming:
+                    # Force final update with first chunk
+                    await updater.force_update(chunks[0])
+                else:
+                    # Edit loading message with first chunk
+                    await loading_msg.edit_text(chunks[0], parse_mode="HTML")
+                
+                # Send remaining chunks as new messages
+                for chunk in chunks[1:]:
+                    await asyncio.sleep(0.5)
+                    await message.answer(chunk, parse_mode="HTML")
+            else:
+                # Single message
+                if settings.enable_streaming:
+                    # Force final update
+                    await updater.force_update(reply_html)
+                else:
+                    # Edit loading message
+                    await loading_msg.edit_text(reply_html, parse_mode="HTML")
+            
+            logger.info(f"Turn {turn_number} completed for user {user_id}")
         
         except Exception as e:
-            logger.error(f"Error processing message: {e}", exc_info=True)
-            await loading.replace_with_text(f"❌ Ошибка: {str(e)[:100]}")
+            logger.error(f"Error processing turn: {e}", exc_info=True)
+            try:
+                await loading_msg.edit_text(f"❌ Ошибка: {str(e)[:100]}\nПопробуйте /retry")
+            except:
+                pass  # Message might be deleted
     
     # ============= COMMAND HANDLERS =============
     
