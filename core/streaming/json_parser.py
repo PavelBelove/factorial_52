@@ -5,8 +5,11 @@ This module handles parsing incomplete JSON as it arrives from the LLM stream,
 extracting the narrative text progressively while ensuring proper escaping.
 """
 import re
+import logging
 from typing import Optional
 from enum import Enum
+
+logger = logging.getLogger(__name__)
 
 
 class ParserState(Enum):
@@ -48,6 +51,9 @@ class PartialJSONParser:
         Returns:
             New narrative text to display (or None if nothing new)
         """
+        if chunk:
+            logger.info(f"📥 Parser received chunk: {len(chunk)} chars, preview: {chunk[:100]}")
+        
         self.buffer += chunk
         
         if self.state == ParserState.SEARCHING:
@@ -56,6 +62,8 @@ class PartialJSONParser:
         if self.state == ParserState.IN_NARRATIVE:
             self._extract_narrative()
             
+        logger.info(f"🔍 Parser state: {self.state.value}, narrative: {len(self.narrative)} chars, buffer: {len(self.buffer)} chars")
+        
         # Return new text if we have any
         if len(self.narrative) > self.last_sent_position:
             # Get text we haven't sent yet

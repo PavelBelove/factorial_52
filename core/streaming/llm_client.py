@@ -196,13 +196,18 @@ class StreamingLLMClient:
         parser = PartialJSONParser()
         last_update_time = asyncio.get_event_loop().time()
         min_update_interval = settings.streaming_chunk_interval
+        last_content_length = 0  # Track how much we've already fed to parser
         
         async def on_content_chunk(full_content: str):
             """Handle raw content updates and parse JSON."""
-            nonlocal last_update_time
+            nonlocal last_update_time, last_content_length
             
-            # Feed to parser
-            narrative_update = parser.feed_chunk(full_content[len(parser.buffer) + len(parser.narrative):] if parser.buffer or parser.narrative else full_content)
+            # Extract only NEW content since last call
+            new_chunk = full_content[last_content_length:]
+            last_content_length = len(full_content)
+            
+            # Feed NEW chunk to parser
+            narrative_update = parser.feed_chunk(new_chunk)
             
             # Check if we should send update (respect interval)
             current_time = asyncio.get_event_loop().time()
