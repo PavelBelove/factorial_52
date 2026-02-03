@@ -185,12 +185,14 @@ class PlexMemBot:
                 # Define streaming callback
                 async def on_narrative_update(narrative: str):
                     """Called progressively as narrative is generated."""
+                    logger.info(f"📨 BOT: Received narrative update: {len(narrative)} chars")
                     # Format with turn number
                     formatted = f"{loc.get_chapter_label(turn_number)}\n\n{narrative}"
                     # Convert markdown to HTML
                     formatted_html = convert_markdown_to_html(formatted)
                     # Schedule update
                     await updater.schedule_update(formatted_html)
+                    logger.debug(f"✓ BOT: Update scheduled")
                 
                 # Call orchestrator with streaming
                 result = await self.orchestrator.process_turn(

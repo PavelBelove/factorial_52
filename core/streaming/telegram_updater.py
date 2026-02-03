@@ -60,8 +60,10 @@ class StreamingMessageUpdater:
             new_text: New text to display
         """
         if self.is_closed:
+            logger.debug("❌ Update skipped: updater is closed")
             return
         
+        logger.info(f"📥 Scheduling update: {len(new_text)} chars")
         self.pending_text = new_text
         
         # Check if we should send update now
@@ -70,11 +72,13 @@ class StreamingMessageUpdater:
         
         if time_since_last >= self.update_interval:
             # Enough time passed, send immediately
+            logger.info(f"⏰ Sending update immediately (waited {time_since_last:.2f}s)")
             await self._send_update()
         else:
             # Schedule for later if not already scheduled
             if self._update_task is None or self._update_task.done():
                 wait_time = self.update_interval - time_since_last
+                logger.info(f"⏳ Scheduling update for {wait_time:.2f}s later")
                 self._update_task = asyncio.create_task(self._delayed_update(wait_time))
     
     async def _delayed_update(self, wait_time: float):
@@ -101,10 +105,11 @@ class StreamingMessageUpdater:
                 chat_id=self.chat_id,
                 message_id=self.message_id,
                 text=self.pending_text,
-                parse_mode=None  # Plain text for stability
+                parse_mode="HTML"  # Enable HTML formatting
             )
             self.last_sent_text = self.pending_text
             self.last_update_time = time.time()
+            logger.debug(f"✓ Sent update: {len(self.pending_text)} chars")
             
         except TelegramBadRequest as e:
             error_msg = str(e).lower()

@@ -208,11 +208,14 @@ class StreamingLLMClient:
             current_time = asyncio.get_event_loop().time()
             time_since_last = current_time - last_update_time
             
+            logger.info(f"📝 Narrative update: {len(narrative_update) if narrative_update else 0} chars, complete: {parser.is_complete()}")
+            
             if narrative_update and on_narrative_update:
                 # Only update if enough time passed or narrative is complete
                 if time_since_last >= min_update_interval or parser.is_complete():
                     # Check minimum characters threshold
                     if len(narrative_update) >= settings.streaming_min_chars_for_update or parser.is_complete():
+                        logger.info(f"🔄 Calling narrative callback with {len(narrative_update)} chars")
                         await on_narrative_update(narrative_update)
                         last_update_time = current_time
         

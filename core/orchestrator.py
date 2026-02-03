@@ -173,6 +173,7 @@ class TurnOrchestrator:
 
         # Use streaming if callback provided
         if on_narrative_update and settings.enable_streaming:
+            logger.info("🌊 Using STREAMING mode for GM response")
             gm_response = await self.gm_agent.generate_response_streaming(
                 context_messages=context_messages,
                 user_message=user_message_with_reminder,
@@ -180,6 +181,7 @@ class TurnOrchestrator:
                 max_tokens=settings.gm_max_tokens
             )
         else:
+            logger.info("📄 Using NON-STREAMING mode for GM response")
             gm_response = await self.gm_agent.generate_response(
                 context_messages=context_messages,
                 user_message=user_message_with_reminder,
