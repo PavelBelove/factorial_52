@@ -163,7 +163,7 @@ class PlexMemBot:
             logger.debug(f"Processing turn: session={session_id}, user={user_id}")
             
             # Get session to determine turn number
-            db_session = db.get_session(session_id)
+            db_session = db.get_session_by_id(session_id)
             if not db_session:
                 await loading_msg.edit_text("❌ Сессия не найдена")
                 return
