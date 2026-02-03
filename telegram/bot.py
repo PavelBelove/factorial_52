@@ -171,6 +171,7 @@ class PlexMemBot:
             turn_number = db_session.current_turn + 1
             
             # Streaming mode enabled?
+            logger.info(f"🔍 Checking streaming: enable_streaming={settings.enable_streaming}")
             if settings.enable_streaming:
                 logger.info("🎬 Using streaming mode")
                 
