@@ -108,7 +108,11 @@ class PartialJSONParser:
             quote_pos = self.buffer.find('"', pos)
             if quote_pos == -1:
                 # No quote found, add all remaining text as narrative
-                self.narrative += self.buffer[:].replace('\\"', '"').replace('\\n', '\n')
+                chunk = self.buffer[:]
+                decoded = chunk.replace('\\"', '"').replace('\\n', '\n')
+                if '\\n' in chunk or '\n' in decoded:
+                    logger.debug(f"🔍 Decoding: chunk has \\n: {repr(chunk[:100])}, decoded: {repr(decoded[:100])}")
+                self.narrative += decoded
                 self.buffer = ""
                 break
             
@@ -127,7 +131,11 @@ class PartialJSONParser:
                 next_char = self.buffer[next_char_pos]
                 if next_char in [',', '}']:
                     # End of narrative found!
-                    self.narrative += self.buffer[:quote_pos].replace('\\"', '"').replace('\\n', '\n')
+                    chunk = self.buffer[:quote_pos]
+                    decoded = chunk.replace('\\"', '"').replace('\\n', '\n')
+                    if '\\n' in chunk or '\n' in decoded:
+                        logger.debug(f"🔍 Decoding (complete): chunk has \\n: {repr(chunk[:100])}, decoded: {repr(decoded[:100])}")
+                    self.narrative += decoded
                     self.buffer = self.buffer[quote_pos:]
                     self.state = ParserState.COMPLETE
                     return

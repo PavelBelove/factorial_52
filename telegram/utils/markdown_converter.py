@@ -28,16 +28,6 @@ def convert_markdown_to_html(text: str) -> str:
     if not text:
         return text
     
-    # Fix newlines for Telegram HTML mode
-    # Telegram HTML ignores single \n, so we need to preserve paragraph breaks
-    # but remove single newlines (they should be spaces for natural word wrap)
-    # First, protect double newlines (paragraph breaks)
-    text = text.replace('\n\n', '<<PARAGRAPH>>')
-    # Replace single newlines with space
-    text = text.replace('\n', ' ')
-    # Restore paragraph breaks
-    text = text.replace('<<PARAGRAPH>>', '\n\n')
-    
     # Code blocks first (``` ... ```)
     text = re.sub(r'```([^`]+)```', r'<pre>\1</pre>', text)
     
