@@ -548,17 +548,7 @@ class PlexMemBot:
         """Start bot."""
         logger.info("Starting PlexMem Bot with FSM navigation")
         logger.info(f"Bot token: {settings.telegram_bot_token[:20]}...")
-        
-        # Check API
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.get(f"{API_BASE_URL}/")
-                if response.status_code == 200:
-                    logger.info("API is available")
-                else:
-                    logger.warning(f"API returned status {response.status_code}")
-        except Exception as e:
-            logger.warning(f"Cannot connect to API: {e}")
+        logger.info("✅ Using direct orchestrator (streaming enabled)")
         
         # Start polling
         await self.dp.start_polling(self.bot)
