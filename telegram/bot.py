@@ -191,11 +191,13 @@ class PlexMemBot:
                 async def on_narrative_update(narrative: str):
                     """Called progressively as narrative is generated."""
                     logger.info(f"📨 BOT: Received narrative update: {len(narrative)} chars")
+                    logger.debug(f"📝 Narrative sample: {narrative[:200]}...")
                     
                     # Format with turn number
                     formatted = f"{loc.get_chapter_label(turn_number)}\n\n{narrative}"
                     # Convert markdown to HTML
                     formatted_html = convert_markdown_to_html(formatted)
+                    logger.debug(f"🔖 HTML sample: {formatted_html[:200]}...")
                     # Schedule update
                     await updater.schedule_update(formatted_html)
                     logger.debug(f"✓ BOT: Update scheduled")

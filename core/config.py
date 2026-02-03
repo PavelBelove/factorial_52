@@ -38,9 +38,9 @@ class Settings(BaseSettings):
     
     # Streaming Configuration
     enable_streaming: bool = True  # Enable streaming GM responses for better UX
-    streaming_chunk_interval: float = 0.1  # Seconds between narrative chunk updates
+    streaming_chunk_interval: float = 1.0  # Seconds between narrative chunk updates (Telegram limit ~1/sec)
     streaming_loading_interval: float = 0.5  # Seconds between loading animation dots
-    streaming_min_chars_for_update: int = 50  # Minimum characters before sending update
+    streaming_min_chars_for_update: int = 100  # Minimum characters before sending update
     streaming_timeout: int = 30  # Seconds before considering stream as failed
     
     # Memory System Configuration
