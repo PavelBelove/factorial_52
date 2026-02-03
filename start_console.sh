@@ -53,7 +53,7 @@ echo "╔═══════════════════════�
 echo "║         [1/2] Запуск API сервера           ║"
 echo "╚════════════════════════════════════════════╝"
 echo ""
-python run_api.py > "$API_LOG" 2>&1 &
+venv/bin/python run_api.py > "$API_LOG" 2>&1 &
 API_PID=$!
 
 # Show API output
@@ -67,7 +67,7 @@ echo "╔═══════════════════════�
 echo "║       [2/2] Запуск Telegram Bot            ║"
 echo "╚════════════════════════════════════════════╝"
 echo ""
-python run_bot.py > "$BOT_LOG" 2>&1 &
+venv/bin/python run_bot.py > "$BOT_LOG" 2>&1 &
 BOT_PID=$!
 
 # Show Bot output
