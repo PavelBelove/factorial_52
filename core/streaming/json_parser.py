@@ -53,6 +53,10 @@ class PartialJSONParser:
         """
         self.buffer += chunk
         
+        # Debug: log raw chunk with newlines
+        if '\\n' in chunk or '\n' in chunk:
+            logger.debug(f"📦 Raw chunk: {repr(chunk[:200])}")
+        
         # Log state changes only
         old_state = self.state
         
