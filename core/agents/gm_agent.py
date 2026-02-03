@@ -131,7 +131,9 @@ class GMAgent:
             - usage: Token usage and cost info
         """
         # Check if streaming is enabled
+        logger.info(f"🔍 GM Agent: enable_streaming={settings.enable_streaming}, on_narrative_update={on_narrative_update is not None}")
         if not settings.enable_streaming:
+            logger.info("⚠️  GM Agent: Streaming disabled, using fallback")
             # Fallback to non-streaming
             return await self.generate_response(
                 context_messages=context_messages,
