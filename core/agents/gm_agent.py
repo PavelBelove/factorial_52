@@ -175,6 +175,7 @@ class GMAgent:
                 # Fallback parsing if not already JSON
                 result = self._parse_gm_response(str(content))
             
+            # Store raw response for debugging
             result["raw_response"] = content
             
             # Log what we're returning
@@ -184,11 +185,15 @@ class GMAgent:
             if "usage" in response:
                 result["usage"] = response["usage"]
             
-            # Log agent call for debugging
+            # Log agent call for debugging (include full response JSON)
+            log_result = {
+                **result,
+                "full_api_response": str(content) if not isinstance(content, (dict, list)) else content
+            }
             log_agent_call(
                 agent_name="gm",
                 context=messages,
-                response=result
+                response=log_result
             )
             
             return result

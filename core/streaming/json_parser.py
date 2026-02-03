@@ -83,7 +83,15 @@ class PartialJSONParser:
             if new_text:
                 logger.debug(f"✅ Parser: Returning {len(self.narrative[:self.last_sent_position + len(new_text)])} total chars")
                 self.last_sent_position += len(new_text)
-                return self.narrative[:self.last_sent_position]
+                result = self.narrative[:self.last_sent_position]
+                
+                # CRITICAL FIX: Decode literal \n to actual newlines
+                # This handles cases where \ and n arrive in separate chunks
+                if '\\n' in result:
+                    result = result.replace('\\n', '\n')
+                    logger.debug(f"🔧 Final decode: replaced \\n with newlines")
+                
+                return result
             else:
                 logger.debug(f"⏸️  Parser: New text trimmed to nothing (mid-word)")
         else:
