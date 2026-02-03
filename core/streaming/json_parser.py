@@ -51,18 +51,20 @@ class PartialJSONParser:
         Returns:
             New narrative text to display (or None if nothing new)
         """
-        if chunk:
-            logger.info(f"📥 Parser received chunk: {len(chunk)} chars, preview: {chunk[:100]}")
-        
         self.buffer += chunk
+        
+        # Log state changes only
+        old_state = self.state
         
         if self.state == ParserState.SEARCHING:
             self._search_for_narrative_start()
             
         if self.state == ParserState.IN_NARRATIVE:
             self._extract_narrative()
-            
-        logger.info(f"🔍 Parser state: {self.state.value}, narrative: {len(self.narrative)} chars, buffer: {len(self.buffer)} chars")
+        
+        # Log only important events
+        if old_state != self.state:
+            logger.info(f"🔍 Parser: {old_state.value} -> {self.state.value}, narrative: {len(self.narrative)} chars")
         
         # Return new text if we have any
         if len(self.narrative) > self.last_sent_position:

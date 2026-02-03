@@ -124,7 +124,7 @@ class StreamingLLMClient:
                                 
                                 if content_delta:
                                     accumulated_content += content_delta
-                                    logger.info(f"📦 SSE: delta={len(content_delta)} chars, accumulated={len(accumulated_content)} chars")
+                                    # Removed verbose logging - too many chunks
                                     
                                     # Call update callback if provided
                                     if on_content_update:
@@ -205,7 +205,9 @@ class StreamingLLMClient:
             
             # Extract only NEW content since last call
             new_chunk = full_content[last_content_length:]
-            logger.info(f"🔥 LLM: full_content={len(full_content)} chars, last_pos={last_content_length}, new_chunk={len(new_chunk)} chars")
+            # Log only first and significant updates
+            if last_content_length == 0:
+                logger.info(f"🔥 Stream started: {len(new_chunk)} chars")
             last_content_length = len(full_content)
             
             # Feed NEW chunk to parser
@@ -214,8 +216,6 @@ class StreamingLLMClient:
             # Check if we should send update (respect interval)
             current_time = asyncio.get_event_loop().time()
             time_since_last = current_time - last_update_time
-            
-            logger.info(f"📝 Narrative update: {len(narrative_update) if narrative_update else 0} chars, complete: {parser.is_complete()}")
             
             if narrative_update and on_narrative_update:
                 # Only update if enough time passed or narrative is complete

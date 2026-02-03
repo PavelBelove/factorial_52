@@ -293,19 +293,15 @@ class PlexMemBot:
             return
         
         try:
-            # Undo last turn
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                undo_response = await client.post(
-                    f"{API_BASE_URL}/sessions/{session_id}/undo"
-                )
-                
-                if undo_response.status_code != 200:
-                    await message.answer("❌ Не могу откатить последний ход")
-                    return
-                
-                undo_data = undo_response.json()
+            # Undo last turn directly via DB
+            success = db.delete_last_turn(session_id)
+            if not success:
+                await message.answer("❌ Нет ходов для отмены")
+                return
             
-            await message.answer(f"🔄 Повторяю с хода {undo_data['current_turn']}: {last_msg[:50]}...")
+            # Get updated session
+            session = db.get_session_by_id(session_id)
+            await message.answer(f"🔄 Повторяю с хода {session.current_turn}: {last_msg[:50]}...")
             
             # Process as regular message
             await self._process_game_message(message, session_id, last_msg)
@@ -328,21 +324,18 @@ class PlexMemBot:
         loc = get_localization(user.language)
         
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    f"{API_BASE_URL}/sessions/{session_id}/undo"
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    await message.answer(
-                        f"{loc.get_undo_success(data['current_turn'])}"
-                        f"Напиши новое сообщение или /retry для повтора."
-                    )
-                elif response.status_code == 400:
-                    await message.answer(loc.get_undo_nothing_to_undo())
-                else:
-                    await message.answer(f"❌ Ошибка отмены: {response.status_code}")
+            # Undo last turn directly via DB
+            success = db.delete_last_turn(session_id)
+            if not success:
+                await message.answer(loc.get_undo_nothing_to_undo())
+                return
+            
+            # Get updated session
+            session = db.get_session_by_id(session_id)
+            await message.answer(
+                f"{loc.get_undo_success(session.current_turn)}"
+                f"Напиши новое сообщение или /retry для повтора."
+            )
         
         except Exception as e:
             logger.error(f"Error in /undo: {e}", exc_info=True)
