@@ -110,6 +110,10 @@ class StreamingMessageUpdater:
             return
         
         try:
+            # Debug: check for literal \n in text
+            if '\\n' in self.pending_text or '\n' in self.pending_text:
+                logger.debug(f"📤 Sending: has \\\\n: {'\\\\n' in self.pending_text}, has \\n: {self.pending_text.count(chr(10))}, sample: {repr(self.pending_text[:200])}")
+            
             await self.bot.edit_message_text(
                 chat_id=self.chat_id,
                 message_id=self.message_id,
