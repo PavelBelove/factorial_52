@@ -58,7 +58,8 @@ class TurnOrchestrator:
         self,
         session_id: int,
         user_message: str,
-        system_prompt_parts: Optional[Dict[str, str]] = None
+        system_prompt_parts: Optional[Dict[str, str]] = None,
+        on_narrative_update: Optional[Any] = None
     ) -> Dict[str, Any]:
         """
         Process one turn of conversation.
@@ -67,6 +68,7 @@ class TurnOrchestrator:
             session_id: Session ID
             user_message: User's message
             system_prompt_parts: Optional custom system prompt components
+            on_narrative_update: Optional async callback for streaming narrative updates
         
         Returns:
             Dict with:
@@ -169,11 +171,20 @@ class TurnOrchestrator:
         )
         user_message_with_reminder = user_message + gm_reminder
 
-        gm_response = await self.gm_agent.generate_response(
-            context_messages=context_messages,
-            user_message=user_message_with_reminder,
-            max_tokens=settings.gm_max_tokens
-        )
+        # Use streaming if callback provided
+        if on_narrative_update and settings.enable_streaming:
+            gm_response = await self.gm_agent.generate_response_streaming(
+                context_messages=context_messages,
+                user_message=user_message_with_reminder,
+                on_narrative_update=on_narrative_update,
+                max_tokens=settings.gm_max_tokens
+            )
+        else:
+            gm_response = await self.gm_agent.generate_response(
+                context_messages=context_messages,
+                user_message=user_message_with_reminder,
+                max_tokens=settings.gm_max_tokens
+            )
         
         reply = gm_response["reply"]
         requested_quants = gm_response["quants"]

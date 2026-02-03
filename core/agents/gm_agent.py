@@ -4,11 +4,12 @@ Handles conversation with user and predictive quant requests.
 """
 import json
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Callable, Awaitable
 
 from core.llm.openrouter_client import OpenRouterClient
 from core.models import Quant
 from core.utils.agent_logger import log_agent_call
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +101,108 @@ class GMAgent:
                 "quants": [],
                 "raw_response": str(e)
             }
+    
+    async def generate_response_streaming(
+        self,
+        context_messages: List[Dict[str, str]],
+        user_message: str,
+        on_narrative_update: Optional[Callable[[str], Awaitable[None]]] = None,
+        temperature: float = 0.8,
+        max_tokens: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Generate response to user message with streaming.
+        
+        Similar to generate_response but provides progressive narrative updates
+        via callback as the response is generated.
+        
+        Args:
+            context_messages: Pre-built context from ContextManager
+            user_message: User's current message
+            on_narrative_update: Async callback(narrative_text) called with progressive updates
+            temperature: Sampling temperature
+            max_tokens: Maximum tokens to generate
+        
+        Returns:
+            Dict with:
+            - reply: Text response to user
+            - quants: List of quant names for next turn
+            - raw_response: Full LLM response (for debugging)
+            - usage: Token usage and cost info
+        """
+        # Check if streaming is enabled
+        if not settings.enable_streaming:
+            # Fallback to non-streaming
+            return await self.generate_response(
+                context_messages=context_messages,
+                user_message=user_message,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+        
+        # Import streaming client here to avoid circular imports
+        from core.streaming.llm_client import StreamingLLMClient
+        
+        # Add user message to context
+        messages = context_messages + [
+            {"role": "user", "content": user_message}
+        ]
+        
+        try:
+            # Create streaming client
+            streaming_client = StreamingLLMClient(
+                api_key=self.llm.api_key,
+                base_url=self.llm.base_url
+            )
+            
+            # Stream GM response with JSON parsing
+            response = await streaming_client.stream_gm_response(
+                messages=messages,
+                model=self.model or self.llm.default_model,
+                max_tokens=max_tokens or 3500,
+                on_narrative_update=on_narrative_update
+            )
+            
+            # Extract parsed JSON content
+            content = response["choices"][0]["message"]["content"]
+            
+            # Validate and normalize the response
+            if isinstance(content, dict):
+                result = self._validate_gm_response(content)
+            else:
+                # Fallback parsing if not already JSON
+                result = self._parse_gm_response(str(content))
+            
+            result["raw_response"] = content
+            
+            # Log what we're returning
+            logger.debug(f"GM streaming returning reply (first 200 chars): {result.get('reply', '')[:200]}")
+            
+            # Add usage/cost info if available
+            if "usage" in response:
+                result["usage"] = response["usage"]
+            
+            # Log agent call for debugging
+            log_agent_call(
+                agent_name="gm",
+                context=messages,
+                response=result
+            )
+            
+            return result
+        
+        except Exception as e:
+            logger.error(f"Error in GM agent streaming: {e}")
+            logger.exception(e)
+            
+            # Fallback to non-streaming on error
+            logger.info("Falling back to non-streaming GM response")
+            return await self.generate_response(
+                context_messages=context_messages,
+                user_message=user_message,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
     
     def _parse_gm_response(self, content: str) -> Dict[str, Any]:
         """
