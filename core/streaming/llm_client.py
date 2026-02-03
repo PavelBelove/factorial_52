@@ -212,12 +212,14 @@ class StreamingLLMClient:
             
             # Feed NEW chunk to parser
             narrative_update = parser.feed_chunk(new_chunk)
+            logger.debug(f"🧪 Parser returned: narrative_update={len(narrative_update) if narrative_update else 0} chars, on_callback={on_narrative_update is not None}")
             
             # Check if we should send update (respect interval)
             current_time = asyncio.get_event_loop().time()
             time_since_last = current_time - last_update_time
             
             if narrative_update and on_narrative_update:
+                logger.debug(f"⏱️  Time check: {time_since_last:.2f}s >= {min_update_interval}s? {time_since_last >= min_update_interval}, complete={parser.is_complete()}")
                 # Only update if enough time passed or narrative is complete
                 if time_since_last >= min_update_interval or parser.is_complete():
                     # Check minimum characters threshold

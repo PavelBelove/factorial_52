@@ -70,14 +70,20 @@ class PartialJSONParser:
         if len(self.narrative) > self.last_sent_position:
             # Get text we haven't sent yet
             new_text = self.narrative[self.last_sent_position:]
+            logger.debug(f"📤 Parser: {len(new_text)} new chars available")
             
             # Don't break words - cut at last space/newline if mid-word
             if self.state != ParserState.COMPLETE and new_text:
                 new_text = self._trim_to_word_boundary(new_text)
             
             if new_text:
+                logger.debug(f"✅ Parser: Returning {len(self.narrative[:self.last_sent_position + len(new_text)])} total chars")
                 self.last_sent_position += len(new_text)
                 return self.narrative[:self.last_sent_position]
+            else:
+                logger.debug(f"⏸️  Parser: New text trimmed to nothing (mid-word)")
+        else:
+            logger.debug(f"⏸️  Parser: No new narrative ({len(self.narrative)} <= {self.last_sent_position})")
         
         return None
     
