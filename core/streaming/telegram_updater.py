@@ -73,13 +73,22 @@ class StreamingMessageUpdater:
         if time_since_last >= self.update_interval:
             # Enough time passed, send immediately
             logger.info(f"⏰ Sending update immediately (waited {time_since_last:.2f}s)")
+            
+            # Cancel pending task if exists
+            if self._update_task and not self._update_task.done():
+                self._update_task.cancel()
+                logger.debug("🚫 Cancelled pending update task")
+            
             await self._send_update()
         else:
-            # Schedule for later if not already scheduled
-            if self._update_task is None or self._update_task.done():
-                wait_time = self.update_interval - time_since_last
-                logger.info(f"⏳ Scheduling update for {wait_time:.2f}s later")
-                self._update_task = asyncio.create_task(self._delayed_update(wait_time))
+            # Cancel old task and create new one with updated wait time
+            if self._update_task and not self._update_task.done():
+                self._update_task.cancel()
+                logger.debug("🔄 Cancelled old update task, creating new one")
+            
+            wait_time = self.update_interval - time_since_last
+            logger.info(f"⏳ Scheduling update for {wait_time:.2f}s later")
+            self._update_task = asyncio.create_task(self._delayed_update(wait_time))
     
     async def _delayed_update(self, wait_time: float):
         """

@@ -28,12 +28,6 @@ def convert_markdown_to_html(text: str) -> str:
     if not text:
         return text
     
-    # Escape HTML special characters first (except those we'll use for formatting)
-    # This prevents raw HTML from GM from being interpreted
-    text = text.replace('&', '&amp;')
-    text = text.replace('<', '&lt;')
-    text = text.replace('>', '&gt;')
-    
     # Code blocks first (``` ... ```)
     text = re.sub(r'```([^`]+)```', r'<pre>\1</pre>', text)
     
