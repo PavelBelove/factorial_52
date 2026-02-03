@@ -204,6 +204,7 @@ class StreamingLLMClient:
             
             # Extract only NEW content since last call
             new_chunk = full_content[last_content_length:]
+            logger.info(f"🔥 LLM: full_content={len(full_content)} chars, last_pos={last_content_length}, new_chunk={len(new_chunk)} chars")
             last_content_length = len(full_content)
             
             # Feed NEW chunk to parser

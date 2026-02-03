@@ -174,15 +174,6 @@ class PlexMemBot:
             if settings.enable_streaming:
                 logger.info("🎬 Using streaming mode")
                 
-                # Start loading animation
-                loading_animation = LoadingAnimation(
-                    bot=self.bot,
-                    chat_id=user_id,
-                    message_id=loading_msg.message_id,
-                    base_text="🎲 Ход обрабатывается"
-                )
-                await loading_animation.start()
-                
                 # Create streaming updater
                 updater = StreamingMessageUpdater(
                     bot=self.bot,
@@ -195,10 +186,6 @@ class PlexMemBot:
                 async def on_narrative_update(narrative: str):
                     """Called progressively as narrative is generated."""
                     logger.info(f"📨 BOT: Received narrative update: {len(narrative)} chars")
-                    
-                    # Stop loading animation on first update
-                    if loading_animation.is_running:
-                        await loading_animation.stop()
                     
                     # Format with turn number
                     formatted = f"{loc.get_chapter_label(turn_number)}\n\n{narrative}"
@@ -214,9 +201,6 @@ class PlexMemBot:
                     user_message=text,
                     on_narrative_update=on_narrative_update
                 )
-                
-                # Ensure loading animation is stopped
-                await loading_animation.stop()
                 
                 # Get final response
                 reply_text = result['reply']
