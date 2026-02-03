@@ -371,6 +371,12 @@ class GMAgent:
             data["reply"] = data.pop("narrative")
             logger.debug("Mapped 'narrative' -> 'reply'")
         
+        # Decode literal \n to actual newlines if present
+        if "reply" in data and isinstance(data["reply"], str):
+            if '\\n' in data["reply"]:
+                data["reply"] = data["reply"].replace('\\n', '\n')
+                logger.debug("Decoded literal \\n to newlines in reply")
+        
         if "quant_requests" in data and "quants" not in data:
             data["quants"] = data.pop("quant_requests")
             logger.debug("Mapped 'quant_requests' -> 'quants'")
