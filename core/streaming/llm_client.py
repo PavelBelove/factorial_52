@@ -124,6 +124,7 @@ class StreamingLLMClient:
                                 
                                 if content_delta:
                                     accumulated_content += content_delta
+                                    logger.info(f"📦 SSE: delta={len(content_delta)} chars, accumulated={len(accumulated_content)} chars")
                                     
                                     # Call update callback if provided
                                     if on_content_update:
