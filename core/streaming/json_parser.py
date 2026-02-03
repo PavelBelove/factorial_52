@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class ParserState(Enum):
     """States of the JSON parsing process."""
-    SEARCHING = "searching"      # Looking for "reply":"
+    SEARCHING = "searching"      # Looking for "narrative":"
     IN_NARRATIVE = "narrative"   # Reading narrative content
     COMPLETE = "complete"        # Found end of narrative
 
@@ -25,7 +25,7 @@ class PartialJSONParser:
     
     The GM response format is:
     {
-      "reply": "Full narrative text...",
+      "narrative": "Full narrative text...",
       "mechanics": {...},
       "quant_commands": [...]
     }
@@ -89,8 +89,9 @@ class PartialJSONParser:
     
     def _search_for_narrative_start(self):
         """Search for the start of the narrative field."""
-        # Look for "reply": " (with possible whitespace)
-        match = re.search(r'"reply"\s*:\s*"', self.buffer)
+        # Look for "narrative": " (with possible whitespace)
+        # Note: GM generates "narrative", which is later mapped to "reply" in non-streaming mode
+        match = re.search(r'"narrative"\s*:\s*"', self.buffer)
         if match:
             # Found start of narrative
             self.state = ParserState.IN_NARRATIVE

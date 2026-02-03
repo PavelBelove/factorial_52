@@ -243,8 +243,8 @@ class StreamingLLMClient:
             parsed_json = json.loads(content)
             
             # Send final narrative update if parser hasn't caught everything
-            if on_narrative_update and parser.get_complete_narrative() != parsed_json.get("reply", ""):
-                await on_narrative_update(parsed_json.get("reply", ""))
+            if on_narrative_update and parser.get_complete_narrative() != parsed_json.get("narrative", ""):
+                await on_narrative_update(parsed_json.get("narrative", ""))
             
             # Update response with parsed content
             response["choices"][0]["message"]["content"] = parsed_json
