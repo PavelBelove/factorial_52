@@ -4,6 +4,7 @@ Integrates menu system with game logic.
 """
 import asyncio
 import logging
+import httpx
 from typing import Optional
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
@@ -25,6 +26,9 @@ from telegram.utils.loading_indicator import LoadingIndicator
 # Import handlers
 from telegram.handlers import menu_router
 from telegram.states import GameStates
+
+# Constants
+API_BASE_URL = "http://localhost:8000"
 
 # Setup logging
 setup_logging()
