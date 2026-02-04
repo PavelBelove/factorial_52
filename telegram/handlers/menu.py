@@ -386,9 +386,13 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
                 # Get final response
                 gm_response = result['reply']
                 
-                # Ensure final update is sent
+                # Ensure final update is sent with complete message
                 if updater:
-                    await updater.flush()
+                    header = loc.get_story_started_header()
+                    final_message = f"{header}{gm_response}"
+                    final_html = convert_markdown_to_html(final_message)
+                    final_html = validate_and_fix_html(final_html)
+                    await updater.force_update(final_html)
                 
                 logger.info("Successfully sent initial GM message with streaming")
                 
