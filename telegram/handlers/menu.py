@@ -387,7 +387,7 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
                 
                 logger.info("Successfully sent initial GM message with streaming")
                 
-                    else:
+            else:
                 logger.info("📄 Using non-streaming mode for initial GM response")
                 
                 # Call orchestrator without streaming
