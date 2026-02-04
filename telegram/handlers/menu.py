@@ -35,6 +35,7 @@ from telegram.keyboards import (
 from core.config import settings, get_localization, world_manager
 from core.database.db_manager import DatabaseManager
 from core.orchestrator import TurnOrchestrator
+from core.llm.openrouter_client import OpenRouterClient
 from core.streaming import StreamingMessageUpdater
 
 logger = logging.getLogger(__name__)
@@ -325,8 +326,12 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
         # Small delay to ensure DB transaction is committed
         await asyncio.sleep(0.1)
         
-        # Initialize orchestrator for direct call
-        orchestrator = TurnOrchestrator(db)
+        # Initialize LLM client and orchestrator for direct call
+        llm_client = OpenRouterClient(
+            api_key=settings.openrouter_api_key,
+            base_url=settings.openrouter_base_url
+        )
+        orchestrator = TurnOrchestrator(db, llm_client)
         
         logger.info(f"Starting game with streaming for session {new_session.id}")
         
