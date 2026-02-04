@@ -160,8 +160,13 @@ class PlexMemBot:
         user = db.get_or_create_user(str(user_id))
         loc = get_localization(user.language)
         
-        # Send initial loading message
-        loading_msg = await message.answer(loc.get_thinking_message())
+        # Start animated loading indicator
+        loading = LoadingIndicator(
+            bot=self.bot,
+            chat_id=user_id,
+            initial_text=loc.get_thinking_message()
+        )
+        await loading.start()
         
         try:
             logger.debug(f"Processing turn: session={session_id}, user={user_id}")
@@ -169,7 +174,8 @@ class PlexMemBot:
             # Get session to determine turn number
             db_session = db.get_session_by_id(session_id)
             if not db_session:
-                await loading_msg.edit_text("❌ Сессия не найдена")
+                await loading.stop()
+                await self.bot.send_message(user_id, "❌ Сессия не найдена")
                 return
             
             turn_number = db_session.current_turn + 1
@@ -179,19 +185,30 @@ class PlexMemBot:
             if settings.enable_streaming:
                 logger.info("🎬 Using streaming mode")
                 
-                # Create streaming updater
-                updater = StreamingMessageUpdater(
-                    bot=self.bot,
-                    chat_id=user_id,
-                    message_id=loading_msg.message_id,
-                    update_interval=settings.streaming_chunk_interval
-                )
+                # Track if we've started streaming
+                first_update = True
+                updater = None
                 
                 # Define streaming callback
                 async def on_narrative_update(narrative: str):
                     """Called progressively as narrative is generated."""
+                    nonlocal first_update, updater
+                    
                     logger.info(f"📨 BOT: Received narrative update: {len(narrative)} chars")
                     logger.debug(f"📝 Narrative sample: {narrative[:200]}...")
+                    
+                    # On first update: stop loading indicator and create updater
+                    if first_update:
+                        first_update = False
+                        await loading.stop()
+                        
+                        # Create streaming updater using the loading message
+                        updater = StreamingMessageUpdater(
+                            bot=self.bot,
+                            chat_id=user_id,
+                            message_id=loading.message.message_id,
+                            update_interval=settings.streaming_chunk_interval
+                        )
                     
                     # Format with turn number
                     formatted = f"{loc.get_chapter_label(turn_number)}\n\n{narrative}"
@@ -250,8 +267,8 @@ class PlexMemBot:
                     # Force final update with first chunk
                     await updater.force_update(chunks[0])
                 else:
-                    # Edit loading message with first chunk
-                    await loading_msg.edit_text(chunks[0], parse_mode="HTML")
+                    # Stop loading and replace with first chunk
+                    await loading.replace_with_text(chunks[0], parse_mode="HTML")
                 
                 # Send remaining chunks as new messages
                 for chunk in chunks[1:]:
@@ -263,15 +280,19 @@ class PlexMemBot:
                     # Force final update
                     await updater.force_update(reply_html)
                 else:
-                    # Edit loading message
-                    await loading_msg.edit_text(reply_html, parse_mode="HTML")
+                    # Stop loading and replace with final message
+                    await loading.replace_with_text(reply_html, parse_mode="HTML")
             
             logger.info(f"Turn {turn_number} completed for user {user_id}")
         
         except Exception as e:
             logger.error(f"Error processing turn: {e}", exc_info=True)
             try:
-                await loading_msg.edit_text(f"❌ Ошибка: {str(e)[:100]}\nПопробуйте /retry")
+                await loading.stop()
+                if loading.message:
+                    await loading.message.edit_text(f"❌ Ошибка: {str(e)[:100]}\nПопробуйте /retry")
+                else:
+                    await message.answer(f"❌ Ошибка: {str(e)[:100]}\nПопробуйте /retry")
             except:
                 pass  # Message might be deleted
     

@@ -54,14 +54,14 @@ class LoadingIndicator:
         self.task = asyncio.create_task(self._animate())
     
     async def _animate(self) -> None:
-        """Animation loop that updates the message every 2 seconds."""
+        """Animation loop that updates the message every 1 second."""
         symbols = []
         max_symbols = 10
         use_right = False  # Start with left, since we already showed right
         
         try:
             while self._running:
-                await asyncio.sleep(2)
+                await asyncio.sleep(1)
                 
                 if not self._running:
                     break
