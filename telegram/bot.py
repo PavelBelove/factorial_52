@@ -20,7 +20,7 @@ from core.database.db_manager import DatabaseManager
 from core.llm.openrouter_client import OpenRouterClient
 from core.orchestrator import TurnOrchestrator
 from core.streaming import StreamingMessageUpdater, LoadingAnimation
-from telegram.utils import convert_markdown_to_html
+from telegram.utils import convert_markdown_to_html, validate_and_fix_html
 from telegram.utils.loading_indicator import LoadingIndicator
 
 # Import handlers
@@ -195,8 +195,9 @@ class PlexMemBot:
                     
                     # Format with turn number
                     formatted = f"{loc.get_chapter_label(turn_number)}\n\n{narrative}"
-                    # Convert markdown to HTML
+                    # Convert markdown to HTML and validate
                     formatted_html = convert_markdown_to_html(formatted)
+                    formatted_html = validate_and_fix_html(formatted_html)
                     logger.debug(f"🔖 HTML sample: {formatted_html[:200]}...")
                     # Schedule update
                     await updater.schedule_update(formatted_html)
@@ -228,8 +229,9 @@ class PlexMemBot:
             # Format final response
             reply = f"{loc.get_chapter_label(turn_number)}\n\n{reply_text}"
             
-            # Convert markdown to HTML
+            # Convert markdown to HTML and validate
             reply_html = convert_markdown_to_html(reply)
+            reply_html = validate_and_fix_html(reply_html)
             
             # Handle long messages
             if len(reply_html) > 4000:
@@ -237,6 +239,7 @@ class PlexMemBot:
                 
                 header = f"{loc.get_chapter_label(turn_number)}\n\n"
                 content_html = convert_markdown_to_html(reply_text)
+                content_html = validate_and_fix_html(content_html)
                 
                 # Smart split
                 chunks = split_message_into_chunks(header + content_html, max_length=4000)

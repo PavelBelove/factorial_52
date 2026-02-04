@@ -3,6 +3,9 @@ Markdown to Telegram HTML converter.
 Converts markdown-style formatting to Telegram-compatible HTML tags.
 """
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def convert_markdown_to_html(text: str) -> str:
@@ -69,6 +72,117 @@ def strip_html_tags(text: str) -> str:
         Plain text
     """
     return re.sub(r'<[^>]+>', '', text)
+
+
+def validate_and_fix_html(text: str) -> str:
+    """
+    Validate HTML tags and fix mismatches.
+    
+    Telegram requires:
+    - All tags properly nested
+    - All opening tags have matching closing tags
+    - No orphaned closing tags
+    
+    Args:
+        text: Text with HTML tags
+        
+    Returns:
+        Fixed HTML text, or plain text if unfixable
+    """
+    if not text:
+        return text
+    
+    # Telegram supported tags
+    supported_tags = ['b', 'i', 'u', 's', 'code', 'pre', 'a']
+    
+    # Track open tags (stack-based validation)
+    tag_stack = []
+    fixed_parts = []
+    pos = 0
+    
+    # Find all tags
+    tag_pattern = re.compile(r'<(/?)(\w+)([^>]*)>')
+    
+    for match in tag_pattern.finditer(text):
+        # Add text before tag
+        fixed_parts.append(text[pos:match.start()])
+        
+        is_closing = match.group(1) == '/'
+        tag_name = match.group(2).lower()
+        attributes = match.group(3)
+        
+        # Skip unsupported tags
+        if tag_name not in supported_tags:
+            logger.warning(f"Unsupported HTML tag: <{tag_name}>")
+            pos = match.end()
+            continue
+        
+        if is_closing:
+            # Closing tag
+            if tag_stack and tag_stack[-1] == tag_name:
+                # Matching closing tag
+                tag_stack.pop()
+                fixed_parts.append(match.group(0))
+            else:
+                # Mismatched closing tag
+                logger.warning(f"Mismatched closing tag: </{tag_name}>, expected: {tag_stack[-1] if tag_stack else 'none'}")
+                # Try to close all open tags until we find matching one
+                while tag_stack:
+                    open_tag = tag_stack.pop()
+                    fixed_parts.append(f'</{open_tag}>')
+                    if open_tag == tag_name:
+                        break
+        else:
+            # Opening tag
+            tag_stack.append(tag_name)
+            fixed_parts.append(match.group(0))
+        
+        pos = match.end()
+    
+    # Add remaining text
+    fixed_parts.append(text[pos:])
+    
+    # Close any remaining open tags
+    while tag_stack:
+        open_tag = tag_stack.pop()
+        logger.warning(f"Auto-closing unclosed tag: <{open_tag}>")
+        fixed_parts.append(f'</{open_tag}>')
+    
+    result = ''.join(fixed_parts)
+    
+    # Final validation: if still invalid, strip all tags
+    if not _is_valid_html_simple(result):
+        logger.error(f"HTML still invalid after fix, stripping all tags")
+        return strip_html_tags(result)
+    
+    return result
+
+
+def _is_valid_html_simple(text: str) -> bool:
+    """
+    Simple HTML validation - check if all tags are balanced.
+    
+    Args:
+        text: Text with HTML tags
+        
+    Returns:
+        True if valid, False otherwise
+    """
+    tag_stack = []
+    tag_pattern = re.compile(r'<(/?)(\w+)[^>]*>')
+    
+    for match in tag_pattern.finditer(text):
+        is_closing = match.group(1) == '/'
+        tag_name = match.group(2).lower()
+        
+        if is_closing:
+            if not tag_stack or tag_stack[-1] != tag_name:
+                return False
+            tag_stack.pop()
+        else:
+            tag_stack.append(tag_name)
+    
+    return len(tag_stack) == 0
 
 
 def split_message_into_chunks(text: str, max_length: int = 4000) -> list[str]:
