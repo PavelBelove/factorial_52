@@ -16,12 +16,12 @@ class Settings(BaseSettings):
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     
     # Model configuration per agent (can be customized separately)
-    # OpenAI GPT-OSS-120B - стабильная модель с хорошим соотношением цена/качество
-    # https://openrouter.ai/openai/gpt-oss-120b
-    gm_model: str = "openai/gpt-oss-120b"  # Game Master model
-    quantizer_model: str = "openai/gpt-oss-120b"  # Quantizer model  
-    summarizer_model: str = "openai/gpt-oss-120b"  # Summarizer model
-    translator_model: str = "openai/gpt-oss-120b"  # Translator model
+    # DeepSeek V3.2 - мощная модель для нарратива (GM)
+    # Grok 4.1 Fast - быстрая модель для технических задач (Quantizer, Summarizer, Translator)
+    gm_model: str = "deepseek/deepseek-v3.2"  # Game Master model
+    quantizer_model: str = "x-ai/grok-4.1-fast"  # Quantizer model  
+    summarizer_model: str = "x-ai/grok-4.1-fast"  # Summarizer model
+    translator_model: str = "x-ai/grok-4.1-fast"  # Translator model
     
     # Max tokens for each agent (output length)
     gm_max_tokens: int = 3500  # GM can give longer, detailed responses
