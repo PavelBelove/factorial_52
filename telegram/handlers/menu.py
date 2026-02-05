@@ -13,7 +13,8 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
 from telegram.states import GameStates
-from telegram.utils import convert_markdown_to_html
+from telegram.utils import convert_markdown_to_html, validate_and_fix_html
+from telegram.utils.loading_indicator import LoadingIndicator
 from telegram.keyboards import (
     get_language_keyboard,
     get_main_menu_keyboard,
@@ -32,6 +33,9 @@ from telegram.keyboards import (
 )
 from core.config import settings, get_localization, world_manager
 from core.database.db_manager import DatabaseManager
+from core.llm.openrouter_client import OpenRouterClient
+from core.orchestrator import TurnOrchestrator
+from core.streaming import StreamingMessageUpdater
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +44,13 @@ router = Router()
 
 # Initialize database manager
 db = DatabaseManager()
+
+# Initialize orchestrator for streaming first message
+llm_client = OpenRouterClient(
+    api_key=settings.openrouter_api_key,
+    base_url=settings.openrouter_base_url
+)
+orchestrator = TurnOrchestrator(db, llm_client)
 
 
 # ============= START & LANGUAGE SELECTION =============
@@ -309,87 +320,130 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
         await state.update_data(session_id=new_session.id, world_id=world_id)
         await state.set_state(GameStates.IN_GAME)
         
-        # Показываем сообщение о создании игры
-        await callback.message.edit_text(loc.get_creating_world_message())
+        # Start loading indicator
+        loading = LoadingIndicator(
+            bot=callback.bot,
+            chat_id=callback.from_user.id,
+            initial_text=loc.get_creating_story_message()
+        )
+        await loading.start()
         await callback.answer()
         
-        # Small delay to ensure DB transaction is committed and visible to API process
-        import asyncio
-        await asyncio.sleep(0.1)
-        
-        # Отправляем первый запрос к ГМ от имени игрока
-        import httpx
-        api_url = f"http://localhost:8000/sessions/{new_session.id}/messages"
-
-        logger.info(f"Sending initial GM request for session {new_session.id}")
-
+        # Process first turn with streaming
         try:
-            async with httpx.AsyncClient(timeout=120.0) as client:
-                response = await client.post(
-                    api_url,
-                    json={
-                        "session_id": new_session.id,
-                        "message": "Объясни правила игры, и давай создадим персонажа"
-                    }
-                )
+            logger.info(f"Processing first turn with streaming for session {new_session.id}")
+            
+            # Track if we've started streaming
+            first_update = True
+            updater = None
+            
+            # Define streaming callback
+            async def on_narrative_update(narrative: str):
+                """Called progressively as narrative is generated."""
+                nonlocal first_update, updater
                 
-                logger.info(f"GM response status: {response.status_code}")
+                logger.info(f"📨 MENU: Received narrative update: {len(narrative)} chars")
                 
-                if response.status_code == 200:
-                    result = response.json()
-                    gm_response = result.get("reply", "")
+                # On first update: stop loading indicator and create updater
+                if first_update:
+                    first_update = False
+                    await loading.stop()
                     
-                    if gm_response:
-                        # Отправляем ответ ГМ игроку
-                        # Telegram лимит - 4096 символов, разбиваем на части если нужно
-                        header = loc.get_story_started_header()
-                        
-                        # Convert markdown to HTML
-                        gm_response = convert_markdown_to_html(gm_response)
-                        
-                        full_message = header + gm_response
-                        
-                        if len(full_message) > 4000:
-                            # Умное разбиение по абзацам
-                            from telegram.utils.markdown_converter import split_message_into_chunks
-                            
-                            # Split with first chunk having header
-                            gm_chunks = split_message_into_chunks(gm_response, max_length=3900)
-                            chunks = [header + gm_chunks[0]] + gm_chunks[1:]
-                            
-                            logger.info(f"Initial message split into {len(chunks)} chunks (smart paragraph splitting)")
-                            
-                            # Первый chunk заменяет текущее сообщение
-                            await callback.message.edit_text(chunks[0], parse_mode="HTML")
-                            
-                            # Остальные отправляем как новые сообщения
-                            for chunk in chunks[1:]:
-                                await asyncio.sleep(0.5)
-                                await callback.message.answer(chunk, parse_mode="HTML")
-                        else:
-                            # Сообщение короткое, отправляем целиком
-                            await callback.message.edit_text(full_message, parse_mode="HTML")
-                        
-                        logger.info("Successfully sent initial GM message")
-                    else:
-                        logger.error("Empty GM response")
-                        await callback.message.edit_text(
-                            "❌ Ошибка: ГМ вернул пустой ответ. Попробуйте написать что-нибудь."
+                    # Create streaming updater using the loading message
+                    updater = StreamingMessageUpdater(
+                        bot=callback.bot,
+                        chat_id=callback.from_user.id,
+                        message_id=loading.message.message_id,
+                        update_interval=settings.streaming_chunk_interval
+                    )
+                
+                # Format with header for first message
+                header = loc.get_story_started_header()
+                formatted = f"{header}{narrative}"
+                
+                # Convert markdown to HTML and validate
+                formatted_html = convert_markdown_to_html(formatted)
+                formatted_html = validate_and_fix_html(formatted_html)
+                
+                # Schedule update
+                await updater.schedule_update(formatted_html)
+                logger.debug(f"✓ MENU: Update scheduled")
+            
+            # Call orchestrator with streaming
+            if settings.enable_streaming:
+                logger.info("🎬 Using streaming for first message")
+                result = await orchestrator.process_turn(
+                    session_id=new_session.id,
+                    user_message="Объясни правила игры, и давай создадим персонажа",
+                    on_narrative_update=on_narrative_update
+                )
+            else:
+                logger.info("📄 Using non-streaming mode for first message")
+                result = await orchestrator.process_turn(
+                    session_id=new_session.id,
+                    user_message="Объясни правила игры, и давай создадим персонажа"
+                )
+            
+            # Get final response
+            reply_text = result['reply']
+            
+            # Format final response with header
+            header = loc.get_story_started_header()
+            final_message = f"{header}{reply_text}"
+            
+            # Convert markdown to HTML and validate
+            final_html = convert_markdown_to_html(final_message)
+            final_html = validate_and_fix_html(final_html)
+            
+            # Handle long messages
+            if len(final_html) > 4000:
+                from telegram.utils.markdown_converter import split_message_into_chunks
+                
+                content_html = convert_markdown_to_html(reply_text)
+                content_html = validate_and_fix_html(content_html)
+                
+                # Smart split
+                chunks = split_message_into_chunks(header + content_html, max_length=4000)
+                
+                logger.info(f"First message split into {len(chunks)} chunks")
+                
+                if settings.enable_streaming and updater:
+                    # Force final update with first chunk
+                    await updater.force_update(chunks[0])
+                    
+                    # Send remaining chunks
+                    for chunk in chunks[1:]:
+                        await asyncio.sleep(0.5)
+                        await callback.bot.send_message(
+                            callback.from_user.id,
+                            chunk,
+                            parse_mode="HTML"
                         )
                 else:
-                    logger.error(f"GM API error: {response.status_code}, {response.text}")
-                    await callback.message.edit_text(
-                        f"❌ Ошибка API ({response.status_code}). Попробуйте написать что-нибудь для начала игры."
-                    )
-        except httpx.TimeoutException as e:
-            logger.error(f"Timeout sending initial GM message: {e}")
-            await callback.message.edit_text(
-                "⏱️ Превышено время ожидания. Напишите что-нибудь для начала игры."
-            )
+                    # Non-streaming: replace loading and send chunks
+                    await loading.replace_with_text(chunks[0], parse_mode="HTML")
+                    for chunk in chunks[1:]:
+                        await asyncio.sleep(0.5)
+                        await callback.bot.send_message(
+                            callback.from_user.id,
+                            chunk,
+                            parse_mode="HTML"
+                        )
+            else:
+                # Message fits in one chunk
+                if settings.enable_streaming and updater:
+                    # Force final update
+                    await updater.force_update(final_html)
+                else:
+                    # Non-streaming: replace loading
+                    await loading.replace_with_text(final_html, parse_mode="HTML")
+            
+            logger.info("✅ Successfully sent initial GM message with streaming")
+            
         except Exception as e:
-            logger.error(f"Error sending initial GM message: {e}", exc_info=True)
-            await callback.message.edit_text(
-                f"❌ Ошибка: {str(e)[:100]}\n\nНапишите что-нибудь для начала игры."
+            logger.error(f"Error processing first turn: {e}", exc_info=True)
+            await loading.replace_with_text(
+                f"❌ {loc.get_error_message()}\n\n{str(e)[:100]}"
             )
         
     except Exception as e:
