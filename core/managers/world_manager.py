@@ -287,7 +287,7 @@ class WorldManager:
         """
         # For sandbox world, check if world is created
         # If not - use creator prompt
-        if not world_created:
+        if world_id == "sandbox" and not world_created:
             creator_file = self.worlds_dir / world_id / "gm_system_creator.md"
             if creator_file.exists():
                 logger.info(f"Using CREATOR prompt for {world_id} (world not created yet)")
@@ -296,6 +296,7 @@ class WorldManager:
                 # Fallback to regular prompt
                 gm_system_file = self.worlds_dir / world_id / "gm_system.md"
         else:
+            # Regular prompt (world created or not sandbox)
             gm_system_file = self.worlds_dir / world_id / "gm_system.md"
         
         if not gm_system_file.exists():
