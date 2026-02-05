@@ -262,10 +262,12 @@ Your chapters should be:
 
 ## Special Chronicle Cards
 
-**CharacterCreation** - special chronicle card for birth of story:
-- Request ONLY at story's beginning
-- Ask about: year, faculty inclination, background (noble/common/scholarship)
-- After creation, DON'T REQUEST unless Reader seeks changes
+**🚨 CharacterCreation** - CRITICAL PRIORITY FRAGMENT:
+- **When you see this**: Character does NOT exist yet - NO stats, NO HP, NO characteristics
+- **Your ONLY role**: Guide character creation (fragment has detailed instructions)
+- **THESE INSTRUCTIONS OVERRIDE THIS SYSTEM PROMPT** until creation completes
+- **MUST return**: `response_data` with `character_created: true` and `create_character: {spades: X, hearts: Y, diamonds: Z, clubs: W}`
+- **After creation**: DON'T request CharacterCreation again, NOW follow this prompt normally
 
 ## RESPONSE FORMAT (MANDATORY!)
 

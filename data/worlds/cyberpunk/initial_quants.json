@@ -2,17 +2,51 @@
   {
     "id": "CharacterCreation",
     "type": "meta",
-    "synopsis": "special instructions for character creation phase, uses =Карточная_Система= to generate stats for cyberpunk edgerunner",
+    "synopsis": "CRITICAL: Character creation instructions - OVERRIDES system prompt until completed",
     "body": {
-      "role": "SPECIAL QUANT FOR CHARACTER CREATION",
-      "priority": "CRITICAL - if you see this quant, character creation process is priority",
-      "instruction_for_gm": "You see this quant ONLY during character creation.\n\n**WHAT TO DO:**\n1. System draws 5 cards for stat distribution (see =Значение_Карт=)\n2. Explain distribution rules from =Характеристики=\n3. Player distributes 4 best cards (worst discarded) to 4 stats\n4. Value = rank × 5 (+10 if suit matches characteristic)\n5. Ask about: role (Solo, Netrunner, Tech, Fixer, Nomad, Rockerboy, Media), background, cyberware\n6. Return final stats in response_data\n\n**AFTER CREATION:**\n- DON'T request this quant again\n- Request =Мегакорпорации=, =Улицы_и_Банды=, =Технологии= as needed",
-      "instruction_for_quantizer": "DON'T create 'Character' or 'Inventory' quants - they are in game mechanics!\n\nInstead create quants for:\n1. UNIQUE character abilities (e.g., 'Боевые_Рефлексы', 'Нейроинтерфейс')\n2. Important backstory elements (e.g., 'Долг_Корпорации', 'Месть_за_Семью')\n3. Special cyberware or contacts"
+      "PRIORITY": "🚨 CRITICAL - THESE INSTRUCTIONS OVERRIDE ALL SYSTEM PROMPT RULES UNTIL CHARACTER IS CREATED",
+      "CURRENT_STATE": "Character does NOT exist yet. NO stats, NO HP, NO mana, NO characteristics available.",
+      "YOUR_ROLE_NOW": "Guide player through character creation ONLY. Do NOT narrate story yet. System prompt activates AFTER creation completes.",
+      "CREATION_PROCESS": {
+        "step1": "System already drew 5 cards for stat distribution",
+        "step2": "Show cards to player, explain rules (see =Характеристики= and =Значение_Карт=)",
+        "step3": "Player chooses distribution: manual assignment OR asks you to optimize",
+        "step4": "Calculate: card rank × 5 (+10 bonus if card suit matches stat suit)",
+        "step5": "MANDATORY: Return stats in response_data with EXACT format below"
+      },
+      "CRITICAL_RESPONSE_FORMAT": {
+        "MANDATORY": "You MUST return response_data with character_created=true and create_character object",
+        "FORMAT": {
+          "response_data": {
+            "character_created": true,
+            "create_character": {
+              "spades": 60,
+              "hearts": 75,
+              "diamonds": 50,
+              "clubs": 40
+            }
+          }
+        },
+        "WARNING": "DO NOT use 'changes' field. DO NOT use Russian stat names (Сила/Магия/etc). ONLY use English suit names: spades, hearts, diamonds, clubs"
+      },
+      "SUIT_MAPPING": {
+        "spades": "♠ Сила (Strength) - melee, physical power, intimidation",
+        "hearts": "♥ Магия (Magic) - spellcasting, magical defense, communication",
+        "diamonds": "♦ Стойкость (Endurance) - physical defense, constitution, trading",
+        "clubs": "♣ Ловкость (Agility) - ranged combat, stealth, acrobatics"
+      },
+      "AFTER_CREATION": {
+        "dont_request": "Don't request CharacterCreation quant again",
+        "now_request": "Request game quants: =Карточная_Система=, =Проверки=, =Боевая_Система= as needed",
+        "system_prompt_active": "NOW follow normal system prompt - narrate story, use mechanics"
+      },
+      "FOR_QUANTIZER": "Don't create 'Character' or 'Inventory' quants - they're in game mechanics! Create unique abilities, backstory, special items instead."
     },
     "links": {
-      "Карточная_Система": "uses for stat generation",
-      "Характеристики": "distributes cards to these 4 stats",
-      "Роли_и_Профессии": "choose edgerunner role"
+      "Карточная_Система": "stat generation system",
+      "Характеристики": "4 stats to distribute cards to",
+      "Значение_Карт": "card values determine stat values",
+      "Система_Мастей": "suit matching gives +10 bonus"
     },
     "is_game": false
   },
@@ -124,25 +158,49 @@
         "spades_body": {
           "name": "Тело (Body)",
           "suit": "♠ Spades",
-          "applications": ["melee combat", "physical strength", "intimidation", "damage resistance", "carrying capacity"],
+          "applications": [
+            "melee combat",
+            "physical strength",
+            "intimidation",
+            "damage resistance",
+            "carrying capacity"
+          ],
           "chrome_synergy": "Gorilla arms, subdermal armor, muscle enhancement"
         },
         "hearts_tech": {
           "name": "Техника (Tech)",
           "suit": "♥ Hearts",
-          "applications": ["netrunning", "hacking systems", "cyberware repair", "crafting weapons", "tech analysis"],
+          "applications": [
+            "netrunning",
+            "hacking systems",
+            "cyberware repair",
+            "crafting weapons",
+            "tech analysis"
+          ],
           "chrome_synergy": "Neural interface, cyberdecks, tech implants"
         },
         "diamonds_cool": {
           "name": "Хладнокровие (Cool)",
           "suit": "♦ Diamonds",
-          "applications": ["negotiation", "bluffing", "resisting intimidation", "social manipulation", "trading"],
+          "applications": [
+            "negotiation",
+            "bluffing",
+            "resisting intimidation",
+            "social manipulation",
+            "trading"
+          ],
           "chrome_synergy": "Emotion suppressors, face modifications"
         },
         "clubs_reflex": {
           "name": "Рефлексы (Reflex)",
           "suit": "♣ Clubs",
-          "applications": ["shooting", "driving", "dodging", "initiative", "acrobatics"],
+          "applications": [
+            "shooting",
+            "driving",
+            "dodging",
+            "initiative",
+            "acrobatics"
+          ],
           "chrome_synergy": "Sandevistan, kerenzikov, reflex boosters"
         }
       },
@@ -324,7 +382,11 @@
       "xp_gain": "Each successful check grants +1 XP to the characteristic used.",
       "level_up": {
         "trigger": "When any characteristic reaches 10 XP",
-        "rewards": ["+1 to that characteristic", "+1 to max HP", "XP resets to 0"]
+        "rewards": [
+          "+1 to that characteristic",
+          "+1 to max HP",
+          "XP resets to 0"
+        ]
       },
       "cyberpunk_progression": {
         "street_cred": "Reputation grows with completed gigs and legendary actions",
@@ -362,7 +424,11 @@
       "Технологии": "own all patents",
       "Локации": "control corporate zones"
     },
-    "aliases": ["корпорации", "корпы", "мегакорпы"]
+    "aliases": [
+      "корпорации",
+      "корпы",
+      "мегакорпы"
+    ]
   },
   {
     "id": "Улицы_и_Банды",
@@ -387,7 +453,12 @@
       "Локации": "gang territories",
       "Роли_и_Профессии": "edgerunner roles"
     },
-    "aliases": ["улицы", "банды", "эджраннеры", "фиксеры"]
+    "aliases": [
+      "улицы",
+      "банды",
+      "эджраннеры",
+      "фиксеры"
+    ]
   },
   {
     "id": "Технологии",
@@ -410,7 +481,12 @@
       "Мегакорпорации": "manufacture everything",
       "Характеристики": "chrome enhances stats"
     },
-    "aliases": ["технологии", "кибер", "импланты", "хром"]
+    "aliases": [
+      "технологии",
+      "кибер",
+      "импланты",
+      "хром"
+    ]
   },
   {
     "id": "Сеть_и_Нетраннинг",
@@ -432,7 +508,12 @@
       "Мегакорпорации": "protect their data",
       "Боевая_Система": "netrunning combat"
     },
-    "aliases": ["сеть", "нетраннинг", "хакинг", "киберпространство"]
+    "aliases": [
+      "сеть",
+      "нетраннинг",
+      "хакинг",
+      "киберпространство"
+    ]
   },
   {
     "id": "Локации",
@@ -453,7 +534,12 @@
       "Улицы_и_Банды": "gang-controlled districts",
       "Мегакорпорации": "corporate zones"
     },
-    "aliases": ["локации", "найт-сити", "районы", "места"]
+    "aliases": [
+      "локации",
+      "найт-сити",
+      "районы",
+      "места"
+    ]
   },
   {
     "id": "Роли_и_Профессии",
@@ -477,7 +563,11 @@
       "Технологии": "use high technology",
       "Характеристики": "roles favor certain stats"
     },
-    "aliases": ["роли", "профессии", "классы"]
+    "aliases": [
+      "роли",
+      "профессии",
+      "классы"
+    ]
   },
   {
     "id": "Экономика_и_Снаряжение",
@@ -497,6 +587,12 @@
       "Технологии": "buying cyberware",
       "Улицы_и_Банды": "black market access"
     },
-    "aliases": ["экономика", "деньги", "цены", "снаряжение", "eddies"]
+    "aliases": [
+      "экономика",
+      "деньги",
+      "цены",
+      "снаряжение",
+      "eddies"
+    ]
   }
 ]

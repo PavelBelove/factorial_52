@@ -2,17 +2,51 @@
   {
     "id": "CharacterCreation",
     "type": "meta",
-    "synopsis": "special instructions for character creation phase, uses =Карточная_Система= to generate stats for wasteland survivor",
+    "synopsis": "CRITICAL: Character creation instructions - OVERRIDES system prompt until completed",
     "body": {
-      "role": "SPECIAL QUANT FOR CHARACTER CREATION",
-      "priority": "CRITICAL - if you see this quant, character creation process is priority",
-      "instruction_for_gm": "You see this quant ONLY during character creation.\n\n**WHAT TO DO:**\n1. System draws 5 cards for stat distribution (see =Значение_Карт=)\n2. Explain distribution rules from =Характеристики=\n3. Player distributes 4 best cards (worst discarded) to 4 stats\n4. Value = rank × 5 (+10 if suit matches characteristic)\n5. Ask about: origin (Vault dweller, wastelander, settler, caravan), background, unique trait\n6. Return final stats in response_data\n\n**AFTER CREATION:**\n- DON'T request this quant again\n- Request =Пустошь=, =Фракции=, =Технологии_Пустоши= as needed",
-      "instruction_for_quantizer": "DON'T create 'Character' or 'Inventory' quants - they are in game mechanics!\n\nInstead create quants for:\n1. UNIQUE character abilities (e.g., 'Мутация', 'Навык_Выживания')\n2. Important backstory elements (e.g., 'Убежище_101', 'Месть_за_Семью')\n3. Special equipment or contacts"
+      "PRIORITY": "🚨 CRITICAL - THESE INSTRUCTIONS OVERRIDE ALL SYSTEM PROMPT RULES UNTIL CHARACTER IS CREATED",
+      "CURRENT_STATE": "Character does NOT exist yet. NO stats, NO HP, NO mana, NO characteristics available.",
+      "YOUR_ROLE_NOW": "Guide player through character creation ONLY. Do NOT narrate story yet. System prompt activates AFTER creation completes.",
+      "CREATION_PROCESS": {
+        "step1": "System already drew 5 cards for stat distribution",
+        "step2": "Show cards to player, explain rules (see =Характеристики= and =Значение_Карт=)",
+        "step3": "Player chooses distribution: manual assignment OR asks you to optimize",
+        "step4": "Calculate: card rank × 5 (+10 bonus if card suit matches stat suit)",
+        "step5": "MANDATORY: Return stats in response_data with EXACT format below"
+      },
+      "CRITICAL_RESPONSE_FORMAT": {
+        "MANDATORY": "You MUST return response_data with character_created=true and create_character object",
+        "FORMAT": {
+          "response_data": {
+            "character_created": true,
+            "create_character": {
+              "spades": 60,
+              "hearts": 75,
+              "diamonds": 50,
+              "clubs": 40
+            }
+          }
+        },
+        "WARNING": "DO NOT use 'changes' field. DO NOT use Russian stat names (Сила/Магия/etc). ONLY use English suit names: spades, hearts, diamonds, clubs"
+      },
+      "SUIT_MAPPING": {
+        "spades": "♠ Сила (Strength) - melee, physical power, intimidation",
+        "hearts": "♥ Магия (Magic) - spellcasting, magical defense, communication",
+        "diamonds": "♦ Стойкость (Endurance) - physical defense, constitution, trading",
+        "clubs": "♣ Ловкость (Agility) - ranged combat, stealth, acrobatics"
+      },
+      "AFTER_CREATION": {
+        "dont_request": "Don't request CharacterCreation quant again",
+        "now_request": "Request game quants: =Карточная_Система=, =Проверки=, =Боевая_Система= as needed",
+        "system_prompt_active": "NOW follow normal system prompt - narrate story, use mechanics"
+      },
+      "FOR_QUANTIZER": "Don't create 'Character' or 'Inventory' quants - they're in game mechanics! Create unique abilities, backstory, special items instead."
     },
     "links": {
-      "Карточная_Система": "uses for stat generation",
-      "Характеристики": "distributes cards to these 4 stats",
-      "Пустошь": "world setting"
+      "Карточная_Система": "stat generation system",
+      "Характеристики": "4 stats to distribute cards to",
+      "Значение_Карт": "card values determine stat values",
+      "Система_Мастей": "suit matching gives +10 bonus"
     },
     "is_game": false
   },
@@ -124,22 +158,48 @@
         "spades_strength": {
           "name": "Сила (Strength)",
           "suit": "♠ Spades",
-          "applications": ["melee combat", "carrying capacity", "breaking obstacles", "intimidation", "using heavy weapons"]
+          "applications": [
+            "melee combat",
+            "carrying capacity",
+            "breaking obstacles",
+            "intimidation",
+            "using heavy weapons"
+          ]
         },
         "hearts_science": {
           "name": "Наука (Science)",
           "suit": "♥ Hearts",
-          "applications": ["repairing equipment", "hacking terminals", "crafting", "medicine", "understanding pre-war technology"]
+          "applications": [
+            "repairing equipment",
+            "hacking terminals",
+            "crafting",
+            "medicine",
+            "understanding pre-war technology"
+          ]
         },
         "diamonds_survival": {
           "name": "Выживание (Survival)",
           "suit": "♦ Diamonds",
-          "applications": ["scavenging", "trading", "cooking", "radiation resistance", "social interaction", "tracking"]
+          "applications": [
+            "scavenging",
+            "trading",
+            "cooking",
+            "radiation resistance",
+            "social interaction",
+            "tracking"
+          ]
         },
         "clubs_agility": {
           "name": "Ловкость (Agility)",
           "suit": "♣ Clubs",
-          "applications": ["shooting", "sneaking", "lockpicking", "dodging", "pickpocketing", "quick reactions"]
+          "applications": [
+            "shooting",
+            "sneaking",
+            "lockpicking",
+            "dodging",
+            "pickpocketing",
+            "quick reactions"
+          ]
         }
       },
       "starting_values": "Typically 25-85 range. Card rank × 5 (+10 if suit matches).",
@@ -316,7 +376,11 @@
       "xp_gain": "Each successful check grants +1 XP to the characteristic used.",
       "level_up": {
         "trigger": "When any characteristic reaches 10 XP",
-        "rewards": ["+1 to that characteristic", "+1 to max HP", "XP resets to 0"]
+        "rewards": [
+          "+1 to that characteristic",
+          "+1 to max HP",
+          "XP resets to 0"
+        ]
       },
       "wasteland_progression": {
         "reputation": "Deeds build reputation with factions and settlements",
@@ -348,7 +412,12 @@
       "Мутанты_и_Твари": "inhabit the wasteland",
       "Локации": "key locations"
     },
-    "aliases": ["пустошь", "wasteland", "мир", "постапокалипсис"]
+    "aliases": [
+      "пустошь",
+      "wasteland",
+      "мир",
+      "постапокалипсис"
+    ]
   },
   {
     "id": "Фракции",
@@ -368,7 +437,12 @@
       "Пустошь": "struggle for control",
       "Локации": "bases and territories"
     },
-    "aliases": ["фракции", "группировки", "банды", "организации"]
+    "aliases": [
+      "фракции",
+      "группировки",
+      "банды",
+      "организации"
+    ]
   },
   {
     "id": "Мутанты_и_Твари",
@@ -389,7 +463,14 @@
       "Пустошь": "inhabit",
       "Боевая_Система": "dangerous enemies"
     },
-    "aliases": ["мутанты", "твари", "существа", "монстры", "гули", "супермутанты"]
+    "aliases": [
+      "мутанты",
+      "твари",
+      "существа",
+      "монстры",
+      "гули",
+      "супермутанты"
+    ]
   },
   {
     "id": "Технологии_Пустоши",
@@ -410,7 +491,13 @@
       "Фракции": "Brotherhood collects",
       "Экономика_и_Торговля": "valuable goods"
     },
-    "aliases": ["технологии", "оружие", "броня", "снаряжение", "медицина"]
+    "aliases": [
+      "технологии",
+      "оружие",
+      "броня",
+      "снаряжение",
+      "медицина"
+    ]
   },
   {
     "id": "Локации",
@@ -431,7 +518,13 @@
       "Пустошь": "places on map",
       "Фракции": "control territories"
     },
-    "aliases": ["локации", "места", "зоны", "убежища", "поселения"]
+    "aliases": [
+      "локации",
+      "места",
+      "зоны",
+      "убежища",
+      "поселения"
+    ]
   },
   {
     "id": "Экономика_и_Торговля",
@@ -451,7 +544,14 @@
       "Технологии_Пустоши": "what's valuable",
       "Фракции": "trade connections"
     },
-    "aliases": ["экономика", "торговля", "крышки", "caps", "деньги", "цены"]
+    "aliases": [
+      "экономика",
+      "торговля",
+      "крышки",
+      "caps",
+      "деньги",
+      "цены"
+    ]
   },
   {
     "id": "Радиация",
@@ -472,7 +572,12 @@
       "Мутанты_и_Твари": "cause of mutations",
       "Технологии_Пустоши": "protection and treatment"
     },
-    "aliases": ["радиация", "облучение", "заражение", "рады"]
+    "aliases": [
+      "радиация",
+      "облучение",
+      "заражение",
+      "рады"
+    ]
   },
   {
     "id": "Выживание_в_Пустоши",
@@ -493,7 +598,12 @@
       "Пустошь": "where to survive",
       "Проверки": "survival skill checks"
     },
-    "aliases": ["выживание", "собирательство", "охота", "ремонт"]
+    "aliases": [
+      "выживание",
+      "собирательство",
+      "охота",
+      "ремонт"
+    ]
   },
   {
     "id": "Химия_и_Зависимости",
@@ -514,7 +624,13 @@
       "Технологии_Пустоши": "part of medicine",
       "Выживание_в_Пустоши": "help and risk"
     },
-    "aliases": ["химия", "хим", "препараты", "наркотики", "стимпаки"]
+    "aliases": [
+      "химия",
+      "хим",
+      "препараты",
+      "наркотики",
+      "стимпаки"
+    ]
   },
   {
     "id": "Репутация_и_Карма",
@@ -534,7 +650,12 @@
       "Фракции": "relations",
       "Выживание_в_Пустоши": "social survival"
     },
-    "aliases": ["репутация", "карма", "отношения", "слава"]
+    "aliases": [
+      "репутация",
+      "карма",
+      "отношения",
+      "слава"
+    ]
   },
   {
     "id": "Убежища_Vault",
@@ -555,7 +676,13 @@
       "Фракции": "dwellers as group",
       "Технологии_Пустоши": "source of technology"
     },
-    "aliases": ["убежища", "vault", "волт-тек", "vault-tec", "бункер"]
+    "aliases": [
+      "убежища",
+      "vault",
+      "волт-тек",
+      "vault-tec",
+      "бункер"
+    ]
   },
   {
     "id": "Транспорт_и_Путешествия",
@@ -576,6 +703,11 @@
       "Пустошь": "movement",
       "Локации": "route points"
     },
-    "aliases": ["транспорт", "путешествия", "дорога", "караван"]
+    "aliases": [
+      "транспорт",
+      "путешествия",
+      "дорога",
+      "караван"
+    ]
   }
 ]

@@ -2,17 +2,51 @@
   {
     "id": "CharacterCreation",
     "type": "meta",
-    "synopsis": "special instructions for character creation phase, uses =Карточная_Система= to generate stats",
+    "synopsis": "CRITICAL: Character creation instructions - OVERRIDES system prompt until completed",
     "body": {
-      "role": "SPECIAL QUANT FOR CHARACTER CREATION",
-      "priority": "CRITICAL - if you see this quant, character creation process is priority",
-      "instruction_for_gm": "You see this quant ONLY during character creation.\n\n**WHAT TO DO:**\n1. System draws 5 cards for stat distribution (see =Значение_Карт=)\n2. Explain distribution rules from =Характеристики=\n3. Player distributes 4 best cards (worst discarded) to 4 stats\n4. Value = rank × 5 (+10 if suit matches characteristic)\n5. Return final stats in response_data\n\n**AFTER CREATION:**\n- DON'T request this quant again\n- Request =Карточная_Система=, =Проверки=, =Боевая_Система= as needed",
-      "instruction_for_quantizer": "DON'T create 'Character' or 'Inventory' quants - they are in game mechanics!\n\nInstead create quants for:\n1. UNIQUE character abilities (e.g., 'Магический_Призыв')\n2. Important backstory elements (e.g., 'Предыстория_Героя')\n3. Special items with lore"
+      "PRIORITY": "🚨 CRITICAL - THESE INSTRUCTIONS OVERRIDE ALL SYSTEM PROMPT RULES UNTIL CHARACTER IS CREATED",
+      "CURRENT_STATE": "Character does NOT exist yet. NO stats, NO HP, NO mana, NO characteristics available.",
+      "YOUR_ROLE_NOW": "Guide player through character creation ONLY. Do NOT narrate story yet. System prompt activates AFTER creation completes.",
+      "CREATION_PROCESS": {
+        "step1": "System already drew 5 cards for stat distribution",
+        "step2": "Show cards to player, explain rules (see =Характеристики= and =Значение_Карт=)",
+        "step3": "Player chooses distribution: manual assignment OR asks you to optimize",
+        "step4": "Calculate: card rank × 5 (+10 bonus if card suit matches stat suit)",
+        "step5": "MANDATORY: Return stats in response_data with EXACT format below"
+      },
+      "CRITICAL_RESPONSE_FORMAT": {
+        "MANDATORY": "You MUST return response_data with character_created=true and create_character object",
+        "FORMAT": {
+          "response_data": {
+            "character_created": true,
+            "create_character": {
+              "spades": 60,
+              "hearts": 75,
+              "diamonds": 50,
+              "clubs": 40
+            }
+          }
+        },
+        "WARNING": "DO NOT use 'changes' field. DO NOT use Russian stat names (Сила/Магия/etc). ONLY use English suit names: spades, hearts, diamonds, clubs"
+      },
+      "SUIT_MAPPING": {
+        "spades": "♠ Сила (Strength) - melee, physical power, intimidation",
+        "hearts": "♥ Магия (Magic) - spellcasting, magical defense, communication",
+        "diamonds": "♦ Стойкость (Endurance) - physical defense, constitution, trading",
+        "clubs": "♣ Ловкость (Agility) - ranged combat, stealth, acrobatics"
+      },
+      "AFTER_CREATION": {
+        "dont_request": "Don't request CharacterCreation quant again",
+        "now_request": "Request game quants: =Карточная_Система=, =Проверки=, =Боевая_Система= as needed",
+        "system_prompt_active": "NOW follow normal system prompt - narrate story, use mechanics"
+      },
+      "FOR_QUANTIZER": "Don't create 'Character' or 'Inventory' quants - they're in game mechanics! Create unique abilities, backstory, special items instead."
     },
     "links": {
-      "Карточная_Система": "uses for stat generation",
-      "Характеристики": "distributes cards to these 4 stats",
-      "Значение_Карт": "card values determine stat values"
+      "Карточная_Система": "stat generation system",
+      "Характеристики": "4 stats to distribute cards to",
+      "Значение_Карт": "card values determine stat values",
+      "Система_Мастей": "suit matching gives +10 bonus"
     },
     "is_game": false
   },
@@ -127,25 +161,48 @@
         "spades_strength": {
           "name": "Сила (Strength)",
           "suit": "♠ Spades",
-          "applications": ["melee combat", "physical strength", "willpower", "intimidation"],
+          "applications": [
+            "melee combat",
+            "physical strength",
+            "willpower",
+            "intimidation"
+          ],
           "combat_use": "melee attack damage"
         },
         "hearts_magic": {
           "name": "Магия (Magic)",
           "suit": "♥ Hearts",
-          "applications": ["magic defense", "spellcasting", "wisdom", "communication", "persuasion"],
+          "applications": [
+            "magic defense",
+            "spellcasting",
+            "wisdom",
+            "communication",
+            "persuasion"
+          ],
           "combat_use": "magical defense, spell power"
         },
         "diamonds_endurance": {
           "name": "Стойкость (Endurance)",
           "suit": "♦ Diamonds",
-          "applications": ["physical defense", "endurance", "charisma", "trading", "constitution"],
+          "applications": [
+            "physical defense",
+            "endurance",
+            "charisma",
+            "trading",
+            "constitution"
+          ],
           "combat_use": "physical defense (shields, armor, dodging)"
         },
         "clubs_agility": {
           "name": "Ловкость (Agility)",
           "suit": "♣ Clubs",
-          "applications": ["ranged combat", "acrobatics", "aim", "stealth", "dexterity"],
+          "applications": [
+            "ranged combat",
+            "acrobatics",
+            "aim",
+            "stealth",
+            "dexterity"
+          ],
           "combat_use": "ranged attack damage"
         }
       },

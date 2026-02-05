@@ -192,11 +192,6 @@ class TurnOrchestrator:
         requested_quants = gm_response["quants"]
         response_data = gm_response.get("response_data", {})
         
-        # Backward compatibility: check for 'changes' field (old format)
-        if not response_data and "changes" in gm_response:
-            response_data = gm_response["changes"]
-            logger.info("Using 'changes' field as response_data for backward compatibility")
-        
         logger.info(f"GM response generated. Requested quants: {requested_quants}")
         logger.debug(f"Response data: {response_data}")
         
@@ -211,33 +206,11 @@ class TurnOrchestrator:
         # Step 3.5: Apply game mechanics changes
         if response_data:
             # Check if character was just created
-            if response_data.get("character_created"):
-                logger.info("Character creation detected in response")
-                
-                # Extract stats from either format
-                char_stats = None
-                if "create_character" in response_data:
-                    char_stats = response_data["create_character"]
-                elif "stats" in response_data:
-                    # Old format: convert Russian stat names to English suits
-                    old_stats = response_data["stats"]
-                    stat_mapping = {
-                        "Сила": "spades",
-                        "Магия": "hearts",
-                        "Стойкость": "diamonds",
-                        "Ловкость": "clubs"
-                    }
-                    char_stats = {}
-                    for rus_name, eng_name in stat_mapping.items():
-                        if rus_name in old_stats:
-                            char_stats[eng_name] = old_stats[rus_name]
-                    logger.info(f"Converted old stat format: {old_stats} -> {char_stats}")
-                
-                if char_stats:
-                    self.mechanics_manager.create_character(session_id, char_stats)
-                    logger.info(f"✅ Character created: {char_stats}")
-                else:
-                    logger.warning("character_created=true but no stats found!")
+            if response_data.get("character_created") and "create_character" in response_data:
+                logger.info("Creating character from GM response")
+                char_stats = response_data["create_character"]
+                self.mechanics_manager.create_character(session_id, char_stats)
+                logger.info(f"✅ Character created: {char_stats}")
             elif character_exists:
                 # Apply changes to existing character
                 logger.info(f"Applying mechanics changes: {response_data}")
