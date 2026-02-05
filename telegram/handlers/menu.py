@@ -420,7 +420,8 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
                             parse_mode="HTML"
                         )
                 else:
-                    # Non-streaming: replace loading and send chunks
+                    # Non-streaming or updater not created: replace loading and send chunks
+                    await loading.stop()
                     await loading.replace_with_text(chunks[0], parse_mode="HTML")
                     for chunk in chunks[1:]:
                         await asyncio.sleep(0.5)
@@ -435,7 +436,8 @@ async def start_new_game(callback: CallbackQuery, state: FSMContext):
                     # Force final update
                     await updater.force_update(final_html)
                 else:
-                    # Non-streaming: replace loading
+                    # Non-streaming or updater not created: replace loading
+                    await loading.stop()
                     await loading.replace_with_text(final_html, parse_mode="HTML")
             
             logger.info("✅ Successfully sent initial GM message with streaming")

@@ -287,6 +287,13 @@ class MechanicsManager:
         
         changes_applied = []
         
+        # Auto-regenerate mana (+5% of max per turn, rounded)
+        mana_regen = max(1, int(char.max_mana * 0.05))
+        if char.mana < char.max_mana:
+            char.mana = min(char.max_mana, char.mana + mana_regen)
+            changes_applied.append(f"♥ Mana regenerated: +{mana_regen}")
+            logger.info(f"Auto mana regen: +{mana_regen} ({char.mana}/{char.max_mana})")
+        
         # HP changes
         if "hp" in response_data:
             char.hp = max(0, min(char.max_hp, char.hp + response_data["hp"]))
