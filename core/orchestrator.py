@@ -205,8 +205,8 @@ class TurnOrchestrator:
         
         # Step 3.5: Apply game mechanics changes
         if response_data:
-            # Check if character was just created
-            if response_data.get("character_created") and "create_character" in response_data:
+            # Check if character was just created (and doesn't exist yet!)
+            if response_data.get("character_created") and "create_character" in response_data and not character_exists:
                 logger.info("Creating character from GM response")
                 char_stats = response_data["create_character"]
                 self.mechanics_manager.create_character(session_id, char_stats)
