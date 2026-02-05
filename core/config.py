@@ -16,12 +16,12 @@ class Settings(BaseSettings):
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     
     # Model configuration per agent (can be customized separately)
-    # Grok 4.1 Fast - быстрая агентская модель с 128K контекстом
-    # https://openrouter.ai/x-ai/grok-4.1-fast
-    gm_model: str = "deepseek/deepseek-v3.2"  # Game Master model
-    quantizer_model: str = "x-ai/grok-4.1-fast"  # Quantizer model  
-    summarizer_model: str = "x-ai/grok-4.1-fast"  # Summarizer model
-    translator_model: str = "x-ai/grok-4.1-fast"  # Translator model (cheapest for simple JSON)
+    # GLM-4.7-Flash - новая модель нового поколения с хорошей производительностью
+    # https://openrouter.ai/z-ai/glm-4.7-flash
+    gm_model: str = "z-ai/glm-4.7-flash"  # Game Master model
+    quantizer_model: str = "z-ai/glm-4.7-flash"  # Quantizer model  
+    summarizer_model: str = "z-ai/glm-4.7-flash"  # Summarizer model
+    translator_model: str = "z-ai/glm-4.7-flash"  # Translator model
     
     # Max tokens for each agent (output length)
     gm_max_tokens: int = 3500  # GM can give longer, detailed responses
