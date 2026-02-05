@@ -231,6 +231,16 @@ class PlexMemBot:
                 reply_text = result['reply']
                 turn_number = result['turn_number']
                 
+                # If no streaming updates occurred, initialize updater now
+                if updater is None:
+                    await loading.stop()
+                    updater = StreamingMessageUpdater(
+                        bot=self.bot,
+                        chat_id=user_id,
+                        message_id=loading.message.message_id,
+                        update_interval=settings.streaming_chunk_interval
+                    )
+                
             else:
                 logger.info("📄 Using non-streaming mode (fallback)")
                 
