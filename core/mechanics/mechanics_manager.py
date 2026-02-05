@@ -79,6 +79,42 @@ class MechanicsManager:
             max_mana=max_mana,
             gold=50  # Starting gold
         )
+    
+    def update_character_stats(
+        self,
+        session_id: int,
+        stats: Dict[str, int]
+    ):
+        """
+        Update existing character's base stats (spades, hearts, diamonds, clubs).
+        Recalculates max HP and mana based on new stats.
+        
+        Args:
+            session_id: Session ID
+            stats: New stats {"spades": 45, "hearts": 70, ...}
+        """
+        char = self.get_character(session_id)
+        if not char:
+            logger.warning(f"No character for session {session_id}, cannot update stats")
+            return
+        
+        # Update base stats
+        char.spades = stats.get("spades", char.spades)
+        char.hearts = stats.get("hearts", char.hearts)
+        char.diamonds = stats.get("diamonds", char.diamonds)
+        char.clubs = stats.get("clubs", char.clubs)
+        
+        # Recalculate max HP and mana
+        _, new_max_hp, _, new_max_mana = calculations.calculate_starting_hp_mana(stats)
+        char.max_hp = new_max_hp
+        char.max_mana = new_max_mana
+        
+        # Adjust current HP/mana if they exceed new max
+        char.hp = min(char.hp, char.max_hp)
+        char.mana = min(char.mana, char.max_mana)
+        
+        self.db.update_character(char)
+        logger.info(f"✅ Character stats updated: {stats}, new max HP={new_max_hp}, max mana={new_max_mana}")
         
         logger.info(f"Created character for session {session_id}: {stats}")
         return self._db_to_character(char_db)
